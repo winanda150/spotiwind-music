@@ -1,3 +1,3 @@
 # Spotiwind-System
 
-Masih tahap pembuatan dan perbaikan
+Masih tahap perbaikan atau update
