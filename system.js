@@ -750,5 +750,4 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleContent();
     setupPlayPauseToggle(playIcon, pauseIcon, false);
     setupPlayPauseToggle(playIcon1, pauseIcon1, true);
-    Blokir();
 });
