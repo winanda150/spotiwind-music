@@ -21,6 +21,7 @@ body {
     overflow-x: hidden;
     scrollbar-color: transparent transparent;
     scrollbar-width: none;
+    pointer-events: none;
 }
 
 /* ===================== NAVBAR UTAMA ===================== */
@@ -1116,4 +1117,5 @@ body {
 
 .desktop-notice h2 {
     font-size: 24px;
+
 }
