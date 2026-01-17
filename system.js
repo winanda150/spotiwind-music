@@ -906,9 +906,9 @@ document.addEventListener('click', function(e) {
                     .then(blob => {
                         const file = new File([blob], 'artist.jpg', { type: 'image/jpeg' });
                         return navigator.share({
-                            title: '' + displayedArtist + ' | Spotiwind',
-                            url: artistLink,
                             files: [file]
+                            title: '' + displayedArtist + ' | Spotiwind',
+                            url: artistLink
                         });
                     })
                     .then(() => {
@@ -1119,4 +1119,5 @@ window.addEventListener('hashchange', function() {
 // Event listener untuk window load (memastikan semua resource dimuat)
 window.addEventListener('load', function() {
     openArtistFromHash();
+
 });
