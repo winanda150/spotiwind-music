@@ -906,7 +906,7 @@ document.addEventListener('click', function(e) {
                     .then(blob => {
                         const file = new File([blob], 'artist.jpg', { type: 'image/jpeg' });
                         return navigator.share({
-                            files: [file]
+                            files: [file],
                             title: '' + displayedArtist + ' | Spotiwind',
                             url: artistLink
                         });
@@ -1121,3 +1121,4 @@ window.addEventListener('load', function() {
     openArtistFromHash();
 
 });
+
