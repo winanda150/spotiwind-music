@@ -1,4 +1,4 @@
-<img src="Sertifikat%20Juara%20Project/Sertifikat%20Juara%20Karya%20Terbaik%20Front%20End%20(IDC%202026).jpg" width="500"/>
+<img src="./Elemen/Logo/Banner.png" width="500" height="160">
 
 # Spotiwind-System
 
