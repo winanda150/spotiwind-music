@@ -1,4 +1,4 @@
-<img src="./Elemen/Logo/Banner.png" width="500" height="160">
+<img src="./Elemen/Logo/Banner.png">
 
 # Spotiwind-System
 
