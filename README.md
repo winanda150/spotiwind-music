@@ -1,5 +1,5 @@
-<img src="./Elemen/Logo/Banner.png">
+<img src="./Elemen/Logo/Banner.png" width=900>
 
-# Spotiwind-System
+# Spotiwind - Feel The Music, Ride The Wind.
 
 Masih tahap perbaikan atau update
