@@ -56,6 +56,22 @@ let downloadFilterMode = 'all'; // 'all' | 'tracks' | 'albums' | 'playlist'
 let downloadSortMode = 'recently-downloaded'; // 'recently-downloaded' | 'recently-played' | 'alphabetical' | 'size'
 let downloadViewMode = 'list'; // 'list' | 'grid'
 
+const PAGE_CHUNK_SIZE = 10;
+let playlistVisibleLimit = PAGE_CHUNK_SIZE;
+let albumVisibleLimit = PAGE_CHUNK_SIZE;
+let artistVisibleLimit = PAGE_CHUNK_SIZE;
+let trackVisibleLimit = PAGE_CHUNK_SIZE;
+let downloadVisibleLimit = PAGE_CHUNK_SIZE;
+let isTabLoadingMore = false;
+let hasUserScrolledOrDragged = false;
+let infiniteScrollObserver = null;
+
+let currentPlaylistsFilteredLength = 0;
+let currentAlbumsFilteredLength = 0;
+let currentArtistsFilteredLength = 0;
+let currentTracksFilteredLength = 0;
+let currentDownloadsFilteredLength = 0;
+
 function escapeHTML(str) {
     if (!str) return '';
     return String(str)
@@ -110,6 +126,8 @@ export function switchToLibraryTab(tabKey, options = {}) {
         panel.classList.toggle('is-active', isMatch);
     });
 
+    hasUserScrolledOrDragged = false;
+
     // Refresh contents of active panel
     if (activeLibraryTab === 'overview') {
         updateLocalStats();
@@ -154,14 +172,18 @@ export async function initLibraryPage(initialTab = 'overview') {
 
     downloadSearchQuery = '';
     downloadFilterMode = 'all';
-    downloadSortMode = 'recently-added';
+    downloadSortMode = 'recently-downloaded';
     downloadViewMode = 'list';
+
+    isTabLoadingMore = false;
+    hasUserScrolledOrDragged = false;
 
     setupLibraryTabs(initialTab);
     setupOverviewCards();
     setupRealtimeOverviewData();
     setupSongActionListeners();
     setupDownloadOptionsModal();
+    setupLibraryInfiniteScroll();
     setupPlaylistControls();
     setupAlbumControls();
     setupArtistControls();
@@ -894,8 +916,13 @@ function renderPlaylistsPanel(playlists = [], isGuest = false) {
     // Ensure correct grid/list class
     container.className = `your-playlists-container ${playlistViewMode === 'grid' ? 'view-grid' : 'view-list'}`;
 
+    currentPlaylistsFilteredLength = filtered.length;
+    const hasMore = playlistVisibleLimit < filtered.length;
+    const visiblePlaylists = filtered.slice(0, playlistVisibleLimit);
+    const loaderHTML = hasMore ? createInfiniteLoaderHTML('playlists') : '';
+
     if (playlistViewMode === 'grid') {
-        container.innerHTML = filtered.map(p => {
+        container.innerHTML = visiblePlaylists.map(p => {
             const isCollab = Boolean(p.isCollaborative || p.isCollab || p.collab || (p.collaboratorIds && p.collaboratorIds.length > 0));
             const countStr = formatCount(p.songs?.length || 0, 'song', 'songs');
             return `
@@ -921,9 +948,9 @@ function renderPlaylistsPanel(playlists = [], isGuest = false) {
                     </div>
                 </div>
             `;
-        }).join('');
+        }).join('') + loaderHTML;
     } else {
-        container.innerHTML = filtered.map(p => {
+        container.innerHTML = visiblePlaylists.map(p => {
             const isCollab = Boolean(p.isCollaborative || p.isCollab || p.collab || (p.collaboratorIds && p.collaboratorIds.length > 0));
             const countStr = formatCount(p.songs?.length || 0, 'song', 'songs');
             return `
@@ -947,7 +974,11 @@ function renderPlaylistsPanel(playlists = [], isGuest = false) {
                     </div>
                 </div>
             `;
-        }).join('');
+        }).join('') + loaderHTML;
+    }
+
+    if (hasMore) {
+        observeSentinel(container.querySelector(`.library-infinite-sentinel[data-infinite-tab="playlists"]`));
     }
 }
 
@@ -1112,8 +1143,13 @@ function renderAlbumsPanel(songs = [], isGuest = false) {
         return;
     }
 
+    currentAlbumsFilteredLength = albums.length;
+    const hasMore = albumVisibleLimit < albums.length;
+    const visibleAlbums = albums.slice(0, albumVisibleLimit);
+    const loaderHTML = hasMore ? createInfiniteLoaderHTML('albums') : '';
+
     if (albumViewMode === 'grid') {
-        container.innerHTML = albums.map(album => {
+        container.innerHTML = visibleAlbums.map(album => {
             const tracksCount = album.tracksCount || album.tracks.length || 0;
             const countLabel = `${tracksCount} ${tracksCount === 1 ? 'track' : 'tracks'}`;
             return `
@@ -1141,9 +1177,9 @@ function renderAlbumsPanel(songs = [], isGuest = false) {
                     </div>
                 </div>
             `;
-        }).join('');
+        }).join('') + loaderHTML;
     } else {
-        container.innerHTML = albums.map(album => {
+        container.innerHTML = visibleAlbums.map(album => {
             const tracksCount = album.tracksCount || album.tracks.length || 0;
             const countLabel = `${tracksCount} ${tracksCount === 1 ? 'track' : 'tracks'}`;
             return `
@@ -1169,7 +1205,11 @@ function renderAlbumsPanel(songs = [], isGuest = false) {
                     </div>
                 </div>
             `;
-        }).join('');
+        }).join('') + loaderHTML;
+    }
+
+    if (hasMore) {
+        observeSentinel(container.querySelector(`.library-infinite-sentinel[data-infinite-tab="albums"]`));
     }
 }
 
@@ -1277,7 +1317,27 @@ async function renderArtistsPanel(isGuest = false) {
         console.warn("Could not fetch followed artists:", err);
     }
 
-    // 2. Sync play/add timestamps from currentLikedSongs for followed artists
+    // 2. Sync play timestamps from recently_played_songs & liked songs for followed artists
+    let recentSongsList = [];
+    try {
+        const rawRecent = localStorage.getItem('recently_played_songs') || localStorage.getItem('recentlyPlayed') || '[]';
+        recentSongsList = JSON.parse(rawRecent);
+        if (!Array.isArray(recentSongsList)) recentSongsList = [];
+    } catch {}
+
+    recentSongsList.forEach(recentSong => {
+        const rawArtist = recentSong.artist || recentSong.artistName || '';
+        if (!rawArtist || rawArtist === 'Unknown Artist') return;
+        const playedAt = Number(recentSong.playedAt || recentSong.timestamp || 0);
+        const songArtistId = String(recentSong.artistId || '').toLowerCase().trim();
+        const matchedByArtistId = songArtistId ? catalogMap.get(songArtistId) : null;
+        const key = matchedByArtistId ? (matchedByArtistId.name || matchedByArtistId.id).trim().toLowerCase() : rawArtist.trim().toLowerCase();
+        if (artistMap.has(key)) {
+            const existing = artistMap.get(key);
+            if (playedAt > existing.lastPlayedAt) existing.lastPlayedAt = playedAt;
+        }
+    });
+
     if (Array.isArray(currentLikedSongs)) {
         currentLikedSongs.forEach(song => {
             const rawArtist = song.artist || song.artistName || '';
@@ -1354,8 +1414,13 @@ async function renderArtistsPanel(isGuest = false) {
     container.className = `your-artists-container ${artistViewMode === 'grid' ? 'view-grid' : 'view-list'}`;
     const defaultAvatar = '../../public/branding/Spotiwind.webp';
 
+    currentArtistsFilteredLength = filtered.length;
+    const hasMore = artistVisibleLimit < filtered.length;
+    const visibleArtists = filtered.slice(0, artistVisibleLimit);
+    const loaderHTML = hasMore ? createInfiniteLoaderHTML('artists') : '';
+
     if (artistViewMode === 'grid') {
-        container.innerHTML = filtered.map(a => `
+        container.innerHTML = visibleArtists.map(a => `
             <div class="your-artist-grid-card" data-artist-id="${escapeHTML(a.id)}" data-artist-name="${escapeHTML(a.name)}" data-artist-photo="${escapeHTML(a.photo || defaultAvatar)}">
                 <div class="your-artist-grid-avatar">
                     <img src="${a.photo || defaultAvatar}" alt="${escapeHTML(a.name)}" width="160" height="160" loading="lazy" onerror="this.src='${defaultAvatar}'">
@@ -1365,9 +1430,9 @@ async function renderArtistsPanel(isGuest = false) {
                     <p class="your-artist-grid-meta">Following</p>
                 </div>
             </div>
-        `).join('');
+        `).join('') + loaderHTML;
     } else {
-        container.innerHTML = filtered.map(a => `
+        container.innerHTML = visibleArtists.map(a => `
             <div class="your-artist-item" data-artist-id="${escapeHTML(a.id)}" data-artist-name="${escapeHTML(a.name)}" data-artist-photo="${escapeHTML(a.photo || defaultAvatar)}">
                 <div class="your-artist-avatar-wrapper">
                     <img src="${a.photo || defaultAvatar}" alt="${escapeHTML(a.name)}" class="your-artist-avatar-img" width="48" height="48" loading="lazy" onerror="this.src='${defaultAvatar}'">
@@ -1389,7 +1454,11 @@ async function renderArtistsPanel(isGuest = false) {
                     </button>
                 </div>
             </div>
-        `).join('');
+        `).join('') + loaderHTML;
+    }
+
+    if (hasMore) {
+        observeSentinel(container.querySelector(`.library-infinite-sentinel[data-infinite-tab="artists"]`));
     }
 }
 
@@ -1447,7 +1516,27 @@ function renderTracksPanel(songs = [], isGuest = false) {
 
     // 3. Sort tracks
     if (trackSortMode === 'recently-played') {
-        filtered.sort((a, b) => (Number(b.lastPlayedAt) || 0) - (Number(a.lastPlayedAt) || 0));
+        let recentList = [];
+        try {
+            const rawRecent = localStorage.getItem('recently_played_songs') || localStorage.getItem('recentlyPlayed') || '[]';
+            recentList = JSON.parse(rawRecent);
+            if (!Array.isArray(recentList)) recentList = [];
+        } catch {
+            recentList = [];
+        }
+        const recentIds = recentList.map(r => String(r.id || r.songId || '').trim());
+
+        filtered.sort((a, b) => {
+            const idA = String(a.id || a.songId || '').trim();
+            const idB = String(b.id || b.songId || '').trim();
+            const idxA = recentIds.indexOf(idA);
+            const idxB = recentIds.indexOf(idB);
+
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+            return (Number(b.lastPlayedAt) || 0) - (Number(a.lastPlayedAt) || 0);
+        });
     } else if (trackSortMode === 'alphabetical') {
         filtered.sort((a, b) => (a.name || a.title || '').localeCompare(b.name || b.title || ''));
     } else {
@@ -1484,8 +1573,13 @@ function renderTracksPanel(songs = [], isGuest = false) {
     const currentSong = window.spotiwind?.mobile?.getCurrentSongData?.() || window.__currentSongData || (typeof window.getCurrentSongData === 'function' ? window.getCurrentSongData() : null);
     const activeAudio = window.__activeAudio || document.querySelector('audio');
 
+    currentTracksFilteredLength = filtered.length;
+    const hasMore = trackVisibleLimit < filtered.length;
+    const visibleTracks = filtered.slice(0, trackVisibleLimit);
+    const loaderHTML = hasMore ? createInfiniteLoaderHTML('tracks') : '';
+
     if (trackViewMode === 'grid') {
-        container.innerHTML = filtered.map(song => {
+        container.innerHTML = visibleTracks.map(song => {
             const songId = song.id || song.songId || '';
             const name = song.name || song.title || 'Unknown Track';
             const artist = song.artist || 'Unknown Artist';
@@ -1524,9 +1618,9 @@ function renderTracksPanel(songs = [], isGuest = false) {
                     </div>
                 </div>
             `;
-        }).join('');
+        }).join('') + loaderHTML;
     } else {
-        container.innerHTML = filtered.map(song => {
+        container.innerHTML = visibleTracks.map(song => {
             const songId = song.id || song.songId || '';
             const name = song.name || song.title || 'Unknown Track';
             const artist = song.artist || 'Unknown Artist';
@@ -1570,7 +1664,11 @@ function renderTracksPanel(songs = [], isGuest = false) {
                     </div>
                 </div>
             `;
-        }).join('');
+        }).join('') + loaderHTML;
+    }
+
+    if (hasMore) {
+        observeSentinel(container.querySelector(`.library-infinite-sentinel[data-infinite-tab="tracks"]`));
     }
 }
 
@@ -1710,7 +1808,14 @@ function renderDownloadsPanel(isGuest = !auth.currentUser) {
     }
 
     if (downloadSortMode === 'recently-downloaded' || downloadSortMode === 'recently-added') {
-        filtered.reverse();
+        filtered.sort((a, b) => {
+            const timeA = Number(a.downloadedAt) || 0;
+            const timeB = Number(b.downloadedAt) || 0;
+            if (timeA && timeB) return timeB - timeA;
+            if (timeB) return 1;
+            if (timeA) return -1;
+            return 0;
+        });
     } else if (downloadSortMode === 'recently-played') {
         let recentList = [];
         try {
@@ -1720,18 +1825,18 @@ function renderDownloadsPanel(isGuest = !auth.currentUser) {
         } catch {
             recentList = [];
         }
-        const recentIds = recentList.map(r => String(r.id || r.songId || ''));
+        const recentIds = recentList.map(r => String(r.id || r.songId || '').trim());
 
         filtered.sort((a, b) => {
-            const idA = String(a.id || a.songId || '');
-            const idB = String(b.id || b.songId || '');
+            const idA = String(a.id || a.songId || '').trim();
+            const idB = String(b.id || b.songId || '').trim();
             const idxA = recentIds.indexOf(idA);
             const idxB = recentIds.indexOf(idB);
 
             if (idxA !== -1 && idxB !== -1) return idxA - idxB;
             if (idxA !== -1) return -1;
             if (idxB !== -1) return 1;
-            return 0;
+            return (Number(b.downloadedAt) || 0) - (Number(a.downloadedAt) || 0);
         });
     } else if (downloadSortMode === 'alphabetical') {
         filtered.sort((a, b) => (a.name || a.title || '').localeCompare(b.name || b.title || ''));
@@ -1770,8 +1875,13 @@ function renderDownloadsPanel(isGuest = !auth.currentUser) {
     const currentSong = window.spotiwind?.mobile?.getCurrentSongData?.() || window.__currentSongData || (typeof window.getCurrentSongData === 'function' ? window.getCurrentSongData() : null);
     const activeAudio = window.__activeAudio || document.querySelector('audio');
 
+    currentDownloadsFilteredLength = filtered.length;
+    const hasMore = downloadVisibleLimit < filtered.length;
+    const visibleDownloads = filtered.slice(0, downloadVisibleLimit);
+    const loaderHTML = hasMore ? createInfiniteLoaderHTML('download') : '';
+
     if (downloadViewMode === 'grid') {
-        container.innerHTML = filtered.map(song => {
+        container.innerHTML = visibleDownloads.map(song => {
             const songId = song.id || song.songId || '';
             const name = song.name || song.title || 'Unknown Track';
             const artist = song.artist || 'Unknown Artist';
@@ -1810,9 +1920,9 @@ function renderDownloadsPanel(isGuest = !auth.currentUser) {
                     </div>
                 </div>
             `;
-        }).join('');
+        }).join('') + loaderHTML;
     } else {
-        container.innerHTML = filtered.map(song => {
+        container.innerHTML = visibleDownloads.map(song => {
             const songId = song.id || song.songId || '';
             const name = song.name || song.title || 'Unknown Track';
             const artist = song.artist || 'Unknown Artist';
@@ -1851,12 +1961,133 @@ function renderDownloadsPanel(isGuest = !auth.currentUser) {
                     </div>
                 </div>
             `;
-        }).join('');
+        }).join('') + loaderHTML;
+    }
+
+    if (hasMore) {
+        observeSentinel(container.querySelector(`.library-infinite-sentinel[data-infinite-tab="download"]`));
     }
 
     if (typeof window.syncActiveSongUI === 'function') {
         window.syncActiveSongUI();
     }
+}
+
+function createInfiniteLoaderHTML(tabKey) {
+    return `
+        <div class="library-infinite-loader is-loading" data-infinite-tab="${tabKey}">
+            <div class="library-infinite-spinner" aria-hidden="true"></div>
+            <span class="library-infinite-text">Memuat lainnya...</span>
+        </div>
+    `;
+}
+
+function observeSentinel(sentinelEl) {
+    // No-op safe stub
+}
+
+function setupLibraryInfiniteScroll() {
+    let lastScrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+    let touchStartY = 0;
+    let isTouching = false;
+
+    // 1. Natural Scroll predictive buffer (TikTok & Spotify concept)
+    const handleScroll = debounce(() => {
+        if (isTabLoadingMore || activeLibraryTab === 'overview') return;
+
+        const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+        const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+        const clientHeight = window.innerHeight || document.documentElement.clientHeight;
+
+        const isScrollingDown = scrollTop > lastScrollTop;
+        lastScrollTop = Math.max(0, scrollTop);
+
+        // Predictive buffer: when user scrolls down and reaches >= 80% or within 220px of bottom
+        if (isScrollingDown && scrollTop > 60 && (scrollTop + clientHeight >= scrollHeight - 220 || scrollTop + clientHeight >= scrollHeight * 0.80)) {
+            triggerLoadMore(activeLibraryTab);
+        }
+    }, 60);
+
+    // 2. Touch support for fast swiping / pull-up near bottom
+    const handleTouchStart = (e) => {
+        if (isTabLoadingMore || activeLibraryTab === 'overview' || !e.touches || !e.touches[0]) return;
+        touchStartY = e.touches[0].clientY;
+        isTouching = true;
+    };
+
+    const handleTouchMove = (e) => {
+        if (!isTouching || isTabLoadingMore || activeLibraryTab === 'overview' || !e.touches || !e.touches[0]) return;
+        const currentY = e.touches[0].clientY;
+        const pullDistance = touchStartY - currentY; // positive when dragging upwards
+
+        const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+        const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+        const clientHeight = window.innerHeight || document.documentElement.clientHeight;
+
+        if (pullDistance > 30 && (scrollTop + clientHeight >= scrollHeight - 150)) {
+            triggerLoadMore(activeLibraryTab);
+        }
+    };
+
+    const handleTouchEnd = () => {
+        isTouching = false;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    listeners.push({ element: window, type: 'scroll', handler: handleScroll });
+    listeners.push({ element: window, type: 'touchstart', handler: handleTouchStart });
+    listeners.push({ element: window, type: 'touchmove', handler: handleTouchMove });
+    listeners.push({ element: window, type: 'touchend', handler: handleTouchEnd });
+}
+
+function triggerLoadMore(tabKey) {
+    if (isTabLoadingMore) return;
+
+    let hasMore = false;
+    if (tabKey === 'playlists') {
+        hasMore = playlistVisibleLimit < currentPlaylistsFilteredLength;
+    } else if (tabKey === 'albums') {
+        hasMore = albumVisibleLimit < currentAlbumsFilteredLength;
+    } else if (tabKey === 'artists') {
+        hasMore = artistVisibleLimit < currentArtistsFilteredLength;
+    } else if (tabKey === 'tracks') {
+        hasMore = trackVisibleLimit < currentTracksFilteredLength;
+    } else if (tabKey === 'download') {
+        hasMore = downloadVisibleLimit < currentDownloadsFilteredLength;
+    }
+
+    if (!hasMore) return;
+
+    isTabLoadingMore = true;
+
+    const loaderEl = document.querySelector(`.library-infinite-loader[data-infinite-tab="${tabKey}"]`);
+    if (loaderEl) {
+        loaderEl.classList.add('is-loading');
+    }
+
+    setTimeout(() => {
+        if (tabKey === 'playlists') {
+            playlistVisibleLimit += PAGE_CHUNK_SIZE;
+            renderPlaylistsPanel(currentPlaylists, !auth.currentUser);
+        } else if (tabKey === 'albums') {
+            albumVisibleLimit += PAGE_CHUNK_SIZE;
+            renderAlbumsPanel(currentLikedSongs, !auth.currentUser);
+        } else if (tabKey === 'artists') {
+            artistVisibleLimit += PAGE_CHUNK_SIZE;
+            renderArtistsPanel(!auth.currentUser);
+        } else if (tabKey === 'tracks') {
+            trackVisibleLimit += PAGE_CHUNK_SIZE;
+            renderTracksPanel(currentLikedSongs, !auth.currentUser);
+        } else if (tabKey === 'download') {
+            downloadVisibleLimit += PAGE_CHUNK_SIZE;
+            renderDownloadsPanel(!auth.currentUser);
+        }
+        isTabLoadingMore = false;
+    }, 200);
 }
 
 function setupPlaylistControls() {
@@ -3245,6 +3476,11 @@ export function cleanupLibraryPage() {
     closeProSubscriptionModal();
     cleanupUserSubscriptions();
 
+    if (infiniteScrollObserver) {
+        infiniteScrollObserver.disconnect();
+        infiniteScrollObserver = null;
+    }
+
     // Reset view modes and search states on leaving the page
     playlistSearchQuery = '';
     playlistFilterMode = 'all';
@@ -3265,6 +3501,14 @@ export function cleanupLibraryPage() {
     trackFilterMode = 'all';
     trackSortMode = 'recently-added';
     trackViewMode = 'list';
+
+    downloadSearchQuery = '';
+    downloadFilterMode = 'all';
+    downloadSortMode = 'recently-downloaded';
+    downloadViewMode = 'list';
+
+    isTabLoadingMore = false;
+    hasUserScrolledOrDragged = false;
 
     if (cleanupDownloadOptionsDrag) {
         cleanupDownloadOptionsDrag();
