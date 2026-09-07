@@ -52,7 +52,7 @@ export const initSearchPage = ({
     };
 
     window.handleSongSearchClick = async (audio, name, artist, cover, id, duration) => {
-        // Hanya beri ranking jika lagu berbeda atau lagu yang sama sudah selesai
+        // Record ranking only if different song or if the current song finished playback
         if (canRecordRanking(id)) {
             lastRankedSongId = String(id);
             await recordSearchSelection('songs', { id, name, artist, cover, audio, duration });
@@ -143,14 +143,13 @@ export const initSearchPage = ({
     let searchAbortController = null;
     let popularSearchData = { songs: [], artists: [], albums: [] };
     let activePopularTab = 'top';
-    // Guard: menyimpan ID lagu terakhir yang sudah diberi ranking dalam sesi ini
-    // Ranking baru hanya diberikan jika lagu berbeda ATAU lagu yang sama sudah selesai (ended)
+    // Guard: track last ranked song ID in current session to prevent duplicate ranking writes
     let lastRankedSongId = null;
 
     const canRecordRanking = (songId) => {
         const currentSong = getCurrentSongData();
         const isSameSong = currentSong && (String(currentSong.id) === String(songId));
-        // Jika lagu yang sama masih diputar (belum ended) → JANGAN beri ranking lagi
+        // Prevent recording ranking again if active song is currently playing and not ended
         if (isSameSong && activeAudio && !activeAudio.ended && lastRankedSongId === String(songId)) {
             return false;
         }
@@ -260,7 +259,7 @@ export const initSearchPage = ({
             items = sortPopularItems([...popularSearchData[activePopularTab]]).slice(0, 10);
         }
 
-        // Sinkron daftar LAGU yang sedang ditampilkan ke buffer popularPlaylist
+        // Sync displayed track list to popularPlaylist buffer
         const songItems = items.filter((item) => (item.resultType || activePopularTab) === 'songs');
         if (typeof setPopularPlaylist === 'function') {
             setPopularPlaylist(songItems.map((s) => ({
@@ -526,7 +525,7 @@ export const initSearchPage = ({
                     window.syncActiveSongUI();
                 }
 
-                // Auto-play lagu teratas jika perintah suara mengandung perintah putar (playIntent)
+                // Auto-play top track if triggered with play intent
                 if (autoPlay && fullMappedResults.length > 0) {
                     const topSong = fullMappedResults[0];
                     if (topSong && topSong.audio && typeof window.handleSongSearchClick === 'function') {
@@ -587,13 +586,13 @@ export const initSearchPage = ({
     });
     searchInput.addEventListener('search', submitSearch);
 
-    // Tombol panah kanan: submit pencarian
+    // Search submit button
     const searchSubmitBtn = document.getElementById('searchSubmitBtn');
     if (searchSubmitBtn) {
         searchSubmitBtn.addEventListener('click', (event) => {
-            event.stopPropagation(); // jangan tutup dropdown
+            event.stopPropagation();
             if (searchInput.value.trim().length < 1) {
-                searchInput.focus(); // jika kosong, fokus ke input saja
+                searchInput.focus();
                 return;
             }
             submitSearch();

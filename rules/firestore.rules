@@ -66,6 +66,10 @@ service cloud.firestore {
         allow read, write: if isOwner(userId);
       }
 
+      match /albums/{albumId} {
+        allow read, write: if isOwner(userId);
+      }
+
       match /recent_searches/{searchId} {
         allow read, write: if isOwner(userId);
       }

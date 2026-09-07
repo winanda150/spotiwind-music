@@ -50,9 +50,9 @@ let currentPlaybackContext = null; // Track current playback context (e.g. made-
 let searchPlaylist = []; // Buffer to store search results
 let popularPlaylist = []; // Buffer to store Popular Searches song list for Up Next
 let indonesianSongsPlaylist = []; // Buffer for all local songs (for search)
-let indonesianArtistsPlaylist = []; // NEW: Buffer for local artists
-let indonesianAlbumsPlaylist = []; // NEW: Buffer for local albums
-let unshuffledPlaylist = []; // NEW: To store the original order of the playlist
+let indonesianArtistsPlaylist = []; // Buffer for local artists
+let indonesianAlbumsPlaylist = []; // Buffer for local albums
+let unshuffledPlaylist = []; // Original order buffer for un-shuffling
 let currentSongIndex = -1;
 let isShuffle = false;
 let isRepeat = false;
@@ -60,7 +60,7 @@ let isDragging = false;
 let currentSongData = null; // Stores the currently active song data
 let activityUpdateTimeout = null; // For activity update optimization
 let lastRecordedActivitySong = '';
-let artistPageCurrentSongs = []; // [NEW] Buffer to store songs from the current artist page
+let artistPageCurrentSongs = []; // Buffer to store songs from the current artist page
 let homeScrollPosition = getHomeScrollPosition(); // Stores scroll position of the home page for returning from subpages
 
 const isGenuineHomeView = () => {
@@ -105,8 +105,8 @@ let friendActivityListeners = []; // Store listeners so they can be cleared
 let currentUserIsPro = false;
 let currentUserProfile = null;
 
-let unreadNotificationsListener = null; // [NEW] To store the unsubscribe function for unread notifications
-// NEW: Tracking RTDB listeners to avoid duplicates (Sync with Desktop)
+let unreadNotificationsListener = null; // Unsubscribe function for unread notifications
+// Realtime DB presence listener registry
 const activePresenceListeners = new Map();
 let userPresenceCleanup = null;
 let sidebarPlaylistsUnsubscribe = null;
@@ -321,7 +321,7 @@ const syncActiveSongUI = () => {
             }
         });
 
-        // [FIX] Only the active mix card should remain highlighted, even if multiple mixes contain the same song
+        // Highlight active mix card if current song matches
         document.querySelectorAll('.mix-card').forEach(mixCard => {
             const mixId = mixCard.dataset.mixId;
             const isCurrentMix = activeMixId ? String(mixId) === String(activeMixId) : false;
@@ -337,7 +337,7 @@ const syncActiveSongUI = () => {
             }
         });
 
-        // [NEW] Sync active state for Mix Detail Modal tracklist rows
+        // Sync active state for Mix Detail Modal tracklist rows
         document.querySelectorAll('.mix-track-row').forEach(row => {
             const rowSongId = row.dataset.songId;
             const rowAudio = row.dataset.songAudio;
@@ -356,7 +356,7 @@ const syncActiveSongUI = () => {
             }
         });
 
-        // [NEW] Sync active state for Artist Page main play/pause button
+        // Sync active state for Artist Page main play/pause button
         if (artistPlayAllBtn && currentSongData) {
             const pageArtistTitle = document.getElementById('artistPageName')?.textContent?.trim() ||
                                     document.querySelector('.artist-hero-name')?.textContent?.trim();
@@ -818,9 +818,7 @@ const renderMobileFriendActivity = async () => {
  * Helper for relative time format (same as desktop)
  */
 const formatRelativeTime = (timestamp) => {
-    // [FIX] Add null or undefined check for timestamp
     if (!timestamp || typeof timestamp.toDate !== 'function') {
-        // If the timestamp is invalid, return a default or empty string
         return '...';
     }
     const now = new Date();
@@ -1103,7 +1101,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // [REFACTOR] Centralized event delegation for dynamic elements
+        // Event delegation for dynamic elements
         const target = e.target;
 
         if (target.closest('#notificationBtn')) {
@@ -1482,7 +1480,8 @@ window.toggleDownloadSong = toggleDownloadSong;
         window.__spotiwindContext = currentPlaybackContext;
         window.__spotiwindActiveMixId = activeMixId;
 
-        // Sinkronkan status tombol shuffle di Full Player sesuai context
+        // Sync shuffle button state in Full Player
+        const fullShuffleBtn = document.getElementById('fullShuffleBtn');
         if (context && context.startsWith('artist-')) {
             const hasCustomShuffledQueue = Array.isArray(customPlaylist) && customPlaylist.length > 1;
             if (hasCustomShuffledQueue) {
@@ -1749,7 +1748,7 @@ window.toggleDownloadSong = toggleDownloadSong;
                     <div class="skeleton skeleton-name"></div>
                 </div>
             `;
-        } else if (type === 'artist-song-list') { // [NEW] Skeleton for vertical artist song list
+        } else if (type === 'artist-song-list') { // Skeleton for vertical artist song list
             skeletonHTML = `
                 <div class="artist-song-list-item-skeleton skeleton">
                     <div class="skeleton-item-left"></div>
@@ -1855,8 +1854,7 @@ window.toggleDownloadSong = toggleDownloadSong;
 
         const skeletons = grid.querySelectorAll(skeletonSelector);
 
-        // Jika tidak ada skeleton (misal halaman dipulihkan dari cache snapshot DOM),
-        // langsung ganti konten agar tidak menduplikasi kartu di bawah kartu lama
+        // Direct replacement if no skeleton placeholders exist
         if (skeletons.length === 0) {
             grid.innerHTML = items.map(item => itemRenderer(item, context)).join('');
             syncActiveSongUI();
@@ -2084,8 +2082,7 @@ window.toggleDownloadSong = toggleDownloadSong;
                 window.location.pathname.includes('/artist')
             );
 
-            // Jika sedang di halaman artis dan item navigasi bawah yang diklik dalam kondisi aktif:
-            // Tidak terjadi apa-apa dan scroll kembali ke atas secara mulus
+            // Smooth scroll to top when tapping active artist page tab
             if (isCurrentlyOnArtistPage && item.classList.contains('active')) {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2097,15 +2094,13 @@ window.toggleDownloadSong = toggleDownloadSong;
                 return;
             }
 
-            // Cek jika sedang membuka mix-detail-modal
             const mixDetailModal = document.getElementById('mixDetailModal');
             const isMixDetailModalOpen = Boolean(
                 document.body.classList.contains('mix-detail-open') ||
                 (mixDetailModal && !mixDetailModal.classList.contains('hidden'))
             );
 
-            // Jika sedang membuka mix detail modal dan item navigasi bawah yang diklik dalam kondisi aktif:
-            // Tidak terjadi apa-apa (modal tidak tertutup/navigasi batal) dan scroll isi modal kembali ke atas secara mulus
+            // Smooth scroll modal content when tapping active tab
             if (isMixDetailModalOpen && item.classList.contains('active')) {
                 const scrollable = mixDetailModal?.querySelector('.mix-detail-scrollable');
                 if (scrollable) {
@@ -2117,7 +2112,6 @@ window.toggleDownloadSong = toggleDownloadSong;
                 return;
             }
 
-            // Cek jika sedang berada di halaman windflow
             const isCurrentlyOnWindflowPage = Boolean(
                 document.querySelector('.windflow-page, .windflow-header, #windflowController') ||
                 (typeof window.getCurrentPageUrl === 'function' && (window.getCurrentPageUrl()?.includes('windflow') || window.getCurrentPageUrl()?.includes('radio'))) ||
@@ -2125,8 +2119,7 @@ window.toggleDownloadSong = toggleDownloadSong;
                 window.location.pathname.includes('/radio')
             );
 
-            // Jika sedang di halaman windflow dan item navigasi bawah yang diklik dalam kondisi aktif:
-            // Tidak terjadi apa-apa dan scroll kembali ke atas secara mulus
+            // Smooth scroll when tapping active windflow tab
             if (isCurrentlyOnWindflowPage && item.classList.contains('active')) {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2169,7 +2162,7 @@ window.toggleDownloadSong = toggleDownloadSong;
                 return;
             }
 
-            // Tutup modal mix detail secara instan saat berpindah halaman
+            // Close mix detail modal immediately on navigation
             forceCloseMixDetailModal();
 
             // Only navigate if a different item is clicked
@@ -2188,8 +2181,7 @@ window.toggleDownloadSong = toggleDownloadSong;
     });
 
     /**
-     * [NEW] Reusable function to update the user's avatar.
-     * This is extracted to be called on initial load and on navigation back to home.
+     * Updates user avatar element with fallback support.
      * @param {object} user - The Firebase user object.
      * @param {HTMLElement} avatarElement - The <img> element to update.
      */
@@ -2199,7 +2191,7 @@ window.toggleDownloadSong = toggleDownloadSong;
             const nameForAvatar = user.displayName || user.email.split('@')[0];
             const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(nameForAvatar)}&background=B91EC9&color=fff&bold=true&size=512`;
             
-            // Konversi Google photoURL dari s96-c menjadi HD s512-c
+            // Normalize Google photoURL to high-res (512px)
             let originalPhotoURL = user.photoURL ? String(user.photoURL).trim() : '';
             if (originalPhotoURL && (originalPhotoURL.includes('googleusercontent.com') || originalPhotoURL.includes('google.com') || originalPhotoURL.includes('ggpht.com'))) {
                 if (/=s\d+([a-zA-Z0-9_-]*)/.test(originalPhotoURL)) {
@@ -2405,10 +2397,10 @@ window.toggleDownloadSong = toggleDownloadSong;
         const cleanQueryName = decodeURIComponent(queryName || '').trim();
         const lowerQueryName = cleanQueryName.toLowerCase();
 
-        // 0. Pastikan data katalog lokal dimuat sebelum proses pencarian dilakukan
+        // Ensure local catalog metadata is loaded
         await loadLocalCatalogData();
 
-        // 1. Cari di daftar artis lokal yang sedang aktif (cocokkan Hash 22-char, ID asli, Nama, atau QueryName)
+        // 1. Search in local artist list
         let matchedArtist = indonesianArtistsPlaylist.find(a => {
             const uniqueId = getArtistUniqueId(a);
             const aId = String(a.id || '').toLowerCase().trim();
@@ -2430,7 +2422,7 @@ window.toggleDownloadSong = toggleDownloadSong;
             return matchesId || matchesName;
         });
 
-        // 2. Jika belum ketemu, cari di katalog lagu lokal (misal artis lagu kolaborasi atau nama folder)
+        // 2. Search local track catalog as fallback
         if (!matchedArtist && indonesianSongsPlaylist.length > 0) {
             const songMatch = indonesianSongsPlaylist.find(s => {
                 const sArtist = String(s.artist || '').trim();
@@ -2446,13 +2438,11 @@ window.toggleDownloadSong = toggleDownloadSong;
             });
 
             if (songMatch) {
-                // Cari apakah ada artis terdaftar di artists.json yang cocok dengan kolaborasi ini
                 const candidateLocal = indonesianArtistsPlaylist.find(a => {
                     const aName = (a.name || '').toLowerCase().trim();
                     return aName && (songMatch.artist.toLowerCase().includes(aName) || aName.includes(songMatch.artist.toLowerCase()));
                 });
 
-                // Path foto resmi artis (bukan cover lagu!)
                 let officialPhoto = candidateLocal?.photo || '';
                 if (!officialPhoto) {
                     const folderName = songMatch.artist.split('&')[0].trim();
@@ -2467,7 +2457,7 @@ window.toggleDownloadSong = toggleDownloadSong;
             }
         }
 
-        // 3. Jika artis dari Jamendo API
+        // 3. Search via external API
         if (!matchedArtist) {
             try {
                 if (!isNaN(parseInt(queryId)) && queryId.length <= 10) {
@@ -2494,13 +2484,13 @@ window.toggleDownloadSong = toggleDownloadSong;
             }
         }
 
-        // 4. Fallback object jika URL tidak ditemukan di katalog
+        // 4. Default fallback artist object
         if (!matchedArtist) {
             const formattedName = cleanQueryName || queryId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             matchedArtist = {
                 id: queryId,
                 name: formattedName,
-                photo: '' // Jangan gunakan cover lagu! defaultAvatar akan otomatis dipakai
+                photo: ''
             };
         }
 
@@ -2716,18 +2706,18 @@ window.toggleDownloadSong = toggleDownloadSong;
     window.closeMixDetailModal = closeMixDetailModal;
     window.forceCloseMixDetailModal = forceCloseMixDetailModal;
 
-    // [REFACTOR] Fungsi navigasi sekarang hanya untuk perpindahan antar file utama (desktop/mobile)
-    const navigateTo = (url) => { // Fungsi ini tetap berguna untuk redirect ke home-desktop.html
+    // File navigation handler
+    const navigateTo = (url) => {
         const overlay = document.getElementById('pageTransition');
 
         // Immediately hide the main container to avoid a messy look during resize
         document.body.classList.add('is-transitioning');
 
         if (overlay) {
-            overlay.classList.remove('fade-out'); // <--- HERE
+            overlay.classList.remove('fade-out');
             setTimeout(() => { window.location.replace(url); }, 500);
         } else {
-            window.location.replace(url); // <--- HERE
+            window.location.replace(url);
         }
     };
 
@@ -2764,8 +2754,7 @@ window.toggleDownloadSong = toggleDownloadSong;
     });
 
     /**
-     * NEW: Display all skeleton loaders synchronously at the start.
-     * This ensures skeletons are always visible, even on a quick refresh.
+     * Display skeleton loaders synchronously at the start.
      */
     const initializeSkeletons = () => {
         showSkeletonLoader('.popular-section .song-grid', 'song', 10);
@@ -2786,7 +2775,7 @@ window.toggleDownloadSong = toggleDownloadSong;
             const rawSongs = getRecentlyPlayed();
             const validSongs = (Array.isArray(rawSongs) ? rawSongs : [])
                 .filter(s => s && (s.id || s.audio) && s.audio)
-                .slice(0, 3); // Hanya 3 lagu terbaru sesuai permintaan
+                .slice(0, 3); // Display up to 3 most recent tracks
 
             if (validSongs.length === 0) {
                 homeRecentlyPlayedListCache = [];
@@ -2872,19 +2861,15 @@ window.toggleDownloadSong = toggleDownloadSong;
         renderHomeRecentlyPlayed();
     }, { passive: true });
 
-    // [FIX] Pindahkan definisi initializeData ke lingkup yang lebih tinggi (global)
-    // agar dapat diakses oleh loadPageContent saat memulihkan halaman Home.
     const initializeData = () => {
-        // Hapus Promise.all agar setiap grid dapat dirender secara independen.
-        // Ini memungkinkan data muncul satu per satu saat sudah siap, tanpa menunggu yang lain.
         fetchWithContinuousRetry(fetchTrendingMusic);
         fetchWithContinuousRetry(fetchTopArtists);
         fetchWithContinuousRetry(fetchMadeForYou);
         renderHomeRecentlyPlayed();
-        loadLocalCatalogData(); // Load catalog data in background for search & artist pages
+        loadLocalCatalogData();
     };
 
-// [NEW] Expose necessary functions to the global scope for modules
+// Expose public API to window scope
 window.isCurrentUserPro = () => Boolean(currentUserIsPro);
 window.spotiwind = {
     mobile: {
@@ -2899,10 +2884,8 @@ window.spotiwind = {
     }
 };
 
-    // Panggil initializeSkeletons sekali saat halaman pertama kali dimuat.
+    // Initial render and data fetch
     initializeSkeletons();
-    
-    // Panggil initializeHomeContent dan initializeData sekali saat halaman pertama kali dimuat.
     initializeHomeContent();
     initializeData();
 

@@ -121,13 +121,12 @@ const setupBottomSheetDrag = (modalEl, onCloseCallback) => {
 
         const isFullscreen = sheet.classList.contains('is-fullscreen');
 
-        // Jika belum dragging dan gerakan didominasi horizontal, abaikan
+        // Ignore gesture if horizontal movement exceeds vertical threshold before drag starts
         if (!isDragging && Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 8) {
             return;
         }
 
-        // Gesture 1: Tarik ke ATAS (deltaY < 0)
-        // HANYA diproses jika konten memang panjang & melebihi layar (canExpandToFullscreen) dan ditarik pada handle/header!
+        // Upward pull (deltaY < 0)
         if (deltaY < -6) {
             if (isFullscreen) {
                 const rubberBand = deltaY * 0.08;
@@ -145,11 +144,11 @@ const setupBottomSheetDrag = (modalEl, onCloseCallback) => {
                 if (e.cancelable) e.preventDefault();
             }
         }
-        // Gesture 2: Tarik ke BAWAH (deltaY > 0)
+        // Downward pull (deltaY > 0)
         else if (deltaY > 0) {
             const sheetHeight = sheet.offsetHeight || 380;
             if (isTouchOnHandleOrHeader) {
-                // Tarik dari handle bar / header: butuh tarikan sengaja (> 12px) agar tidak terpicu oleh sentuhan ringan
+                // Dragging from handle or header requires minimum 12px threshold to prevent accidental clicks
                 if (deltaY > 12) {
                     if (!isDragging) {
                         isDragging = true;
@@ -165,8 +164,7 @@ const setupBottomSheetDrag = (modalEl, onCloseCallback) => {
                     if (e.cancelable) e.preventDefault();
                 }
             } else if (sheet.scrollTop <= 0 && deltaY > 28) {
-                // Sentuhan di area konten saat posisi sudah di puncak paling atas:
-                // Butuh tarikan sengaja (> 28px) agar scroll balik tidak membuat modal turun tiba-tiba
+                // Dragging content area when scrolled to the top requires intentional threshold
                 if (!isDragging) {
                     isDragging = true;
                     sheet.classList.add('is-dragging');
@@ -202,7 +200,7 @@ const setupBottomSheetDrag = (modalEl, onCloseCallback) => {
         sheet.style.height = '';
         sheet.style.maxHeight = '';
 
-        // Kasus 1: Tarik ke ATAS -> HANYA masuk fullscreen jika konten memang panjang dan ditarik pada Handle Bar/Header!
+        // Upward threshold: expand to fullscreen if content is scrollable and initiated from header
         if (deltaY < -40 || (velocityY < -0.45 && deltaY < -20)) {
             if (!isFullscreen && canExpandToFullscreen && isTouchOnHandleOrHeader) {
                 sheet.classList.add('is-fullscreen');
@@ -211,7 +209,7 @@ const setupBottomSheetDrag = (modalEl, onCloseCallback) => {
             return;
         }
 
-        // Kasus 2: Tarik ke BAWAH (Swipe down / collapse threshold)
+        // Downward threshold: collapse or dismiss
         if (isFullscreen) {
             const collapseThreshold = isTouchOnHandleOrHeader ? 70 : 100;
             const isFlick = (velocityY > 0.65 && deltaY >= 35);
@@ -242,7 +240,7 @@ const setupBottomSheetDrag = (modalEl, onCloseCallback) => {
 
     const onPointerDown = (e) => {
         if (e.button !== undefined && e.button !== 0 && e.pointerType === 'mouse') return;
-        // Abaikan tombol close, submit, dan tombol interaktif
+        // Ignore interactive controls inside sheet
         if (e.target.closest('button, a, input, [role="button"]')) return;
 
         startX = e.clientX;
@@ -252,7 +250,7 @@ const setupBottomSheetDrag = (modalEl, onCloseCallback) => {
         initialSheetHeight = sheet.offsetHeight;
         isModalGestureActive = false;
 
-        // Cek ketat: Apakah konten modal memang lebih panjang dari layar dan butuh scroll?
+        // Verify if sheet content overflows container
         const isContentScrollable = (sheet.scrollHeight - sheet.clientHeight) > 20;
         canExpandToFullscreen = isContentScrollable;
 
@@ -347,12 +345,12 @@ const closeManageModal = () => {
     const modal = document.getElementById('proManageModal');
     if (!modal || modal.classList.contains('hidden')) return;
 
-    // 1. Lepaskan fokus dari elemen tombol dalam modal sebelum mengatur aria-hidden
+    // 1. Blur active elements inside modal prior to hiding
     if (modal.contains(document.activeElement) && typeof document.activeElement.blur === 'function') {
         document.activeElement.blur();
     }
 
-    // 2. Kembalikan fokus ke elemen pemicu jika valid
+    // 2. Restore focus to previous trigger element if valid
     if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
         try {
             previousActiveElement.focus();
@@ -552,7 +550,7 @@ const bindAccountInteractions = () => {
         editProfileBtn.addEventListener('click', editProfileBtnHandler);
     }
 
-    // Klik ID Akun untuk menyalin kode ke clipboard
+    // Click account code badge to copy user code to clipboard
     const accountCodeWrapper = document.getElementById('accountCodeWrapper');
     if (accountCodeWrapper) {
         accountCodeClickHandler = () => {
@@ -572,7 +570,7 @@ const bindAccountInteractions = () => {
         accountCodeWrapper.addEventListener('click', accountCodeClickHandler);
     }
 
-    // Tombol Aksi di Banner Spotiwind PRO (Upgrade to PRO / Manage Plan)
+    // Pro banner actions (Upgrade to PRO / Manage Plan)
     const managePlanBtn = document.getElementById('managePlanBtn');
     if (managePlanBtn) {
         managePlanBtnHandler = () => {
@@ -641,7 +639,7 @@ const bindAccountInteractions = () => {
         cancelSubscriptionBtn.addEventListener('click', cancelSubBtnHandler);
     }
 
-    // Klik item statistik (Playlists, Followers, Following, Likes)
+    // Stats items click handler (Playlists, Followers, Following, Likes)
     document.querySelectorAll('.account-stats-card .stat-item').forEach((item) => {
         item.addEventListener('click', () => {
             const statType = item.dataset.stat;
@@ -658,7 +656,7 @@ const bindAccountInteractions = () => {
         });
     });
 
-    // Klik avatar di halaman account untuk membuka modal preview kotak besar di tengah
+    // Avatar preview modal trigger
     const avatarWrapper = document.querySelector('.account-avatar-wrapper');
     if (avatarWrapper) {
         avatarClickHandler = (e) => {
@@ -671,14 +669,14 @@ const bindAccountInteractions = () => {
         avatarWrapper.addEventListener('click', avatarClickHandler);
     }
 
-    // Tombol Kembali di Header Dark Preview
+    // Back button in avatar preview
     const backBtn = document.getElementById('avatarPreviewBackBtn');
     if (backBtn) {
         previewBackBtnHandler = () => closeAvatarPreview();
         backBtn.addEventListener('click', previewBackBtnHandler);
     }
 
-    // Tombol Edit Foto di Header Dark Preview
+    // Edit photo button in avatar preview
     const editBtn = document.getElementById('avatarPreviewEditBtn');
     if (editBtn) {
         previewEditBtnHandler = () => {
@@ -687,7 +685,7 @@ const bindAccountInteractions = () => {
         editBtn.addEventListener('click', previewEditBtnHandler);
     }
 
-    // Tombol Bagikan Foto di Header Dark Preview
+    // Share photo button in avatar preview
     const shareBtn = document.getElementById('avatarPreviewShareBtn');
     if (shareBtn) {
         previewShareBtnHandler = async () => {
@@ -732,7 +730,7 @@ const bindAccountInteractions = () => {
     // Render Top Artists Section
     renderAccountTopArtists();
 
-    // Tombol See all pada Recently Played Section
+    // See all button for Recently Played
     const seeAllRecentBtn = document.getElementById('seeAllAccountRecentBtn');
     if (seeAllRecentBtn) {
         seeAllRecentBtnHandler = (e) => {
@@ -747,7 +745,7 @@ const bindAccountInteractions = () => {
         seeAllRecentBtn.addEventListener('click', seeAllRecentBtnHandler);
     }
 
-    // Tombol See all pada Top Artists Section
+    // See all button for Top Artists
     const seeAllArtistsBtn = document.getElementById('seeAllAccountArtistsBtn');
     if (seeAllArtistsBtn) {
         seeAllArtistsBtnHandler = (e) => {
@@ -876,7 +874,7 @@ const renderAccountTopArtists = async () => {
             return;
         }
 
-        // Hitung frekuensi artis dari daftar lagu yang diputar
+        // Aggregate artist play frequencies from played tracks history
         const artistCounts = {};
         const artistSongMap = {};
 
@@ -911,7 +909,7 @@ const renderAccountTopArtists = async () => {
             return;
         }
 
-        // Ambil data katalog lokal untuk mencocokkan foto artis berkualitas tinggi
+        // Fetch local artist catalog to match high-resolution photos
         let catalogArtists = [];
         try {
             const catalog = await loadLocalCatalog();

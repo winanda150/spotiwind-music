@@ -162,10 +162,10 @@ const setupArtistSheetDragToDismiss = () => {
     };
 
     sheetPointerDownHandler = (e) => {
-        // Hanya tangani tombol utama (left click atau sentuhan jari tunggal)
+        // Handle primary pointer only (left mouse click or single touch)
         if (e.button !== undefined && e.button !== 0 && e.pointerType === 'mouse') return;
 
-        // Abaikan tombol interaktif di dalam modal agar klik/tap tidak terganggu
+        // Ignore clicks on interactive controls inside the sheet
         if (e.target.closest('button, a, input, [role="button"]')) return;
 
         const startX = e.clientX;
@@ -176,15 +176,13 @@ const setupArtistSheetDragToDismiss = () => {
 
         const handleWrapper = document.getElementById('artistOptionsHandleWrapper');
         const header = document.getElementById('artistOptionsHeader');
-        // Pembeda area: apakah sentuhan dimulai dari handle bar atau header (area utama untuk drag)
+        // Check if gesture originated from handle bar or header area
         const isTouchOnHandleOrHeader = Boolean(
             (handleWrapper && handleWrapper.contains(e.target)) ||
             (header && header.contains(e.target))
         );
 
-        // Ambang aktivasi drag:
-        // Handle bar/header: 12px (responsif tapi aman dari jitter)
-        // Badan/list: 24px (membutuhkan tarikan sengaja agar tidak sensitif saat pengguna mengincar tombol)
+        // Drag thresholds: handle/header: 12px, content body: 24px
         const dragStartThreshold = isTouchOnHandleOrHeader ? 12 : 24;
 
         onPointerMove = (moveEvent) => {
@@ -197,19 +195,19 @@ const setupArtistSheetDragToDismiss = () => {
             const deltaY = moveEvent.clientY - startY;
 
             if (!isDragging) {
-                // Jika gerakan didominasi horizontal, abaikan agar usapan diagonal tidak memicu drag
+                // Ignore horizontal movements to prevent accidental sheet drag during scrolling
                 if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 8) {
                     return;
                 }
 
-                // Hanya aktifkan status dragging jika tarikan ke bawah melampaui ambang batas sengaja
+                // Activate dragging state once downward delta exceeds threshold
                 if (deltaY > dragStartThreshold) {
                     isDragging = true;
                     sheet.classList.add('is-dragging');
                     sheet.style.transition = 'none';
                     if (backdrop) backdrop.style.transition = 'none';
                 } else if (deltaY < -10) {
-                    // Sedikit tahanan elastis jika jari bergerak sedikit ke atas
+                    // Elastic resistance on upward pull
                     const rubberBand = Math.max(-12, deltaY * 0.12);
                     sheet.style.transform = `translateY(${rubberBand}px)`;
                     return;
@@ -231,7 +229,7 @@ const setupArtistSheetDragToDismiss = () => {
                         backdrop.style.opacity = String(opacity);
                     }
                 } else {
-                    // Batasi jika ditarik kembali melewati posisi normal
+                    // Clamp if pulled back past origin
                     currentDeltaY = 0;
                     const rubberBand = Math.max(-12, deltaY * 0.12);
                     sheet.style.transform = `translateY(${rubberBand}px)`;
@@ -244,7 +242,7 @@ const setupArtistSheetDragToDismiss = () => {
             removeWindowListeners();
 
             if (!isDragging) {
-                // Kembalikan posisi jika ada sisa rubber-band kecil tanpa status dragging
+                // Reset rubber-band transforms when gesture finishes without dragging
                 resetArtistSheetStyles();
                 return;
             }
@@ -253,9 +251,7 @@ const setupArtistSheetDragToDismiss = () => {
             const elapsed = Math.max(1, Date.now() - startTime);
             const velocity = currentDeltaY / elapsed; // px/ms
 
-            // Kondisi penutupan (dismiss thresholds):
-            // 1. Jarak tarikan cukup jauh: minimal 115px atau 35% tinggi modal
-            // 2. Gerakan usap cepat (flick down): velocity > 0.65 px/ms DAN jarak tarikan sudah minimal 45px
+            // Dismiss thresholds: distance >= 35% height or fast swipe down flick
             const dismissDistance = Math.max(115, sheetHeight * 0.35);
             const isIntentionalSwipe = (velocity > 0.65 && currentDeltaY >= 45);
             const shouldDismiss = (currentDeltaY >= dismissDistance || isIntentionalSwipe);
@@ -274,7 +270,7 @@ const setupArtistSheetDragToDismiss = () => {
                     resetArtistSheetStyles();
                 }, 240);
             } else {
-                // Snap-back membal lembut ke posisi 0
+                // Smooth snap-back animation
                 sheet.style.transition = 'transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1)';
                 if (backdrop) backdrop.style.transition = 'opacity 0.28s ease';
 
@@ -474,7 +470,7 @@ const handleArtistPlayAllClick = (artist) => {
     let playlistToPlay = [...songs];
 
     if (isGlobalShuffleActive()) {
-        // Algoritma Fisher-Yates shuffle agar seluruh urutan lagu teracak sempurna
+        // Fisher-Yates shuffle algorithm
         const shuffled = [...songs];
         for (let i = shuffled.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -527,7 +523,7 @@ export const initArtistPage = (artist, previousPage) => {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
         const heroHeight = hero.offsetHeight || 320;
 
-        // Gambar tetap diam di posisinya saat scroll ke bawah
+        // Parallax image pinning during scroll
         if (heroImage) {
             if (scrollTop > 0) {
                 const fadeOpacity = Math.max(0, 1 - (scrollTop / (heroHeight * 1.25)));

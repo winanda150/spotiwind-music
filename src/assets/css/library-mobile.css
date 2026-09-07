@@ -1975,6 +1975,17 @@
     background: rgba(255, 255, 255, 0.08);
 }
 
+.your-album-more-btn.is-saved,
+.your-album-grid-more-btn.is-saved {
+    color: #10b981;
+}
+
+.your-album-more-btn.is-saved:hover,
+.your-album-grid-more-btn.is-saved:hover {
+    color: #34d399;
+    background: rgba(16, 185, 129, 0.12);
+}
+
 /* Albums Empty State */
 .albums-empty-state {
     display: flex;

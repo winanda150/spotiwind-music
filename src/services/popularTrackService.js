@@ -185,7 +185,7 @@ export const sortPopularTracks = (list = []) => {
         const timeRight = getTimestamp(right);
 
         if (timeLeft > 0 && timeRight > 0 && timeLeft !== timeRight) {
-            return timeLeft - timeRight; // Yang lebih awal tercatat/diputar tetap di depan
+            return timeLeft - timeRight; // Earlier recorded plays preserve precedence
         }
 
         return 0;

@@ -224,7 +224,7 @@ export const getMadeForYouMixes = async () => {
                 matchedSongs = [...matchedSongs, ...shuffledRemaining].slice(0, 10);
             }
 
-            // [CRITICAL] Shuffle the mixed songs so different artists alternate seamlessly!
+            // Shuffle mixed songs for varied artist distribution
             matchedSongs = matchedSongs.sort(() => 0.5 - Math.random()).slice(0, 10);
 
             // Extract top 3 unique artist names for subtitle preview
@@ -233,8 +233,7 @@ export const getMadeForYouMixes = async () => {
                 ? artistNames.slice(0, 3).join(', ') + (artistNames.length > 3 ? ', and more' : '')
                 : def.fallbackDescription;
 
-            // [SPOTIFY STYLE] Pick 1 unique cover per artist for a 2x2 collage
-            // This prevents duplicate covers across different mixes
+            // Pick 1 unique cover per artist for 2x2 collage artwork
             const seenArtists = new Set();
             const collageCovers = [];
             for (const song of matchedSongs) {

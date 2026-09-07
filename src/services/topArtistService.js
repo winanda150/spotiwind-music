@@ -177,7 +177,7 @@ export const recordArtistPlay = async (song) => {
     for (const individualArtist of artistParts) {
         const matchedLocal = await getKnownLocalArtist(individualArtist);
         
-        // Tetap catat & hitung pemutaran di database walaupun belum ditulis manual di data/artists.json
+        // Record and increment plays even if not yet in data/artists.json
         const artistId = matchedLocal?.id || getArtistEntityId(individualArtist);
         const artistName = matchedLocal?.name || individualArtist;
         const fallbackPhoto = song.artist_image || song.photo || song.cover || '';
@@ -234,7 +234,7 @@ export const sortTopArtists = (list = []) => {
         const timeRight = getTimestamp(right);
 
         if (timeLeft > 0 && timeRight > 0 && timeLeft !== timeRight) {
-            return timeLeft - timeRight; // Yang lebih awal tercatat/diputar tetap di depan
+            return timeLeft - timeRight; // Earlier recorded plays preserve precedence
         }
 
         return 0;
@@ -318,7 +318,7 @@ export const getTopArtists = async (limitCount = DEFAULT_LIMIT) => {
                 matched = await getKnownLocalArtist(data.id);
             }
 
-            // Filter: Hanya tampilkan artis jika sudah ditulis manual di data/artists.json
+            // Only show artists present in catalog data/artists.json
             if (!matched) {
                 continue;
             }
@@ -379,7 +379,7 @@ export const subscribeTopArtists = (callback, limitCount = DEFAULT_LIMIT) => {
                     matched = await getKnownLocalArtist(data.id);
                 }
 
-                // Filter: Hanya tampilkan artis jika sudah ditulis manual di data/artists.json
+                // Only show artists present in catalog data/artists.json
                 if (!matched) {
                     continue;
                 }

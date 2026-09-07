@@ -1,7 +1,6 @@
 import { auth, onAuthStateChanged } from './firebase-config.js';
 import { subscribeNotifications } from '../../services/notificationService.js';
 
-// [NEW] Variable to hold the unsubscribe function for the Firestore listener
 let unsubscribeNotifications = null;
 let unsubscribeAuth = null;
 
@@ -146,10 +145,11 @@ const loadNotifications = (userId) => {
     });
 };
 
-// [NEW] Export a cleanup function to be called when navigating away
+/**
+ * Cleans up active listeners when leaving notifications view.
+ */
 export const cleanupNotifications = () => {
     if (unsubscribeNotifications) {
-        // [FIX] Ensure the listener is unsubscribed
         unsubscribeNotifications();
         unsubscribeNotifications = null;
     }

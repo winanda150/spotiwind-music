@@ -127,3 +127,145 @@ export const subscribeLikedSongs = (uid, callback) => {
         return () => {};
     }
 };
+
+// ==========================================
+// ALBUMS SERVICE: Firestore Path: users/{uid}/albums
+// ==========================================
+const getUserAlbumsRef = (uid) => collection(db, "users", uid, "albums");
+const getUserAlbumRef = (uid, albumId) => doc(db, "users", uid, "albums", String(albumId));
+
+export const getUserSavedAlbums = async (uid) => {
+    if (!uid) return [];
+    try {
+        const snapshot = await getDocs(getUserAlbumsRef(uid));
+        return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+    } catch (error) {
+        console.error("Failed to fetch user saved albums:", error);
+        return [];
+    }
+};
+
+export const subscribeUserSavedAlbums = (uid, callback) => {
+    if (!uid || typeof callback !== "function") return () => {};
+
+    try {
+        const albumsRef = getUserAlbumsRef(uid);
+        return onSnapshot(albumsRef, (snapshot) => {
+            const albums = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+            callback(albums);
+        }, (error) => {
+            console.error("Failed to subscribe user saved albums:", error);
+            callback([]);
+        });
+    } catch (error) {
+        console.error("Failed to subscribe user saved albums:", error);
+        return () => {};
+    }
+};
+
+export const saveAlbumToLibrary = async (album) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid || !album) return null;
+
+    try {
+        const albumId = String(album.id || album.albumId || (album.name || 'album').toLowerCase().replace(/\s+/g, '-')).trim();
+        const ref = getUserAlbumRef(uid, albumId);
+        const data = {
+            id: albumId,
+            albumId: albumId,
+            name: album.name || album.title || 'Untitled Album',
+            artist: album.artist || 'Various Artists',
+            cover: album.cover || album.image || album.albumCover || '',
+            tracksCount: Number(album.tracksCount) || (Array.isArray(album.tracks) ? album.tracks.length : 0),
+            savedAt: serverTimestamp()
+        };
+        await setDoc(ref, data, { merge: true });
+
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('albums-updated', {
+                detail: { albumId, isSaved: true, album: data }
+            }));
+        }
+        return true;
+    } catch (error) {
+        console.error("Failed to save album to library:", error);
+        return false;
+    }
+};
+
+export const removeAlbumFromLibrary = async (albumId) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid || !albumId) return null;
+
+    try {
+        const cleanId = String(albumId).trim();
+        const ref = getUserAlbumRef(uid, cleanId);
+        await deleteDoc(ref);
+
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('albums-updated', {
+                detail: { albumId: cleanId, isSaved: false }
+            }));
+        }
+        return true;
+    } catch (error) {
+        console.error("Failed to remove album from library:", error);
+        return false;
+    }
+};
+
+export const toggleSaveAlbum = async (album) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid || !album) return false;
+
+    try {
+        const albumId = String(album.id || album.albumId || (album.name || 'album').toLowerCase().replace(/\s+/g, '-')).trim();
+        const ref = getUserAlbumRef(uid, albumId);
+        const snapshot = await getDoc(ref);
+
+        if (snapshot.exists()) {
+            await deleteDoc(ref);
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('albums-updated', {
+                    detail: { albumId, isSaved: false }
+                }));
+            }
+            return false;
+        } else {
+            const data = {
+                id: albumId,
+                albumId: albumId,
+                name: album.name || album.title || 'Untitled Album',
+                artist: album.artist || 'Various Artists',
+                cover: album.cover || album.image || album.albumCover || '',
+                tracksCount: Number(album.tracksCount) || (Array.isArray(album.tracks) ? album.tracks.length : 0),
+                savedAt: serverTimestamp()
+            };
+            await setDoc(ref, data, { merge: true });
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('albums-updated', {
+                    detail: { albumId, isSaved: true, album: data }
+                }));
+            }
+            return true;
+        }
+    } catch (error) {
+        console.error("Failed to toggle save album in library:", error);
+        return false;
+    }
+};
+
+export const isAlbumSavedInLibrary = async (albumId) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid || !albumId) return false;
+
+    try {
+        const cleanId = String(albumId).trim();
+        const ref = getUserAlbumRef(uid, cleanId);
+        const snapshot = await getDoc(ref);
+        return snapshot.exists();
+    } catch {
+        return false;
+    }
+};
+

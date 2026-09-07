@@ -277,7 +277,7 @@ export const loadSubpage = async (page, options = {}, context = null) => {
             }
         }
 
-        // Sinkronisasi status lagu aktif segera setelah snapshot DOM Home dipulihkan
+        // Sync active song UI state after home DOM restoration
         if (typeof window.syncActiveSongUI === 'function') {
             window.syncActiveSongUI();
         }

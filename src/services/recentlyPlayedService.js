@@ -112,7 +112,7 @@ const queueSongCloudSync = (uid, song) => {
                 playedAt: serverTimestamp()
             }, { merge: true });
 
-            // Otomatis hapus lagu tertua jika melebihi batas MAX_CLOUD_ITEMS (30 lagu)
+            // Automatically prune oldest records exceeding MAX_CLOUD_ITEMS limit
             await pruneOldestCloudSongs(uid);
         } catch (error) {
             if (error?.code !== 'permission-denied') {
@@ -123,7 +123,7 @@ const queueSongCloudSync = (uid, song) => {
 };
 
 /**
- * Otomatis menghapus dokumen lagu paling lama dari Firestore jika jumlahnya melebihi MAX_CLOUD_ITEMS (30)
+ * Prunes oldest played track records from Firestore when exceeding MAX_CLOUD_ITEMS limit
  */
 const pruneOldestCloudSongs = async (uid) => {
     try {

@@ -11,7 +11,7 @@ import {
 export const setPresenceStatus = (uid, status = "online") => {
     if (!uid) return null;
 
-    // Pastikan user masih dalam kondisi terautentikasi sebelum menulis ke RTDB
+    // Ensure user is authenticated before writing to RTDB
     const currentUser = auth?.currentUser;
     if (!currentUser || currentUser.uid !== uid) {
         return null;
@@ -23,7 +23,7 @@ export const setPresenceStatus = (uid, status = "online") => {
         last_changed: rtdbServerTimestamp()
     };
 
-    // Tangkap error secara aman agar tidak memunculkan uncaught permission warning saat logout
+    // Safely catch errors to prevent uncaught permission warnings during logout
     rtdbSet(userStatusRef, payload).catch(() => {});
     return payload;
 };

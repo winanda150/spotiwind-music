@@ -470,7 +470,7 @@ window.playPreview = async (btn, audioUrl, title, artist, cover, id, duration = 
         currentPlayingBtn = null;
     }
 
-    // Event listener untuk saat audio selesai diputar
+    // Audio ended event listener
     activeAudio.onended = () => {
         if (btn) resetBtnUI(btn);
         currentPlayingBtn = null;
@@ -576,8 +576,7 @@ const renderGridProgressively = async (gridSelector, items, itemRenderer, skelet
 
     const skeletons = grid.querySelectorAll(skeletonSelector);
 
-    // Jika tidak ada skeleton (misal halaman dipulihkan dari cache snapshot DOM),
-    // langsung ganti konten agar tidak menduplikasi kartu di bawah kartu lama
+    // If no skeleton elements exist (e.g. page restored from DOM cache), replace content directly
     if (skeletons.length === 0) {
         grid.innerHTML = items.map(itemRenderer).join('');
         syncActiveDesktopUI();
@@ -821,7 +820,7 @@ const renderDesktopRecentlyPlayed = (force = false) => {
         const rawSongs = getRecentlyPlayed();
         const validSongs = (Array.isArray(rawSongs) ? rawSongs : [])
             .filter(s => s && (s.id || s.audio) && s.audio)
-            .slice(0, 3); // Batas maksimal 3 lagu terbaru sesuai permintaan
+            .slice(0, 3); // Display up to 3 most recent tracks
 
         if (validSongs.length === 0) {
             desktopRecentlyPlayedListCache = [];
@@ -1387,7 +1386,7 @@ document.addEventListener('DOMContentLoaded', () => {
         activeAudio.volume = percentage;
         if (volumeLevel) volumeLevel.style.width = `${percentage * 100}%`;
 
-        // Update Volume Icon secara dinamis
+        // Update Volume Icon dynamically
         if (volumeSvg) {
             const volumePath = volumeSvg.querySelector('path');
             if (percentage === 0) {
@@ -1552,7 +1551,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Ensure the online status listener is active for each friend to be displayed
             finalDisplay.forEach(friend => listenToFriendPresence(friend.id));
 
-            // 4. Render ke UI
+            // 4. Render to UI
             container.innerHTML = finalDisplay.map(friend => {
                 const onlineClass = friendOnlineStatus[friend.id] ? '' : 'offline';
 
@@ -1636,7 +1635,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // 1. Check Login Status
-    // Listener untuk perubahan ukuran layar secara real-time
+    // Viewport resize listener to redirect to mobile if screen width shrinks
     let isNavigating = false;
     window.addEventListener('resize', () => {
         if (window.innerWidth <= 768 && !isNavigating) {
@@ -1735,7 +1734,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const nameForAvatar = user.displayName || user.email.split('@')[0];
                 const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(nameForAvatar)}&background=B91EC9&color=fff&bold=true&size=512`;
 
-                // Konversi Google photoURL dari s96-c menjadi HD s512-c
+                // Normalize Google photoURL to high-res (512px)
                 let originalPhotoURL = user.photoURL ? String(user.photoURL).trim() : '';
                 if (originalPhotoURL && (originalPhotoURL.includes('googleusercontent.com') || originalPhotoURL.includes('google.com') || originalPhotoURL.includes('ggpht.com'))) {
                     if (/=s\d+([a-zA-Z0-9_-]*)/.test(originalPhotoURL)) {

@@ -5,7 +5,15 @@
 
 import { auth, db, onAuthStateChanged, collection, onSnapshot, query, orderBy, getDocs } from './firebase-config.js';
 import { getFavoriteSongs, toggleFavorite } from '../../services/favoriteService.js';
-import { getUserPlaylists } from '../../services/libraryService.js';
+import { 
+    getUserPlaylists, 
+    getUserSavedAlbums, 
+    subscribeUserSavedAlbums, 
+    saveAlbumToLibrary, 
+    removeAlbumFromLibrary, 
+    toggleSaveAlbum, 
+    isAlbumSavedInLibrary 
+} from '../../services/libraryService.js';
 import { subscribeUserProfile, getProfileByUid } from '../../services/profileService.js';
 import { openProSubscriptionModal, closeProSubscriptionModal } from '../../components/modals/proSubscriptionModal.js';
 import { isSongDownloaded, toggleDownloadSong } from '../../components/sheets/songOptionsSheet.js';
@@ -16,10 +24,12 @@ let activeLibraryTab = 'overview';
 const listeners = [];
 let likedSongsUnsubscribe = null;
 let playlistsUnsubscribe = null;
+let albumsUnsubscribe = null;
 let userProfileUnsubscribe = null;
 let isCurrentUserPro = false;
 let currentLikedSongs = [];
 let currentPlaylists = [];
+let currentSavedAlbums = [];
 let currentFollowedArtists = [];
 let playlistSearchQuery = '';
 let playlistFilterMode = 'all'; // 'all' | 'create' | 'collab'
@@ -335,6 +345,14 @@ function setupRealtimeOverviewData() {
     window.addEventListener('favorites-updated', handleFavoritesUpdated);
     listeners.push({ element: window, type: 'favorites-updated', handler: handleFavoritesUpdated });
 
+    const handleAlbumsUpdated = () => {
+        if (activeLibraryTab === 'albums') {
+            renderAlbumsPanel(currentLikedSongs, !auth.currentUser);
+        }
+    };
+    window.addEventListener('albums-updated', handleAlbumsUpdated);
+    listeners.push({ element: window, type: 'albums-updated', handler: handleAlbumsUpdated });
+
     // 2. Listen to Auth State to bind live Firestore data
     const authUnsub = onAuthStateChanged(auth, async (user) => {
         cleanupUserSubscriptions();
@@ -361,6 +379,7 @@ function setupRealtimeOverviewData() {
             updateLocalStats();
             bindUserLikedSongs(user.uid);
             bindUserPlaylists(user.uid);
+            bindUserAlbums(user.uid);
             if (activeLibraryTab === 'download') {
                 renderDownloadsPanel(false);
             }
@@ -372,8 +391,10 @@ function setupRealtimeOverviewData() {
             }
             currentLikedSongs = [];
             currentPlaylists = [];
+            currentSavedAlbums = [];
             setLikedSongsCount(0);
             setFavoritesCount(0);
+            setAlbumsCount(0);
             setDownloadsCount(0);
             renderTracksPanel([], true);
             renderPlaylistsPanel([], true);
@@ -408,6 +429,29 @@ function sortSongsByNewest(songs = []) {
                 return item.likedAt.getTime();
             }
             return Date.now() + 10000;
+        };
+        return getTime(b) - getTime(a);
+    });
+}
+
+function sortAlbumsByNewest(albums = []) {
+    if (!Array.isArray(albums)) return [];
+    return [...albums].sort((a, b) => {
+        const getTime = (item) => {
+            if (!item) return 0;
+            if (item.savedAt?.toMillis && typeof item.savedAt.toMillis === 'function') {
+                return item.savedAt.toMillis();
+            }
+            if (item.savedAt?.seconds) {
+                return item.savedAt.seconds * 1000;
+            }
+            if (typeof item.savedAt === 'number') {
+                return item.savedAt;
+            }
+            if (item.savedAt instanceof Date) {
+                return item.savedAt.getTime();
+            }
+            return 0;
         };
         return getTime(b) - getTime(a);
     });
@@ -493,6 +537,27 @@ function bindUserPlaylists(uid) {
     }
 }
 
+function bindUserAlbums(uid) {
+    if (!uid) return;
+
+    if (typeof albumsUnsubscribe === 'function') {
+        albumsUnsubscribe();
+        albumsUnsubscribe = null;
+    }
+
+    try {
+        albumsUnsubscribe = subscribeUserSavedAlbums(uid, (albums) => {
+            currentSavedAlbums = Array.isArray(albums) ? albums : [];
+            setAlbumsCount(currentSavedAlbums.length);
+            if (activeLibraryTab === 'albums') {
+                renderAlbumsPanel(currentLikedSongs, false);
+            }
+        });
+    } catch (e) {
+        console.error("Error setting up albums listener:", e);
+    }
+}
+
 function updateLocalStats() {
     // Downloads
     try {
@@ -525,6 +590,13 @@ function setLikedSongsCount(count) {
     if (badge) badge.textContent = formatCount(count, 'song', 'songs');
     const subheaderCount = document.getElementById('trackSubheaderCount');
     if (subheaderCount) subheaderCount.textContent = formatCount(count, 'song', 'songs');
+}
+
+function setAlbumsCount(count) {
+    const badge = document.getElementById('libraryAlbumsCount');
+    if (badge) badge.textContent = formatCount(count, 'album', 'albums');
+    const subheaderCount = document.getElementById('albumSubheaderCount');
+    if (subheaderCount) subheaderCount.textContent = formatCount(count, 'album', 'albums');
 }
 
 function setDownloadsCount(count) {
@@ -883,10 +955,12 @@ function renderPlaylistsPanel(playlists = [], isGuest = false) {
 function renderAlbumsPanel(songs = [], isGuest = false) {
     const container = document.getElementById('libraryAlbumsList');
     const badgeEl = document.getElementById('libraryAlbumsCount');
+    const subheaderCountEl = document.getElementById('albumSubheaderCount');
     if (!container) return;
 
-    if (isGuest) {
+    if (isGuest || !auth.currentUser) {
         if (badgeEl) badgeEl.textContent = '0 albums';
+        if (subheaderCountEl) subheaderCountEl.textContent = '0 albums';
         container.className = `your-albums-container ${albumViewMode === 'grid' ? 'view-grid' : 'view-list'}`;
         container.innerHTML = `
             <div class="albums-empty-state">
@@ -904,7 +978,6 @@ function renderAlbumsPanel(songs = [], isGuest = false) {
         return;
     }
 
-    // Extract unique albums from currentLikedSongs + downloads
     const likedSongs = Array.isArray(songs) ? songs : [];
     let downloadedSongs = [];
     try {
@@ -913,31 +986,57 @@ function renderAlbumsPanel(songs = [], isGuest = false) {
         if (Array.isArray(dls)) downloadedSongs = dls;
     } catch {}
 
-    const allSongs = [...likedSongs, ...downloadedSongs];
-
     const albumMap = new Map();
+
+    // 1. Add explicitly saved albums from Firestore users/{uid}/albums
+    (currentSavedAlbums || []).forEach(savedAlbum => {
+        if (!savedAlbum) return;
+        const albumName = savedAlbum.name || savedAlbum.title || 'Untitled Album';
+        const albumId = savedAlbum.id || savedAlbum.albumId || (albumName || 'album').toLowerCase().replace(/\s+/g, '-');
+        const key = albumId.trim().toLowerCase();
+        albumMap.set(key, {
+            id: albumId,
+            albumId: albumId,
+            name: albumName,
+            artist: savedAlbum.artist || 'Various Artists',
+            cover: savedAlbum.cover || savedAlbum.image || savedAlbum.albumCover || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80',
+            tracks: Array.isArray(savedAlbum.tracks) ? savedAlbum.tracks : [],
+            tracksCount: Number(savedAlbum.tracksCount) || (Array.isArray(savedAlbum.tracks) ? savedAlbum.tracks.length : 0),
+            hasSaved: true,
+            hasDownloaded: false,
+            savedAt: savedAlbum.savedAt?.toMillis ? savedAlbum.savedAt.toMillis() : (savedAlbum.savedAt || savedAlbum.createdAt || 0)
+        });
+    });
+
+    // 2. Merge albums derived from likedSongs & downloadedSongs
+    const allSongs = [...likedSongs, ...downloadedSongs];
     allSongs.forEach(song => {
         const albumName = song.album || song.album_name || song.albumTitle;
         if (!albumName || albumName === 'Unknown Album' || albumName.trim() === '') return;
-        const key = albumName.trim().toLowerCase();
+        const albumId = song.albumId || song.album_id || albumName.trim().toLowerCase().replace(/\s+/g, '-');
+        const key = (song.albumId || albumName).trim().toLowerCase();
         const isLiked = likedSongs.some(ls => String(ls.id || ls.songId) === String(song.id || song.songId));
         const isDl = downloadedSongs.some(ds => String(ds.id || ds.songId) === String(song.id || song.songId));
 
         if (!albumMap.has(key)) {
             albumMap.set(key, {
-                id: song.albumId || key,
+                id: albumId,
+                albumId: albumId,
                 name: albumName.trim(),
                 artist: song.artist || 'Various Artists',
                 cover: song.albumCover || song.cover || song.image || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80',
                 tracks: [song],
+                tracksCount: 1,
                 hasSaved: isLiked,
-                hasDownloaded: isDl
+                hasDownloaded: isDl,
+                savedAt: Number(song.likedAt || song.addedAt || song.createdAt || 0)
             });
         } else {
             const existing = albumMap.get(key);
             if (!existing.tracks.some(t => String(t.id || t.songId) === String(song.id || song.songId))) {
                 existing.tracks.push(song);
             }
+            existing.tracksCount = Math.max(existing.tracksCount || 0, existing.tracks.length);
             if (isLiked) existing.hasSaved = true;
             if (isDl) existing.hasDownloaded = true;
         }
@@ -989,10 +1088,11 @@ function renderAlbumsPanel(songs = [], isGuest = false) {
     } else if (albumSortMode === 'alphabetical') {
         albums.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     } else {
-        albums.reverse();
+        albums = sortAlbumsByNewest(albums);
     }
 
     if (badgeEl) badgeEl.textContent = `${albums.length} ${albums.length === 1 ? 'album' : 'albums'}`;
+    if (subheaderCountEl) subheaderCountEl.textContent = `${albums.length} ${albums.length === 1 ? 'album' : 'albums'}`;
 
     container.className = `your-albums-container ${albumViewMode === 'grid' ? 'view-grid' : 'view-list'}`;
 
@@ -1006,62 +1106,70 @@ function renderAlbumsPanel(songs = [], isGuest = false) {
                     </svg>
                 </div>
                 <h3 class="albums-empty-title">${albumSearchQuery ? 'No matching albums' : 'No albums saved yet'}</h3>
-                <p class="albums-empty-desc">${albumSearchQuery ? `No albums matching "${escapeHTML(albumSearchQuery)}".` : 'Albums from songs you like or download will automatically appear here.'}</p>
+                <p class="albums-empty-desc">${albumSearchQuery ? `No albums matching "${escapeHTML(albumSearchQuery)}".` : 'Albums you save, like, or download will automatically appear here.'}</p>
             </div>
         `;
         return;
     }
 
     if (albumViewMode === 'grid') {
-        container.innerHTML = albums.map(album => `
-            <div class="your-album-grid-card album-card" data-album-name="${escapeHTML(album.name)}" data-album-artist="${escapeHTML(album.artist)}" data-first-audio="${album.tracks[0]?.audio || ''}">
-                <div class="your-album-grid-cover">
-                    <img src="${album.cover}" alt="${escapeHTML(album.name)}" class="your-album-grid-cover-img" width="160" height="160" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80'">
-                    <div class="your-album-grid-play-overlay">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
+        container.innerHTML = albums.map(album => {
+            const tracksCount = album.tracksCount || album.tracks.length || 0;
+            const countLabel = `${tracksCount} ${tracksCount === 1 ? 'track' : 'tracks'}`;
+            return `
+                <div class="your-album-grid-card album-card" data-album-id="${escapeHTML(album.id)}" data-album-name="${escapeHTML(album.name)}" data-album-artist="${escapeHTML(album.artist)}" data-album-cover="${escapeHTML(album.cover)}" data-is-saved="${album.hasSaved}" data-tracks-count="${tracksCount}" data-first-audio="${album.tracks[0]?.audio || ''}">
+                    <div class="your-album-grid-cover">
+                        <img src="${album.cover}" alt="${escapeHTML(album.name)}" class="your-album-grid-cover-img" width="160" height="160" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80'">
+                        <div class="your-album-grid-play-overlay">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="your-album-grid-info">
+                        <div class="your-album-grid-text">
+                            <h3 class="your-album-grid-title">${escapeHTML(album.name)}</h3>
+                            <p class="your-album-grid-meta">${escapeHTML(album.artist)} • ${countLabel}</p>
+                        </div>
+                        <button class="your-album-grid-more-btn album-more-btn ${album.hasSaved ? 'is-saved' : ''}" type="button" data-album-id="${escapeHTML(album.id)}" data-album-name="${escapeHTML(album.name)}" data-album-artist="${escapeHTML(album.artist)}" data-album-cover="${escapeHTML(album.cover)}" data-is-saved="${album.hasSaved}" data-tracks-count="${tracksCount}" title="${album.hasSaved ? 'Hapus dari koleksi album' : 'Simpan album ke koleksi'}" aria-label="Album options">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                                <circle cx="12" cy="5" r="1.75"></circle>
+                                <circle cx="12" cy="12" r="1.75"></circle>
+                                <circle cx="12" cy="19" r="1.75"></circle>
+                            </svg>
+                        </button>
                     </div>
                 </div>
-                <div class="your-album-grid-info">
-                    <div class="your-album-grid-text">
-                        <h3 class="your-album-grid-title">${escapeHTML(album.name)}</h3>
-                        <p class="your-album-grid-meta">${escapeHTML(album.artist)} • ${album.tracks.length} ${album.tracks.length === 1 ? 'track' : 'tracks'}</p>
-                    </div>
-                    <button class="your-album-grid-more-btn album-more-btn" type="button" data-album-name="${escapeHTML(album.name)}" data-album-artist="${escapeHTML(album.artist)}" title="Album options" aria-label="Album options">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-                            <circle cx="12" cy="5" r="1.75"></circle>
-                            <circle cx="12" cy="12" r="1.75"></circle>
-                            <circle cx="12" cy="19" r="1.75"></circle>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     } else {
-        container.innerHTML = albums.map(album => `
-            <div class="your-album-item album-card" data-album-name="${escapeHTML(album.name)}" data-album-artist="${escapeHTML(album.artist)}" data-first-audio="${album.tracks[0]?.audio || ''}">
-                <div class="your-album-cover">
-                    <img src="${album.cover}" alt="${escapeHTML(album.name)}" class="your-album-cover-img" width="48" height="48" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80'">
-                    <div class="your-album-play-overlay">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        container.innerHTML = albums.map(album => {
+            const tracksCount = album.tracksCount || album.tracks.length || 0;
+            const countLabel = `${tracksCount} ${tracksCount === 1 ? 'track' : 'tracks'}`;
+            return `
+                <div class="your-album-item album-card" data-album-id="${escapeHTML(album.id)}" data-album-name="${escapeHTML(album.name)}" data-album-artist="${escapeHTML(album.artist)}" data-album-cover="${escapeHTML(album.cover)}" data-is-saved="${album.hasSaved}" data-tracks-count="${tracksCount}" data-first-audio="${album.tracks[0]?.audio || ''}">
+                    <div class="your-album-cover">
+                        <img src="${album.cover}" alt="${escapeHTML(album.name)}" class="your-album-cover-img" width="48" height="48" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80'">
+                        <div class="your-album-play-overlay">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        </div>
+                    </div>
+                    <div class="your-album-info">
+                        <h3 class="your-album-title">${escapeHTML(album.name)}</h3>
+                        <p class="your-album-meta">${escapeHTML(album.artist)} • ${countLabel}</p>
+                    </div>
+                    <div class="your-album-actions">
+                        <button class="your-album-more-btn album-more-btn ${album.hasSaved ? 'is-saved' : ''}" type="button" data-album-id="${escapeHTML(album.id)}" data-album-name="${escapeHTML(album.name)}" data-album-artist="${escapeHTML(album.artist)}" data-album-cover="${escapeHTML(album.cover)}" data-is-saved="${album.hasSaved}" data-tracks-count="${tracksCount}" title="${album.hasSaved ? 'Hapus dari koleksi album' : 'Simpan album ke koleksi'}" aria-label="Album options">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <circle cx="12" cy="5" r="1.75"></circle>
+                                <circle cx="12" cy="12" r="1.75"></circle>
+                                <circle cx="12" cy="19" r="1.75"></circle>
+                            </svg>
+                        </button>
                     </div>
                 </div>
-                <div class="your-album-info">
-                    <h3 class="your-album-title">${escapeHTML(album.name)}</h3>
-                    <p class="your-album-meta">${escapeHTML(album.artist)} • ${album.tracks.length} ${album.tracks.length === 1 ? 'track' : 'tracks'}</p>
-                </div>
-                <div class="your-album-actions">
-                    <button class="your-album-more-btn album-more-btn" type="button" data-album-name="${escapeHTML(album.name)}" data-album-artist="${escapeHTML(album.artist)}" title="Album options" aria-label="Album options">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                            <circle cx="12" cy="5" r="1.75"></circle>
-                            <circle cx="12" cy="12" r="1.75"></circle>
-                            <circle cx="12" cy="19" r="1.75"></circle>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 }
 
@@ -2531,22 +2639,6 @@ function setupSongActionListeners() {
         }
 
 
-        // Album card click -> preview first song or show info
-        const albumCard = e.target.closest('.album-card');
-        if (albumCard) {
-            const firstAudio = albumCard.dataset.firstAudio;
-            const albumName = albumCard.dataset.albumName;
-            if (firstAudio && typeof window.playPreview === 'function') {
-                const songItem = currentLikedSongs.find(s => (s.album || s.album_name) === albumName);
-                if (songItem) {
-                    window.playPreview(null, songItem.audio, songItem.name, songItem.artist, songItem.cover, songItem.id, Number(songItem.duration) || 0, 'library');
-                }
-            } else if (typeof window.showToast === 'function') {
-                window.showToast(`Album: ${albumName}`);
-            }
-            return;
-        }
-
         // Playlist options more button
         const playlistMoreBtn = e.target.closest('.playlist-more-btn, .overview-playlist-more-btn, .your-playlist-more-btn, .your-playlist-grid-more-btn');
         if (playlistMoreBtn) {
@@ -2575,20 +2667,46 @@ function setupSongActionListeners() {
             return;
         }
 
-        // Album options more button
+        // Album options / save toggle button
         const albumMoreBtn = e.target.closest('.album-more-btn, .your-album-more-btn, .your-album-grid-more-btn');
         if (albumMoreBtn) {
             e.stopPropagation();
+            const albumId = albumMoreBtn.dataset.albumId || albumMoreBtn.dataset.albumName;
             const albumName = albumMoreBtn.dataset.albumName || 'Album';
-            if (typeof window.showToast === 'function') {
-                window.showToast(`Options for ${albumName}`);
+            const albumArtist = albumMoreBtn.dataset.albumArtist || 'Various Artists';
+            const albumCover = albumMoreBtn.dataset.albumCover || '';
+            const tracksCount = Number(albumMoreBtn.dataset.tracksCount) || 0;
+
+            if (!auth.currentUser) {
+                if (typeof window.showToast === 'function') {
+                    window.showToast("Silakan login untuk menyimpan album.");
+                }
+                return;
+            }
+
+            const albumData = {
+                id: albumId,
+                albumId: albumId,
+                name: albumName,
+                artist: albumArtist,
+                cover: albumCover,
+                tracksCount: tracksCount
+            };
+
+            try {
+                const isSaved = await toggleSaveAlbum(albumData);
+                if (typeof window.showToast === 'function') {
+                    window.showToast(isSaved ? `Album "${albumName}" disimpan ke koleksi` : `Album "${albumName}" dihapus dari koleksi`);
+                }
+            } catch (err) {
+                console.error("Error toggling save album:", err);
             }
             return;
         }
 
         // Album item click
         const albumItem = e.target.closest('.album-card, .your-album-item, .your-album-grid-card');
-        if (albumItem && !e.target.closest('.album-more-btn')) {
+        if (albumItem && !e.target.closest('.album-more-btn, .your-album-more-btn, .your-album-grid-more-btn')) {
             const albumName = albumItem.dataset.albumName || 'Album';
             const albumArtist = albumItem.dataset.albumArtist || '';
             const firstAudio = albumItem.dataset.firstAudio;
@@ -2684,7 +2802,7 @@ function setupSongActionListeners() {
             const wasLiked = likeBtn.classList.contains('is-liked');
             const targetLiked = !wasLiked;
 
-            // Optimistic update instan ke SEMUA tombol like (di halaman dan di player)
+            // Instant optimistic update across all like buttons and active player
             syncAllLikeButtons(songId, targetLiked);
 
             try {
@@ -2801,7 +2919,7 @@ function setupDownloadOptionsDrag(modalEl, onCloseCallback) {
         const deltaY = e.clientY - startY;
 
         if (!isDragging) {
-            // Abaikan gesture jika dominan horizontal (touch-slop)
+            // Ignore gesture if predominantly horizontal
             if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 8) {
                 return;
             }
@@ -2861,7 +2979,7 @@ function setupDownloadOptionsDrag(modalEl, onCloseCallback) {
 
         sheet.classList.remove('is-dragging');
 
-        // Ambang penutupan: minimal 115px (atau 35% tinggi sheet), atau usapan cepat sengaja (velocity > 0.65 DAN jarak >= 45px)
+        // Dismiss thresholds: distance >= 35% height or fast swipe down flick
         const dismissDistance = Math.max(115, sheetHeight * 0.35);
         const isIntentionalSwipe = (velocityY > 0.65 && currentDeltaY >= 45);
         const shouldDismiss = (currentDeltaY >= dismissDistance || isIntentionalSwipe);
@@ -2896,7 +3014,7 @@ function setupDownloadOptionsDrag(modalEl, onCloseCallback) {
 
     const onPointerDown = (e) => {
         if (e.button !== undefined && e.button !== 0 && e.pointerType === 'mouse') return;
-        // Abaikan tombol dan elemen interaktif di dalam modal
+        // Ignore interactive controls inside sheet
         if (e.target.closest('button, a, input, [role="button"]')) return;
 
         startX = e.clientX;
@@ -3112,6 +3230,10 @@ function cleanupUserSubscriptions() {
         playlistsUnsubscribe();
         playlistsUnsubscribe = null;
     }
+    if (typeof albumsUnsubscribe === 'function') {
+        albumsUnsubscribe();
+        albumsUnsubscribe = null;
+    }
     if (typeof userProfileUnsubscribe === 'function') {
         userProfileUnsubscribe();
         userProfileUnsubscribe = null;
@@ -3158,4 +3280,12 @@ export function cleanupLibraryPage() {
         }
     });
     listeners.length = 0;
+}
+
+if (typeof window !== 'undefined') {
+    window.toggleSaveAlbum = toggleSaveAlbum;
+    window.saveAlbumToLibrary = saveAlbumToLibrary;
+    window.removeAlbumFromLibrary = removeAlbumFromLibrary;
+    window.isAlbumSavedInLibrary = isAlbumSavedInLibrary;
+    window.getUserSavedAlbums = getUserSavedAlbums;
 }
