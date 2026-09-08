@@ -26,7 +26,6 @@ import { areSameSongs, getArtistUniqueId } from '../../utils/audioUtils.js';
 import { showToast, createHeartParticles } from '../../utils/domUtils.js';
 import { openCreatePlaylistModal, initCreatePlaylistModal } from '../../components/modals/createPlaylistModal.js';
 import { openAvatarPreviewModal, initAvatarPreviewModal } from '../../components/modals/avatarPreviewModal.js';
-import { renderUpNextQueue, initQueueModal } from '../../components/modals/queueModal.js';
 import { isSongDownloaded, toggleDownloadSong, initSongOptionsSheet } from '../../components/sheets/songOptionsSheet.js';
 import { openMixDetailModal, closeMixDetailModal, forceCloseMixDetailModal } from '../../components/sheets/mixDetailSheet.js';
 import { initPageRouter, loadSubpage, updateAppUrl, updateBottomNavActive, updateSidebarActiveState, setHomeScrollPosition, getHomeScrollPosition, isPageNavigatingOrRestoring, setPageScrollPosition, getPageScrollPosition } from '../../core/pageLoader.js';
@@ -222,6 +221,11 @@ const isSameSongForContext = (currentSong, targetSong, context = null, contextMi
     const sameSong = areSameSongs(currentSong, targetSong);
     if (!sameSong) return false;
 
+    // If context is explicitly specified and does not match current context, treat as new context
+    if (context && currentPlaybackContext && context !== currentPlaybackContext) {
+        return false;
+    }
+
     if (context !== 'made-for-you') {
         return true;
     }
@@ -243,8 +247,8 @@ const getSongElements = (song) => {
     if (!song) return [];
     const elements = Array.from(document.querySelectorAll('[data-id], [data-song-id], .library-song-item, .popular-search-card, .dropdown-item, .song-card, .artist-song-list-item, .recent-track-row'));
     return elements.filter(element => {
-        // Exclude mix cards and mix track rows because they are strictly scoped by activeMixId
-        if (element.classList.contains('mix-card') || element.classList.contains('mix-track-row')) {
+        // Exclude mix cards, mix track rows, and liked song items because they are strictly scoped by their playback context
+        if (element.classList.contains('mix-card') || element.classList.contains('mix-track-row') || element.classList.contains('liked-song-item')) {
             return false;
         }
         const id = element.dataset.id || element.dataset.songId || element.dataset.popularId;
@@ -272,9 +276,18 @@ const syncActiveSongUI = () => {
         if (el.classList.contains('play-overlay')) el.innerHTML = PLAY_ICON;
     });
 
-    document.querySelectorAll('.library-song-play-icon, .popular-search-play-icon, .artist-song-play-icon, .mix-track-play-icon, .recent-track-play-icon, .your-track-play-overlay, .your-download-play-overlay').forEach(el => {
+    document.querySelectorAll('.library-song-play-icon, .popular-search-play-icon, .artist-song-play-icon, .mix-track-play-icon, .recent-track-play-icon, .your-track-play-overlay, .your-download-play-overlay, .liked-song-play-overlay').forEach(el => {
         el.innerHTML = PLAY_ICON;
     });
+
+    const likedPlayIconWrapper = document.getElementById('likedPlayIconWrapper');
+    const likedPlayAllText = document.getElementById('likedPlayAllText');
+    if (likedPlayIconWrapper) {
+        likedPlayIconWrapper.innerHTML = PLAY_ICON;
+    }
+    if (likedPlayAllText) {
+        likedPlayAllText.textContent = 'Play all';
+    }
 
     const mixDetailPlayAllBtn = document.getElementById('mixDetailPlayAllBtn');
     if (mixDetailPlayAllBtn) {
@@ -372,6 +385,31 @@ const syncActiveSongUI = () => {
                     : `<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
             }
         }
+
+        // Sync active state for Liked Songs Page (strictly scoped to liked-songs context)
+        const isLikedContext = (currentPlaybackContext === 'liked-songs' || window.__spotiwindPlaybackContext === 'liked-songs' || window.__spotiwindContext === 'liked-songs');
+        if (isLikedContext && currentSongData) {
+            document.querySelectorAll('.liked-song-item').forEach(item => {
+                const songId = item.dataset.songId;
+                const songAudio = item.dataset.songAudio;
+                if (songId === String(currentSongData.id) || (songAudio && currentSongData.audio === songAudio) || areSameSongs(currentSongData, { id: songId, audio: songAudio })) {
+                    item.classList.add('is-active-song');
+                    if (isPaused) item.classList.add('is-paused');
+                    const overlay = item.querySelector('.liked-song-play-overlay');
+                    if (overlay) {
+                        overlay.innerHTML = isPlaying 
+                            ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`
+                            : `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
+                    }
+                    if (likedPlayIconWrapper) {
+                        likedPlayIconWrapper.innerHTML = isPlaying ? PAUSE_ICON : PLAY_ICON;
+                    }
+                    if (likedPlayAllText) {
+                        likedPlayAllText.textContent = isPlaying ? 'Pause' : 'Play all';
+                    }
+                }
+            });
+        }
     }
 };
 window.syncActiveSongUI = syncActiveSongUI;
@@ -423,7 +461,6 @@ const togglePlaybackShuffle = (forceState = null) => {
             window.currentPlaylist = currentPlaylist;
             window.currentSongIndex = currentSongIndex;
         }
-        renderUpNextQueue('upNextList');
         showToast('Shuffle diaktifkan');
     } else {
         const sourcePool = (unshuffledPlaylist && unshuffledPlaylist.length > 1)
@@ -441,7 +478,6 @@ const togglePlaybackShuffle = (forceState = null) => {
             window.currentPlaylist = currentPlaylist;
             window.currentSongIndex = currentSongIndex;
         }
-        renderUpNextQueue('upNextList');
         showToast('Shuffle dinonaktifkan');
     }
 
@@ -585,13 +621,6 @@ window.playNext = () => {
 window.playPrevious = () => {
     const previousSong = getPreviousSong();
     if (previousSong) triggerSongByIndex(currentPlaylist.findIndex((song) => song.id === previousSong.id));
-};
-
-/**
- * Updates the "Up Next" list in the Full Screen Player
- */
-const renderUpNext = () => {
-    renderUpNextQueue('upNextList');
 };
 
 const triggerSongByIndex = (index) => {
@@ -838,7 +867,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initCreatePlaylistModal();
     initSongOptionsSheet();
-    initQueueModal();
 
     initAvatarPreviewModal({
         modalId: 'sidebarAvatarPreviewModal',
@@ -1379,6 +1407,10 @@ window.toggleDownloadSong = toggleDownloadSong;
                 } else {
                     baseQueue = [...artistPageCurrentSongs];
                 }
+            } else if (context === 'liked-songs' || context === 'liked') {
+                if (Array.isArray(customPlaylist) && customPlaylist.length > 0) {
+                    baseQueue = [...customPlaylist];
+                }
             } else if (context === 'library') {
                 const libSongs = typeof window.getLibraryPlaylist === 'function' ? window.getLibraryPlaylist() : [];
                 baseQueue = Array.isArray(libSongs) ? [...libSongs] : [];
@@ -1478,6 +1510,7 @@ window.toggleDownloadSong = toggleDownloadSong;
         window.__spotiwindCurrentIndex = currentSongIndex;
         window.__spotiwindCurrentSong = currentSongData;
         window.__spotiwindContext = currentPlaybackContext;
+        window.__spotiwindPlaybackContext = currentPlaybackContext;
         window.__spotiwindActiveMixId = activeMixId;
 
         // Sync shuffle button state in Full Player
@@ -1490,9 +1523,6 @@ window.toggleDownloadSong = toggleDownloadSong;
                 setPlaybackModes({ shuffle: true, repeat: isRepeat });
             }
         }
-
-        // Render the list of next songs instantly (don't wait for the song to load)
-        renderUpNextQueue('upNextList');
 
         // Sync active song class across all elements
         syncActiveSongUI();
@@ -1560,7 +1590,6 @@ window.toggleDownloadSong = toggleDownloadSong;
 
             await activeAudio.play();
             syncActiveSongUI();
-            renderUpNextQueue('upNextList');
             updateMyActivity(title);
 
         } catch (error) {
@@ -2536,6 +2565,15 @@ window.toggleDownloadSong = toggleDownloadSong;
                 initialTab: targetTab,
                 state: { route: 'library', initialTab: targetTab }
             });
+        } else if (cleanPath === '/liked-songs' || cleanPath.startsWith('/liked-songs')) {
+            updateSidebarActiveState('library-mobile.html');
+            updateBottomNavActive('library-mobile.html');
+            await loadPageContent('liked-songs-mobile.html', {
+                pushState: shouldPushState,
+                route: '/liked-songs',
+                title: 'Liked Songs | Spotiwind',
+                state: { route: 'liked-songs' }
+            });
         } else if (cleanPath === '/windflow' || cleanPath === '/radio') {
             updateSidebarActiveState('windflow-mobile.html');
             updateBottomNavActive('windflow-mobile.html');
@@ -2972,10 +3010,7 @@ window.spotiwind = {
     });
 
     document.querySelector('.full-secondary-controls button[title="Queue"]')?.addEventListener('click', () => {
-        const upNextSec = document.querySelector('.full-up-next-section');
-        if (upNextSec) {
-            upNextSec.scrollIntoView({ behavior: 'smooth' });
-        }
+        showToast('Fitur antrean lagu akan segera hadir');
     });
 
     document.querySelector('.full-secondary-controls button[title="Connect to a Device"]')?.addEventListener('click', () => {

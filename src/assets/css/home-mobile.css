@@ -2126,8 +2126,7 @@ body.full-player-open {
 .mobile-full-player.active .full-track-meta,
 .mobile-full-player.active .full-progress-container,
 .mobile-full-player.active .full-controls,
-.mobile-full-player.active .full-secondary-controls,
-.mobile-full-player.active .full-up-next-section {
+.mobile-full-player.active .full-secondary-controls {
     animation: fullPlayerEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -2149,10 +2148,6 @@ body.full-player-open {
 
 .mobile-full-player.active .full-secondary-controls {
     animation-delay: 0.3s;
-}
-
-.mobile-full-player.active .full-up-next-section {
-    animation-delay: 0.35s;
 }
 
 @keyframes fullPlayerEntrance {
@@ -2430,198 +2425,7 @@ body.full-player-open {
     height: 30px;
 }
 
-/* Up Next Section Styling */
-.full-up-next-section {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--glass-border);
-    border-radius: 1.25rem;
-    padding: 1rem var(--mobile-horizontal-padding);
-}
 
-.up-next-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 0.8rem;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    letter-spacing: 0.02em;
-}
-
-.up-next-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.up-next-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 10px;
-    /* Standarisasi padding agar tidak jump saat active */
-    margin: 0 -10px;
-    /* Standarisasi margin */
-    border-radius: 14px;
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: background 0.4s ease, border-color 0.4s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-    animation: upNextFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-    will-change: transform, opacity;
-}
-
-.up-next-item:active {
-    transform: scale(0.97);
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.up-next-item.active {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-.up-next-cover {
-    width: 42px;
-    height: 42px;
-    border-radius: 6px;
-    object-fit: cover;
-    background: var(--glass-bg);
-}
-
-.up-next-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.up-next-name {
-    font-size: 0.85rem;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.up-next-artist {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.up-next-item.active .up-next-name {
-    color: #22c55e;
-    /* Warna hijau yang sama dengan search dropdown */
-}
-
-.up-next-item.active .up-next-duration {
-    color: #ffffff;
-    /* Putih terang saat lagu aktif (terlihat saat di-pause) */
-}
-
-/* Logic Equalizer di Up Next */
-.up-next-item .equalizer {
-    display: none;
-    align-items: flex-end;
-    gap: 2px;
-    width: 14px;
-    height: 14px;
-}
-
-.up-next-right {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    flex-shrink: 0;
-    position: relative;
-    min-width: 45px;
-    justify-content: flex-end;
-}
-
-.up-next-duration {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    font-variant-numeric: tabular-nums;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-/* Transisi halus antara Durasi dan Equalizer */
-.mobile-full-player.is-playing .up-next-item.active .up-next-duration {
-    opacity: 0;
-    transform: translateX(10px);
-    pointer-events: none;
-    position: absolute;
-    transition: none;
-}
-
-.mobile-full-player.is-playing .up-next-item.active .equalizer {
-    display: flex;
-    animation: fadeInScale 0.4s ease forwards;
-}
-
-.mobile-full-player.is-playing .up-next-item.active .equalizer span {
-    width: 3px;
-    background: var(--primary-gradient);
-    background-size: 14px 100%;
-    border-radius: 1px;
-    animation: bounce 0.5s ease-in-out infinite alternate;
-    flex-shrink: 0;
-}
-
-.mobile-full-player.is-playing .up-next-item.active .equalizer span:nth-child(1) {
-    background-position: left;
-    animation-delay: -0.2s;
-}
-
-.mobile-full-player.is-playing .up-next-item.active .equalizer span:nth-child(2) {
-    background-position: center;
-    animation-delay: 0s;
-}
-
-.mobile-full-player.is-playing .up-next-item.active .equalizer span:nth-child(3) {
-    background-position: right;
-    animation-delay: -0.6s;
-}
-
-@keyframes bounce {
-    from {
-        height: 4px;
-    }
-
-    to {
-        height: 12px;
-    }
-}
-
-.up-next-icon {
-    color: #ffffff;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-}
-
-@keyframes upNextFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.98);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fadeInScale {
-    from {
-        opacity: 0;
-        transform: scale(0.5);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
 
 /* Menghaluskan durasi perpindahan View Transition */
 ::view-transition-group(*) {

@@ -1,0 +1,163 @@
+<!-- Konten ini akan disuntikkan ke dalam .app-container di home-mobile.html -->
+
+<body>
+    <div class="liked-songs-page-wrapper">
+        <!-- Top Sticky Header -->
+        <header class="liked-songs-header" id="likedSongsHeader">
+            <button id="likedSongsBackBtn" class="liked-songs-back-btn" type="button" aria-label="Kembali ke Library">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"
+                    stroke-linejoin="round" aria-hidden="true">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </button>
+            <h1 class="liked-songs-header-title" id="likedSongsHeaderTitle" aria-hidden="true">Liked Songs</h1>
+            <button id="likedSongsMoreBtn" class="liked-songs-more-btn" type="button" aria-label="Opsi lainnya">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+                    <circle cx="12" cy="5" r="1.75" />
+                    <circle cx="12" cy="12" r="1.75" />
+                    <circle cx="12" cy="19" r="1.75" />
+                </svg>
+            </button>
+        </header>
+
+        <!-- Liked Songs Hero Content Section -->
+        <section class="liked-songs-hero" id="likedSongsHero">
+            <div class="liked-songs-cover-box">
+                <img src="/public/images/Love Image.webp" alt="Liked Songs Cover" class="liked-songs-cover-img"
+                    onerror="this.onerror=null; this.src='../../public/images/Love Image.webp';">
+            </div>
+            <div class="liked-songs-meta">
+                <h2 class="liked-songs-title">Liked Songs</h2>
+                <div class="liked-songs-count-badge">
+                    <span class="liked-songs-count" id="likedSongsCount">0 songs</span>
+                </div>
+                <p class="liked-songs-tagline">your favorite tracks, all in one place. Still hitting different.</p>
+            </div>
+        </section>
+
+        <!-- Action Controls Bar (Play all & Shuffle) -->
+        <div class="liked-songs-actions-bar">
+            <button id="likedSongsPlayAllBtn" class="liked-songs-play-all-btn" type="button"
+                aria-label="Play all liked songs">
+                <span class="btn-icon-wrapper" id="likedPlayIconWrapper">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                </span>
+                <span class="btn-text" id="likedPlayAllText">Play all</span>
+            </button>
+
+            <button id="likedSongsShuffleBtn" class="liked-songs-shuffle-btn" type="button"
+                aria-label="Shuffle play liked songs">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M0 0h24v24H0z" fill="none" />
+                    <path fill="currentColor"
+                        d="M2 16.25a.75.75 0 0 0 0 1.5zm8.748-2.163l-.643-.386zm2.504-4.174l.643.386zM22 7l.53.53a.75.75 0 0 0 0-1.06zm-2.53 1.47a.75.75 0 0 0 1.06 1.06zm1.06-4a.75.75 0 1 0-1.06 1.06zm-5.31 2.92l-.369-.653zM2 17.75h3.603v-1.5H2zm9.39-3.277l2.505-4.174l-1.286-.772l-2.504 4.174zm7.007-6.723H22v-1.5h-3.603zm3.073-1.28l-2 2l1.06 1.06l2-2zm1.06 0l-2-2l-1.06 1.06l2 2zm-8.635 3.829c.434-.724.734-1.22 1.006-1.589c.263-.355.468-.543.689-.668l-.739-1.305c-.467.264-.82.627-1.155 1.08c-.326.44-.668 1.011-1.087 1.71zm4.502-4.049c-.815 0-1.48 0-2.025.052c-.562.055-1.054.17-1.521.435l.739 1.305c.22-.125.487-.204.927-.247c.456-.044 1.036-.045 1.88-.045zM5.603 17.75c.815 0 1.48 0 2.025-.052c.562-.055 1.054-.17 1.521-.435l-.739-1.305c-.22.125-.487.204-.927.247c-.456.044-1.036.045-1.88.045zm4.502-4.049c-.435.724-.734 1.22-1.006 1.589c-.263.355-.468.543-.689.668l.74 1.305c.466-.264.819-.627 1.154-1.08c.326-.44.668-1.011 1.087-1.71zM2 6.25a.75.75 0 0 0 0 1.5zM22 17l.53.53a.75.75 0 0 0 0-1.06zm-1.47-2.53a.75.75 0 1 0-1.06 1.06zm-1.06 4a.75.75 0 1 0 1.06 1.06zm-3.345-1.525l.144-.736zm-1.682-2.33a.75.75 0 1 0-1.286.77zm.025 1.391l.558-.501zm-6.593-8.95l.143-.737zm1.682 2.33a.75.75 0 0 0 1.286-.772zm-.025-1.393l-.558.502zM2 7.75h4.668v-1.5H2zm15.332 10H22v-1.5h-4.668zm5.198-1.28l-2-2l-1.06 1.06l2 2zm-1.06 0l-2 2l1.06 1.06l2-2zm-4.138-.22c-.645 0-.867-.003-1.063-.041l-.287 1.472c.372.072.765.069 1.35.069zm-4.175-.864c.3.502.5.84.754 1.122l1.115-1.003c-.134-.149-.25-.337-.583-.89zm3.112.823a2.25 2.25 0 0 1-1.243-.704l-1.115 1.003a3.75 3.75 0 0 0 2.071 1.173zM6.668 7.75c.645 0 .867.003 1.063.041l.287-1.472c-.372-.072-.765-.069-1.35-.069zm4.175.864c-.3-.502-.5-.84-.754-1.122L8.974 8.495c.134.149.25.337.583.89zm-3.112-.823c.48.094.916.34 1.243.704l1.115-1.003a3.75 3.75 0 0 0-2.071-1.173z" />
+                </svg>
+                <span>Shuffle</span>
+            </button>
+        </div>
+
+        <!-- Search Box Section -->
+        <div class="liked-songs-search-section">
+            <div class="liked-songs-search-box">
+                <svg class="liked-songs-search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none"
+                    stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                    aria-hidden="true">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="likedSongsSearchInput" class="liked-songs-search-input"
+                    placeholder="Search Liked Songs..." autocomplete="off" spellcheck="false"
+                    aria-label="Search liked songs">
+                <button type="button" id="likedSongsSearchClearBtn" class="liked-songs-search-clear-btn hidden"
+                    aria-label="Clear search input">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Liked Songs Data List -->
+        <section class="liked-songs-list-section">
+            <div id="likedSongsList" class="liked-songs-list">
+                <!-- Skeletons rendered initially by JS or fallback -->
+                <div class="liked-song-skeleton skeleton">
+                    <div class="skeleton-art"></div>
+                    <div class="skeleton-info">
+                        <div class="skeleton-line-title"></div>
+                        <div class="skeleton-line-sub"></div>
+                    </div>
+                    <div class="skeleton-actions"></div>
+                </div>
+                <div class="liked-song-skeleton skeleton">
+                    <div class="skeleton-art"></div>
+                    <div class="skeleton-info">
+                        <div class="skeleton-line-title"></div>
+                        <div class="skeleton-line-sub"></div>
+                    </div>
+                    <div class="skeleton-actions"></div>
+                </div>
+                <div class="liked-song-skeleton skeleton">
+                    <div class="skeleton-art"></div>
+                    <div class="skeleton-info">
+                        <div class="skeleton-line-title"></div>
+                        <div class="skeleton-line-sub"></div>
+                    </div>
+                    <div class="skeleton-actions"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- More Options Bottom Sheet Modal -->
+    <div id="likedSongsOptionsModal" class="liked-songs-options-modal hidden" inert>
+        <div class="liked-songs-options-backdrop" id="likedSongsOptionsBackdrop"></div>
+        <div class="liked-songs-options-sheet" id="likedSongsOptionsSheet">
+            <div class="liked-songs-options-handle-wrapper" id="likedSongsOptionsHandleWrapper">
+                <div class="liked-songs-options-handle"></div>
+            </div>
+            <div class="liked-songs-options-header">
+                <img src="/public/images/Love Image.webp" alt="Liked Songs" class="liked-songs-options-photo"
+                    onerror="this.onerror=null; this.src='../../public/images/Love Image.webp';">
+                <div class="liked-songs-options-info">
+                    <h3 class="liked-songs-options-name">Liked Songs</h3>
+                    <p class="liked-songs-options-sub" id="likedSongsOptionsCount">0 songs</p>
+                </div>
+            </div>
+            <div class="liked-songs-options-list">
+                <button type="button" class="liked-songs-option-item" id="likedOptPlayAllAction">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    <span>Play all</span>
+                </button>
+                <button type="button" class="liked-songs-option-item" id="likedOptShuffleAction">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="16 3 21 3 21 8"></polyline>
+                        <line x1="4" y1="20" x2="21" y2="3"></line>
+                        <polyline points="21 16 21 21 16 21"></polyline>
+                        <line x1="15" y1="15" x2="21" y2="21"></line>
+                        <line x1="4" y1="4" x2="9" y2="9"></line>
+                    </svg>
+                    <span>Shuffle play</span>
+                </button>
+                <button type="button" class="liked-songs-option-item" id="likedOptShareAction">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                        <polyline points="16 6 12 2 8 6"></polyline>
+                        <line x1="12" y1="2" x2="12" y2="15"></line>
+                    </svg>
+                    <span>Share Liked Songs</span>
+                </button>
+            </div>
+            <button type="button" class="liked-songs-options-close-btn" id="likedSongsOptionsCloseBtn">Cancel</button>
+        </div>
+    </div>
+</body>

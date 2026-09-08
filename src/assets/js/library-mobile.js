@@ -279,7 +279,16 @@ function setupOverviewCards() {
             if (itemType === 'downloads') {
                 switchToLibraryTab('download');
             } else if (itemType === 'liked-songs') {
-                switchToLibraryTab('tracks');
+                if (typeof window.loadPageContent === 'function') {
+                    window.loadPageContent('liked-songs-mobile.html', {
+                        pushState: true,
+                        route: '/liked-songs',
+                        title: 'Liked Songs | Spotiwind',
+                        state: { route: 'liked-songs' }
+                    });
+                } else {
+                    switchToLibraryTab('tracks');
+                }
             } else if (itemType === 'favorites') {
                 switchToLibraryTab('playlists');
             } else if (itemType === 'recently-played') {
@@ -304,7 +313,16 @@ function setupOverviewCards() {
     if (seeAllLikedBtn) {
         const seeAllLikedHandler = (e) => {
             e.preventDefault();
-            switchToLibraryTab('tracks');
+            if (typeof window.loadPageContent === 'function') {
+                window.loadPageContent('liked-songs-mobile.html', {
+                    pushState: true,
+                    route: '/liked-songs',
+                    title: 'Liked Songs | Spotiwind',
+                    state: { route: 'liked-songs' }
+                });
+            } else {
+                switchToLibraryTab('tracks');
+            }
         };
         seeAllLikedBtn.addEventListener('click', seeAllLikedHandler);
         listeners.push({ element: seeAllLikedBtn, type: 'click', handler: seeAllLikedHandler });

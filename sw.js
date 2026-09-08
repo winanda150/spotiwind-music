@@ -20,9 +20,11 @@ const PRECACHE_ASSETS = [
     '/src/pages/artist-mobile.html',
     '/src/pages/auth-mobile.html',
     '/src/pages/notifications-mobile.html',
+    '/src/pages/liked-songs-mobile.html',
     '/src/assets/css/home-mobile.css',
     '/src/assets/css/home-desktop.css',
     '/src/assets/css/library-mobile.css',
+    '/src/assets/css/liked-songs-mobile.css',
     '/src/assets/css/search-mobile.css',
     '/src/assets/css/windflow-mobile.css',
     '/src/assets/css/account-mobile.css',
@@ -32,6 +34,7 @@ const PRECACHE_ASSETS = [
     '/src/assets/js/home-mobile.js',
     '/src/assets/js/home-desktop.js',
     '/src/assets/js/library-mobile.js',
+    '/src/assets/js/liked-songs-mobile.js',
     '/src/assets/js/search-mobile.js',
     '/src/assets/js/windflow-mobile.js',
     '/src/assets/js/account-mobile.js',
@@ -56,6 +59,7 @@ const PRECACHE_ASSETS = [
     '/public/branding/Spotiwind.ico',
     '/public/images/Hero%20Section.webp',
     '/public/images/Banner%20Exclusive.webp',
+    '/public/images/Love%20Image.webp',
     '/public/branding/Spotiwind%20OG%20Image.jpg'
 ];
 

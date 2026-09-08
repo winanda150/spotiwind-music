@@ -103,7 +103,7 @@ export const updateBottomNavActive = (targetPage) => {
         let isActive = false;
         if (normalizedTarget.includes('search')) {
             isActive = itemTarget.includes('search');
-        } else if (normalizedTarget.includes('library')) {
+        } else if (normalizedTarget.includes('library') || normalizedTarget.includes('liked-songs')) {
             isActive = itemTarget.includes('library');
         } else if (normalizedTarget.includes('windflow') || normalizedTarget.includes('radio')) {
             isActive = itemTarget.includes('windflow') || itemTarget.includes('radio');
@@ -131,6 +131,7 @@ export const switchPageStyles = async (targetPage) => {
         { key: 'notifications', match: 'notifications-mobile.html', file: 'notifications-mobile.css' },
         { key: 'artist', match: 'artist-mobile.html', file: 'artist-mobile.css' },
         { key: 'library', match: 'library-mobile.html', file: 'library-mobile.css' },
+        { key: 'liked-songs', match: 'liked-songs-mobile.html', file: 'liked-songs-mobile.css' },
         { key: 'account', match: 'account-mobile.html', file: 'account-mobile.css' },
         { key: 'windflow', match: ['windflow-mobile.html', 'radio-mobile.html'], file: 'windflow-mobile.css' },
         { key: 'auth', match: 'auth-mobile.html', file: 'auth-mobile.css' }
@@ -209,6 +210,9 @@ export const loadSubpage = async (page, options = {}, context = null) => {
         } else if (page.includes('library-mobile.html')) {
             targetRoute = '/library';
             targetTitle = 'Library | Spotiwind';
+        } else if (page.includes('liked-songs-mobile.html')) {
+            targetRoute = '/liked-songs';
+            targetTitle = 'Liked Songs | Spotiwind';
         } else if (page.includes('notifications-mobile.html')) {
             targetRoute = '/notifications';
             targetTitle = 'Notifications | Spotiwind';
@@ -408,6 +412,12 @@ export const loadSubpage = async (page, options = {}, context = null) => {
                 activePageCleanup = notificationsModule.cleanupNotifications;
                 if (typeof notificationsModule.initNotificationsPage === 'function') {
                     notificationsModule.initNotificationsPage(previousPageUrl);
+                }
+            } else if (page.includes('liked-songs-mobile.html')) {
+                const likedSongsModule = await import('../assets/js/liked-songs-mobile.js');
+                if (typeof likedSongsModule.initLikedSongsPage === 'function') {
+                    await likedSongsModule.initLikedSongsPage(previousPageUrl);
+                    activePageCleanup = likedSongsModule.cleanupLikedSongsPage;
                 }
             } else if (page.includes('library-mobile.html')) {
                 const libraryModule = await import('../assets/js/library-mobile.js');
