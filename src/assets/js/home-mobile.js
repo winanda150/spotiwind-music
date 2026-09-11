@@ -221,26 +221,17 @@ const isSameSongForContext = (currentSong, targetSong, context = null, contextMi
     const sameSong = areSameSongs(currentSong, targetSong);
     if (!sameSong) return false;
 
-    // If context is explicitly specified and does not match current context, treat as new context
-    if (context && currentPlaybackContext && context !== currentPlaybackContext) {
-        return false;
-    }
-
-    if (context !== 'made-for-you') {
+    // Only Made for You mixes require scoping by mix ID when switching between different mixes
+    if (context === 'made-for-you') {
+        const baselineMixId = previousMixId ?? activeMixId;
+        if (baselineMixId && contextMixId) {
+            return String(baselineMixId) === String(contextMixId);
+        }
         return true;
     }
 
-    const baselineMixId = previousMixId ?? activeMixId;
-
-    if (!contextMixId && !baselineMixId) {
-        return true;
-    }
-
-    if (!contextMixId) {
-        return true;
-    }
-
-    return String(baselineMixId || contextMixId) === String(contextMixId);
+    // For all other contexts (popular/trending, recently-played, search, etc.), identical song should toggle play/pause
+    return true;
 };
 
 const getSongElements = (song) => {
