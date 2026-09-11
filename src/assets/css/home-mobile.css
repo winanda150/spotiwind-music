@@ -985,7 +985,8 @@ body.mix-detail-open .mobile-header {
     font-size: 0.75rem;
     color: var(--text-muted);
     line-height: 1.4;
-    max-width: 85%;
+    max-width: min(90%, 290px);
+    text-wrap: pretty;
 }
 
 .theme-text {

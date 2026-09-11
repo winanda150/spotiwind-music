@@ -490,7 +490,7 @@ body.player-active .right-sidebar {
 }
 
 .hero-card p {
-    max-width: 460px;
+    max-width: 400px;
     font-size: 0.85rem;
     line-height: 1.6;
     color: var(--text-muted);
