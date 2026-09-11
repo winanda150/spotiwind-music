@@ -277,7 +277,16 @@ function setupOverviewCards() {
         const handler = () => {
             const itemType = card.dataset.overviewItem;
             if (itemType === 'downloads') {
-                switchToLibraryTab('download');
+                if (typeof window.loadPageContent === 'function') {
+                    window.loadPageContent('downloads-mobile.html', {
+                        pushState: true,
+                        route: '/downloads',
+                        title: 'Downloads | Spotiwind',
+                        state: { route: 'downloads' }
+                    });
+                } else {
+                    switchToLibraryTab('download');
+                }
             } else if (itemType === 'liked-songs') {
                 if (typeof window.loadPageContent === 'function') {
                     window.loadPageContent('liked-songs-mobile.html', {
@@ -601,14 +610,9 @@ function bindUserAlbums(uid) {
 function updateLocalStats() {
     // Downloads
     try {
-        const isPro = isCurrentUserPro || (typeof window.isCurrentUserPro === 'function' && window.isCurrentUserPro());
-        if (!auth.currentUser || !isPro) {
-            setDownloadsCount(0);
-        } else {
-            const savedDownloads = JSON.parse(localStorage.getItem('downloaded_songs') || localStorage.getItem('spotiwind_downloads') || '[]');
-            const count = Array.isArray(savedDownloads) ? savedDownloads.length : 0;
-            setDownloadsCount(count);
-        }
+        const savedDownloads = JSON.parse(localStorage.getItem('downloaded_songs') || localStorage.getItem('spotiwind_downloads') || '[]');
+        const count = Array.isArray(savedDownloads) ? savedDownloads.length : 0;
+        setDownloadsCount(count);
     } catch {
         setDownloadsCount(0);
     }
@@ -741,7 +745,7 @@ function createSongItemHTML(song, options = {}) {
                         <span id="downloadText_${songId}">${song.downloadProgress || 10}%</span>
                     </span>
                     <span class="download-duration library-song-duration ${song.downloadStatus === 'downloading' ? 'hidden' : ''}" id="downloadDuration_${songId}">${durationText}</span>
-                    <button class="download-options-btn download-opt-trigger-btn library-song-action-btn ${song.downloadStatus === 'downloading' ? 'hidden' : ''}" id="downloadOptBtn_${songId}" type="button" data-song-id="${songId}" title="Opsi Unduhan" aria-label="Opsi Unduhan">
+                    <button class="download-options-btn download-opt-trigger-btn library-song-action-btn ${song.downloadStatus === 'downloading' ? 'hidden' : ''}" id="downloadOptBtn_${songId}" type="button" data-song-id="${songId}" title="Download options" aria-label="Download options">
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
                             <circle cx="12" cy="5" r="2"></circle>
                             <circle cx="12" cy="12" r="2"></circle>
@@ -1722,9 +1726,22 @@ function renderDownloadsPanel(isGuest = !auth.currentUser) {
     }
 
     // 1. Calculate Offline Storage data (Total MB / 10 GB limit)
-    const totalMB = downloads.reduce((acc, s) => acc + (s.size ? s.size / (1024 * 1024) : 4.5), 0);
+    let totalBytes = 0;
+    downloads.forEach(s => {
+        let size = Number(s.size);
+        if (!isNaN(size) && size > 0) {
+            if (size < 1024) size = size * 1024 * 1024;
+            totalBytes += size;
+        } else {
+            const dur = Number(s.duration) || 0;
+            totalBytes += dur > 0 ? Math.round(dur * (128 * 1024 / 8)) : 4.5 * 1024 * 1024;
+        }
+    });
+
+    const totalMB = totalBytes / (1024 * 1024);
     const storageLimitMB = 10 * 1024; // 10 GB = 10240 MB
-    const storagePercent = Math.min(100, Math.max(0, (totalMB / storageLimitMB) * 100));
+    const rawPercent = Math.min(100, Math.max(0, (totalMB / storageLimitMB) * 100));
+    const visualPercent = totalBytes > 0 ? Math.max(2.5, rawPercent) : 0;
 
     if (storageBadgeEl) {
         if (totalMB >= 1024) {
@@ -1734,11 +1751,11 @@ function renderDownloadsPanel(isGuest = !auth.currentUser) {
         }
     }
     if (storageFillEl) {
-        storageFillEl.style.width = `${storagePercent}%`;
+        storageFillEl.style.width = `${visualPercent.toFixed(1)}%`;
     }
 
-    // 2. Handle Guest state
-    if (isGuest) {
+    // 2. Handle Guest state (only if no offline downloads exist)
+    if (isGuest && downloads.length === 0) {
         setDownloadsCount(0);
         if (badgeEl) badgeEl.textContent = '0 songs';
         if (subheaderCountEl) subheaderCountEl.textContent = `0 ${unitPlural}`;
@@ -1761,7 +1778,7 @@ function renderDownloadsPanel(isGuest = !auth.currentUser) {
     }
 
     const isPro = isCurrentUserPro || (typeof window.isCurrentUserPro === 'function' && window.isCurrentUserPro());
-    if (!isPro) {
+    if (!isPro && downloads.length === 0) {
         setDownloadsCount(0);
         if (badgeEl) badgeEl.textContent = '0 songs';
         if (subheaderCountEl) subheaderCountEl.textContent = `0 ${unitPlural}`;
@@ -3310,8 +3327,8 @@ function openDownloadOptions(song) {
 
         if (isDownloaded) {
             deleteOfflineBtn.classList.add('btn-danger');
-            if (titleSpan) titleSpan.textContent = 'Hapus dari Unduhan Offline';
-            if (descSpan) descSpan.textContent = 'Hapus audio dari penyimpanan aplikasi';
+            if (titleSpan) titleSpan.textContent = 'Remove from Offline Downloads';
+            if (descSpan) descSpan.textContent = 'Delete audio from offline storage';
             if (iconContainer) {
                 iconContainer.innerHTML = `
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -3322,8 +3339,8 @@ function openDownloadOptions(song) {
             }
         } else {
             deleteOfflineBtn.classList.remove('btn-danger');
-            if (titleSpan) titleSpan.textContent = 'Unduh untuk Offline';
-            if (descSpan) descSpan.textContent = 'Simpan audio agar bisa diputar tanpa internet';
+            if (titleSpan) titleSpan.textContent = 'Download for Offline';
+            if (descSpan) descSpan.textContent = 'Save audio to play without internet';
             if (iconContainer) {
                 iconContainer.innerHTML = `
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -3406,8 +3423,8 @@ function setupDownloadOptionsModal() {
                         <svg class="spin-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                     </div>
                     <div class="opt-btn-text">
-                        <span class="opt-title">Menyiapkan File MP3...</span>
-                        <span class="opt-desc">Mengekspor file musik ke penyimpanan HP</span>
+                        <span class="opt-title">Preparing MP3 File...</span>
+                        <span class="opt-desc">Exporting audio file to device storage</span>
                     </div>
                 `;
 
@@ -3420,8 +3437,8 @@ function setupDownloadOptionsModal() {
                             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         </div>
                         <div class="opt-btn-text">
-                            <span class="opt-title" style="color: #22c55e;">File MP3 Berhasil Disimpan!</span>
-                            <span class="opt-desc">Tersimpan di folder Download perangkat</span>
+                            <span class="opt-title" style="color: #22c55e;">MP3 File Saved Successfully!</span>
+                            <span class="opt-desc">Saved in device Downloads folder</span>
                         </div>
                     `;
 
@@ -3430,7 +3447,7 @@ function setupDownloadOptionsModal() {
                         saveToDeviceBtn.innerHTML = originalHtml;
                         closeDownloadOptions();
                         if (typeof window.showToast === 'function') {
-                            window.showToast(`File MP3 "${song.name || 'Lagu'}" berhasil disimpan ke perangkat!`);
+                            window.showToast(`MP3 file "${song.name || 'Track'}" saved to device!`);
                         }
                     }, 800);
                 } catch (err) {
@@ -3439,7 +3456,7 @@ function setupDownloadOptionsModal() {
                     saveToDeviceBtn.innerHTML = originalHtml;
                     closeDownloadOptions();
                     if (typeof window.showToast === 'function') {
-                        window.showToast("Gagal menyimpan file ke perangkat.");
+                        window.showToast("Failed to save file to device.");
                     }
                 }
             } else {

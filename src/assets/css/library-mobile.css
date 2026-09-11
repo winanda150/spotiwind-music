@@ -254,7 +254,7 @@
 
 .overview-stat-card.card-liked,
 .overview-card.card-liked {
-    background: linear-gradient(135deg, #134026, #0e2918);
+    background: linear-gradient(135deg, #381224, #1E0C17);
 }
 
 .overview-stat-card.card-downloads,
@@ -282,7 +282,7 @@
 
 .overview-stat-card.card-liked .overview-stat-icon,
 .overview-card.card-liked .overview-card-icon {
-    color: #22c55e;
+    color: #F43F5E;
 }
 
 .overview-stat-card.card-downloads .overview-stat-icon,
@@ -5219,6 +5219,7 @@
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }

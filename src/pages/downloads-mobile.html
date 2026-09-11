@@ -1,0 +1,320 @@
+<!-- Injected into .app-container in home-mobile.html -->
+
+<body>
+    <div class="downloads-page-wrapper">
+        <!-- Top Sticky Header -->
+        <header class="downloads-header" id="downloadsHeader">
+            <button id="downloadsBackBtn" class="downloads-back-btn" type="button" aria-label="Back to Library">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"
+                    stroke-linejoin="round" aria-hidden="true">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </button>
+
+            <!-- Offline Ready Indicator Badge -->
+            <div class="downloads-offline-badge" id="downloadsOfflineBadge">
+                <span class="downloads-pulse-dot" aria-hidden="true"></span>
+                <span class="downloads-offline-label">Offline Ready</span>
+            </div>
+
+            <!-- Global Options More Button -->
+            <button id="downloadsMoreBtn" class="downloads-more-btn" type="button"
+                aria-label="Storage options">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+                    <circle cx="12" cy="5" r="1.75" />
+                    <circle cx="12" cy="12" r="1.75" />
+                    <circle cx="12" cy="19" r="1.75" />
+                </svg>
+            </button>
+        </header>
+
+        <!-- Hero Content Section -->
+        <section class="downloads-hero" id="downloadsHero">
+            <div class="downloads-cover-box">
+                <img src="/public/images/Download Image.webp" alt="Downloaded Music Cover" class="downloads-cover-img"
+                    onerror="this.onerror=null; this.src='../../public/images/Download Image.webp';">
+                <div class="downloads-cover-glow" aria-hidden="true"></div>
+            </div>
+            <div class="downloads-meta">
+                <div class="downloads-category-tag">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>OFFLINE STORAGE</span>
+                </div>
+                <h1 class="downloads-title">Downloaded Music</h1>
+                <div class="downloads-stats-row">
+                    <span class="downloads-stat-item" id="downloadsTrackCount">0 tracks</span>
+                    <span class="downloads-stat-dot">•</span>
+                    <span class="downloads-stat-item" id="downloadsStorageSize">0 MB used</span>
+                </div>
+                <p class="downloads-tagline">100% offline playback. No wifi or data needed to listen to your music.</p>
+            </div>
+        </section>
+
+        <!-- Interactive Storage Usage Meter Card -->
+        <section class="downloads-storage-card" id="downloadsStorageCard" aria-label="Offline Storage Information">
+            <div class="storage-card-header">
+                <div class="storage-card-title-group">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" class="storage-icon" aria-hidden="true">
+                        <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                        <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                        <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                        <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                    </svg>
+                    <span class="storage-card-label">Offline Storage</span>
+                </div>
+                <span class="storage-usage-text" id="storageUsageSummary">0 MB of 10 GB</span>
+            </div>
+
+            <div class="storage-progress-bar-wrapper">
+                <div class="storage-progress-bar" id="storageProgressBar" role="progressbar" aria-valuenow="0"
+                    aria-valuemin="0" aria-valuemax="100">
+                    <div class="storage-fill-spotiwind" id="storageFillSpotiwind" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div class="storage-legend-row">
+                <div class="storage-legend-item">
+                    <span class="legend-dot dot-spotiwind"></span>
+                    <span class="legend-label">Downloaded:</span>
+                    <span class="legend-val" id="legendSpotiwindVal">0 MB</span>
+                </div>
+                <div class="storage-legend-item">
+                    <span class="legend-dot dot-free"></span>
+                    <span class="legend-label">Available:</span>
+                    <span class="legend-val" id="legendFreeVal">10 GB</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Action Controls Bar (Play all, Shuffle, View Switcher) -->
+        <div class="downloads-actions-bar">
+            <button id="downloadsPlayAllBtn" class="downloads-play-all-btn" type="button"
+                aria-label="Play all downloaded tracks">
+                <span class="btn-icon-wrapper" id="downloadsPlayIconWrapper">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                </span>
+                <span class="btn-text" id="downloadsPlayAllText">Play all</span>
+            </button>
+
+            <button id="downloadsShuffleBtn" class="downloads-shuffle-btn" type="button"
+                aria-label="Shuffle play downloaded tracks">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M0 0h24v24H0z" fill="none" />
+                    <path fill="currentColor"
+                        d="M2 16.25a.75.75 0 0 0 0 1.5zm8.748-2.163l-.643-.386zm2.504-4.174l.643.386zM22 7l.53.53a.75.75 0 0 0 0-1.06zm-2.53 1.47a.75.75 0 0 0 1.06 1.06zm1.06-4a.75.75 0 1 0-1.06 1.06zm-5.31 2.92l-.369-.653zM2 17.75h3.603v-1.5H2zm9.39-3.277l2.505-4.174l-1.286-.772l-2.504 4.174zm7.007-6.723H22v-1.5h-3.603zm3.073-1.28l-2 2l1.06 1.06l2-2zm1.06 0l-2-2l-1.06 1.06l2 2zm-8.635 3.829c.434-.724.734-1.22 1.006-1.589c.263-.355.468-.543.689-.668l-.739-1.305c-.467.264-.82.627-1.155 1.08c-.326.44-.668 1.011-1.087 1.71zm4.502-4.049c-.815 0-1.48 0-2.025.052c-.562.055-1.054.17-1.521.435l.739 1.305c.22-.125.487-.204.927-.247c.456-.044 1.036-.045 1.88-.045zM5.603 17.75c.815 0 1.48 0 2.025-.052c.562-.055 1.054-.17 1.521-.435l-.739-1.305c-.22.125-.487.204-.927.247c-.456.044-1.036.045-1.88.045zm4.502-4.049c-.435.724-.734 1.22-1.006 1.589c-.263.355-.468.543-.689.668l.74 1.305c.466-.264.819-.627 1.154-1.08c.326-.44.668-1.011 1.087-1.71zM2 6.25a.75.75 0 0 0 0 1.5zM22 17l.53.53a.75.75 0 0 0 0-1.06zm-1.47-2.53a.75.75 0 1 0-1.06 1.06zm-1.06 4a.75.75 0 1 0 1.06 1.06zm-3.345-1.525l.144-.736zm-1.682-2.33a.75.75 0 1 0-1.286.77zm.025 1.391l.558-.501zm-6.593-8.95l.143-.737zm1.682 2.33a.75.75 0 0 0 1.286-.772zm-.025-1.393l-.558.502zM2 7.75h4.668v-1.5H2zm15.332 10H22v-1.5h-4.668zm5.198-1.28l-2-2l-1.06 1.06l2 2zm-1.06 0l-2 2l1.06 1.06l2-2zm-4.138-.22c-.645 0-.867-.003-1.063-.041l-.287 1.472c.372.072.765.069 1.35.069zm-4.175-.864c.3.502.5.84.754 1.122l1.115-1.003c-.134-.149-.25-.337-.583-.89zm3.112.823a2.25 2.25 0 0 1-1.243-.704l-1.115 1.003a3.75 3.75 0 0 0 2.071 1.173zM6.668 7.75c.645 0 .867.003 1.063.041l.287-1.472c-.372-.072-.765-.069-1.35-.069zm4.175.864c-.3-.502-.5-.84-.754-1.122L8.974 8.495c.134.149.25.337.583.89zm-3.112-.823c.48.094.916.34 1.243.704l1.115-1.003a3.75 3.75 0 0 0-2.071-1.173z" />
+                </svg>
+                <span>Shuffle</span>
+            </button>
+
+            <!-- Layout Switcher (List vs Grid) -->
+            <div class="downloads-view-toggle-group">
+                <button type="button" id="downloadsViewListBtn" class="downloads-view-btn is-active"
+                    aria-label="List view">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg>
+                </button>
+                <button type="button" id="downloadsViewGridBtn" class="downloads-view-btn" aria-label="Grid view">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search Box & Filter Chips Section -->
+        <div class="downloads-filter-section">
+            <div class="downloads-search-box">
+                <svg class="downloads-search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none"
+                    stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                    aria-hidden="true">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="downloadsSearchInput" class="downloads-search-input"
+                    placeholder="Search downloaded tracks..." autocomplete="off" spellcheck="false"
+                    aria-label="Search downloaded tracks">
+                <button type="button" id="downloadsSearchClearBtn" class="downloads-search-clear-btn hidden"
+                    aria-label="Clear search">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Horizontal Filter Chips -->
+            <div class="downloads-chips-row" role="tablist" aria-label="Filter download categories">
+                <button type="button" class="downloads-chip is-active" data-filter="all">All</button>
+                <button type="button" class="downloads-chip" data-filter="tracks">Tracks</button>
+                <button type="button" class="downloads-chip" data-filter="albums">Albums</button>
+                <button type="button" class="downloads-chip" data-filter="playlists">Playlist</button>
+
+                <!-- Sort Dropdown Trigger -->
+                <button type="button" id="downloadsSortTriggerBtn" class="downloads-sort-btn"
+                    aria-label="Sort downloads">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="4" y1="6" x2="20" y2="6"></line>
+                        <line x1="4" y1="12" x2="14" y2="12"></line>
+                        <line x1="4" y1="18" x2="8" y2="18"></line>
+                    </svg>
+                    <span id="downloadsSortLabel">Recent</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Downloaded Tracks List Section -->
+        <section class="downloads-list-section">
+            <div id="downloadsTrackList" class="downloads-list view-list">
+                <!-- Skeletons rendered initially by JS or fallback -->
+                <div class="download-song-skeleton skeleton">
+                    <div class="skeleton-art"></div>
+                    <div class="skeleton-info">
+                        <div class="skeleton-line-title"></div>
+                        <div class="skeleton-line-sub"></div>
+                    </div>
+                    <div class="skeleton-actions"></div>
+                </div>
+                <div class="download-song-skeleton skeleton">
+                    <div class="skeleton-art"></div>
+                    <div class="skeleton-info">
+                        <div class="skeleton-line-title"></div>
+                        <div class="skeleton-line-sub"></div>
+                    </div>
+                    <div class="skeleton-actions"></div>
+                </div>
+                <div class="download-song-skeleton skeleton">
+                    <div class="skeleton-art"></div>
+                    <div class="skeleton-info">
+                        <div class="skeleton-line-title"></div>
+                        <div class="skeleton-line-sub"></div>
+                    </div>
+                    <div class="skeleton-actions"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Global Downloads Options Bottom Sheet Modal -->
+    <div id="downloadsGlobalOptionsModal" class="downloads-options-modal hidden" inert>
+        <div class="downloads-options-backdrop" id="downloadsGlobalBackdrop"></div>
+        <div class="downloads-options-sheet" id="downloadsGlobalSheet">
+            <div class="downloads-options-handle-wrapper">
+                <div class="downloads-options-handle"></div>
+            </div>
+            <div class="downloads-options-header">
+                <img src="/public/images/Download Image.webp" alt="Downloaded Music" class="downloads-options-photo"
+                    onerror="this.onerror=null; this.src='../../public/images/Download Image.webp';">
+                <div class="downloads-options-info">
+                    <h3 class="downloads-options-name">Offline Storage</h3>
+                    <p class="downloads-options-sub" id="downloadsGlobalOptionsSub">Manage offline audio & disk space
+                    </p>
+                </div>
+            </div>
+            <div class="downloads-options-list">
+                <button type="button" class="downloads-option-item" id="optSortRecent">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Sort by Recently Downloaded</span>
+                </button>
+                <button type="button" class="downloads-option-item" id="optSortSize">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <polyline points="6 10 12 4 18 10"></polyline>
+                    </svg>
+                    <span>Sort by File Size (Largest first)</span>
+                </button>
+                <button type="button" class="downloads-option-item" id="optSortAlpha">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19h6"></path>
+                        <path d="M4 5h6"></path>
+                        <path d="M14 5l6 14"></path>
+                        <path d="M16 14h4"></path>
+                    </svg>
+                    <span>Sort by Title (A - Z)</span>
+                </button>
+                <button type="button" class="downloads-option-item item-danger" id="optClearAllDownloads">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    <span>Delete All Downloaded Music</span>
+                </button>
+            </div>
+            <button type="button" class="downloads-options-close-btn" id="downloadsGlobalCloseBtn">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Per-Song Options Bottom Sheet Modal -->
+    <div id="downloadsSongOptionsModal" class="downloads-options-modal hidden" inert>
+        <div class="downloads-options-backdrop" id="downloadsSongBackdrop"></div>
+        <div class="downloads-options-sheet" id="downloadsSongSheet">
+            <div class="downloads-options-handle-wrapper">
+                <div class="downloads-options-handle"></div>
+            </div>
+            <div class="downloads-options-header">
+                <img id="songOptionsCover" src="/public/images/Download Image.webp" alt="Track Cover"
+                    class="downloads-options-photo">
+                <div class="downloads-options-info">
+                    <h3 class="downloads-options-name" id="songOptionsTitle">Track Title</h3>
+                    <p class="downloads-options-sub" id="songOptionsArtist">Artist Name • 0 MB</p>
+                </div>
+            </div>
+            <div class="downloads-options-list">
+                <button type="button" class="downloads-option-item" id="optSongPlayNext">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                        <line x1="19" y1="5" x2="19" y2="19"></line>
+                    </svg>
+                    <span>Play Next in Queue</span>
+                </button>
+                <button type="button" class="downloads-option-item" id="optSongExportMp3">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Save MP3 to Device Files</span>
+                </button>
+                <button type="button" class="downloads-option-item item-danger" id="optSongRemoveDownload">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    <span>Remove from Downloads</span>
+                </button>
+            </div>
+            <button type="button" class="downloads-options-close-btn" id="downloadsSongCloseBtn">Cancel</button>
+        </div>
+    </div>
+</body>

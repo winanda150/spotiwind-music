@@ -21,7 +21,7 @@ export const isSongDownloaded = (songId) => {
 export const toggleDownloadSong = async (song) => {
     const user = auth.currentUser;
     if (!user) {
-        showToast("Silakan login terlebih dahulu untuk mengunduh lagu.");
+        showToast("Please log in to download tracks.");
         if (typeof window.navigateToAuthPage === 'function') {
             window.navigateToAuthPage('login');
         }
@@ -29,7 +29,7 @@ export const toggleDownloadSong = async (song) => {
     }
 
     if (!song || !song.id) {
-        showToast("Lagu tidak valid untuk diunduh.");
+        showToast("Invalid track to download.");
         return false;
     }
 
@@ -48,7 +48,7 @@ export const toggleDownloadSong = async (song) => {
             if (typeof window.updateSidebarMusicCounts === 'function') {
                 window.updateSidebarMusicCounts();
             }
-            showToast(`Menghapus "${song.name || song.title || 'Lagu'}" dari unduhan.`);
+            showToast(`Removed "${song.name || song.title || 'Track'}" from downloads.`);
             window.dispatchEvent(new CustomEvent('downloads-updated', { detail: { list } }));
             return false;
         }
@@ -67,7 +67,7 @@ export const toggleDownloadSong = async (song) => {
         }
 
         if (!isPro) {
-            showToast("Fitur Download Offline eksklusif untuk pelanggan Spotiwind PRO.");
+            showToast("Offline downloads are exclusive to Spotiwind PRO subscribers.");
             if (typeof openProSubscriptionModal === 'function') {
                 openProSubscriptionModal();
             } else if (typeof window.openProSubscriptionModal === 'function') {
@@ -106,7 +106,7 @@ export const toggleDownloadSong = async (song) => {
         }
         window.dispatchEvent(new CustomEvent('downloads-updated', { detail: { list } }));
 
-        showToast(`Mengunduh "${song.name || song.title || 'Lagu'}" untuk pemutaran offline...`);
+        showToast(`Downloading "${song.name || song.title || 'Track'}" for offline playback...`);
 
         const success = await cacheSongAudio(song, (progress) => {
             newDownloadItem.downloadProgress = progress;
@@ -128,19 +128,19 @@ export const toggleDownloadSong = async (song) => {
             if (typeof window.updateSidebarMusicCounts === 'function') {
                 window.updateSidebarMusicCounts();
             }
-            showToast(`Berhasil mengunduh "${song.name || song.title || 'Lagu'}" untuk didengarkan offline.`);
+            showToast(`Successfully downloaded "${song.name || song.title || 'Track'}" for offline playback.`);
             window.dispatchEvent(new CustomEvent('download-progress', {
                 detail: { songId: String(song.id), progress: 100, status: 'completed' }
             }));
             window.dispatchEvent(new CustomEvent('downloads-updated', { detail: { list } }));
             return true;
         } else {
-            showToast("Gagal mengunduh audio lagu.");
+            showToast("Failed to download audio track.");
             return false;
         }
     } catch (e) {
         console.error("Error toggling download:", e);
-        showToast("Gagal memperbarui unduhan.");
+        showToast("Failed to update download.");
         return false;
     }
 };

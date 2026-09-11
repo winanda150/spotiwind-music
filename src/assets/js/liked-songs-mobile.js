@@ -1,19 +1,25 @@
 /**
  * Spotiwind — Dedicated Liked Songs Page Module (Mobile)
- * Handles layout, live Firestore liked songs sync, playback queue, search, and options.
+ * Handles dual layout (List & Grid), Collection Insights stats, live Firestore sync,
+ * smart filters & multi-sort, queue playback, and interactive action sheets.
  */
 
 import { auth, db, onAuthStateChanged, collection, onSnapshot } from './firebase-config.js';
 import { getFavoriteSongs, toggleFavorite } from '../../services/favoriteService.js';
 import { showToast } from '../../utils/domUtils.js';
 import { debounce } from '../../utils/formatters.js';
+import { downloadMp3ToDevice, cacheSongAudio } from '../../services/offlineAudioService.js';
 
 let currentLikedSongs = [];
+let filteredLikedSongs = [];
 let searchQuery = '';
+let activeFilter = 'all'; // 'all' | 'tracks' | 'artists' | 'albums'
+let activeSort = 'recent'; // 'recent' | 'alpha' | 'artist' | 'duration'
+let viewMode = localStorage.getItem('spotiwind_liked_view_mode') || 'list';
+let selectedSongForOptions = null;
 let previousPageUrl = 'library-mobile.html';
 let likedSongsUnsubscribe = null;
 let authUnsubscribe = null;
-let scrollHandler = null;
 const listeners = [];
 
 const PAGE_CHUNK_SIZE = 10;
@@ -43,6 +49,37 @@ function formatDuration(seconds) {
 function formatSongCount(count) {
     const n = Number(count) || 0;
     return `${n} ${n === 1 ? 'song' : 'songs'}`;
+}
+
+function formatTotalPlaytime(totalSeconds) {
+    const s = Number(totalSeconds) || 0;
+    if (s <= 0) return '0m';
+    const hours = Math.floor(s / 3600);
+    const minutes = Math.floor((s % 3600) / 60);
+    if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+    }
+    return `${Math.max(1, minutes)}m`;
+}
+
+function computeTopArtist(songs) {
+    if (!Array.isArray(songs) || songs.length === 0) return null;
+    const counts = {};
+    songs.forEach(s => {
+        const artist = (s.artist || '').trim();
+        if (artist && artist !== 'Unknown Artist') {
+            counts[artist] = (counts[artist] || 0) + 1;
+        }
+    });
+    let topName = null;
+    let maxCount = 0;
+    for (const [name, count] of Object.entries(counts)) {
+        if (count > maxCount) {
+            maxCount = count;
+            topName = name;
+        }
+    }
+    return topName ? { name: topName, count: maxCount } : null;
 }
 
 const isGlobalShuffleActive = () => {
@@ -86,24 +123,28 @@ const isLikedSongsSessionActive = () => {
 const isLikedSongsCurrentlyPlaying = () => {
     const activeAudio = getGlobalActiveAudio();
     if (!activeAudio || activeAudio.paused || activeAudio.ended) return false;
-    return isLikedSongsSessionActive();
+    if (isLikedSongsSessionActive()) return true;
+    const currentSong = getCurrentLoadedSong();
+    if (currentSong && currentLikedSongs.some(s => String(s.id) === String(currentSong.id) || (typeof window.areSameSongs === 'function' && window.areSameSongs(currentSong, s)))) {
+        return true;
+    }
+    return false;
 };
 
 const syncSongItemsActiveState = () => {
-    const isSessionActive = isLikedSongsSessionActive();
     const currentSong = getCurrentLoadedSong();
     const activeAudio = getGlobalActiveAudio();
     const isPlaying = activeAudio && !activeAudio.paused && !activeAudio.ended;
 
-    document.querySelectorAll('.liked-song-item').forEach(item => {
+    document.querySelectorAll('.liked-song-item, .liked-grid-card').forEach(item => {
         const songId = item.dataset.songId;
         const songAudio = item.dataset.songAudio;
-        const isSame = isSessionActive && currentSong && (String(currentSong.id) === String(songId) || (typeof window.areSameSongs === 'function' && window.areSameSongs(currentSong, { id: songId, audio: songAudio })));
+        const isSame = currentSong && (String(currentSong.id) === String(songId) || (typeof window.areSameSongs === 'function' && window.areSameSongs(currentSong, { id: songId, audio: songAudio })));
 
         item.classList.toggle('is-active-song', Boolean(isSame));
         item.classList.toggle('is-paused', Boolean(isSame && !isPlaying));
 
-        const overlay = item.querySelector('.liked-song-play-overlay');
+        const overlay = item.querySelector('.liked-song-play-overlay, .liked-grid-play-overlay');
         if (overlay) {
             if (isSame && isPlaying) {
                 overlay.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
@@ -137,7 +178,7 @@ const syncPlayPauseButtonUI = () => {
 const syncAllLikeButtons = (songId, isLiked) => {
     if (!songId) return;
     const cleanId = String(songId).trim();
-    document.querySelectorAll(`.liked-song-like-btn[data-song-id="${cleanId}"]`).forEach(btn => {
+    document.querySelectorAll(`.liked-song-like-btn[data-song-id="${cleanId}"], .liked-grid-like-btn[data-song-id="${cleanId}"]`).forEach(btn => {
         btn.classList.toggle('is-liked', isLiked);
         btn.setAttribute('title', isLiked ? 'Unlike song' : 'Like song');
         btn.setAttribute('aria-label', isLiked ? 'Unlike song' : 'Like song');
@@ -149,20 +190,110 @@ const syncAllLikeButtons = (songId, isLiked) => {
     });
 };
 
-const renderLikedSongsList = () => {
-    const container = document.getElementById('likedSongsList');
+/**
+ * Collection Insights Calculation & Display
+ */
+function updateCollectionInsights() {
     const countEl = document.getElementById('likedSongsCount');
     const sheetCountEl = document.getElementById('likedSongsOptionsCount');
+    const heroDurationEl = document.getElementById('likedSongsDuration');
+    const playtimeValEl = document.getElementById('insightsPlaytimeVal');
+    const topArtistValEl = document.getElementById('insightsTopArtistVal');
+    const savedValEl = document.getElementById('insightsSavedVal');
+
+    const totalCount = currentLikedSongs.length;
+    if (countEl) countEl.textContent = formatSongCount(totalCount);
+    if (sheetCountEl) sheetCountEl.textContent = formatSongCount(totalCount);
+    if (savedValEl) savedValEl.textContent = `${totalCount} tracks`;
+
+    const totalSeconds = currentLikedSongs.reduce((acc, s) => {
+        return acc + (Number(s.duration) || 210); // 3.5 min average fallback
+    }, 0);
+
+    const formattedPlaytime = formatTotalPlaytime(totalSeconds);
+    if (heroDurationEl) heroDurationEl.textContent = formattedPlaytime;
+    if (playtimeValEl) playtimeValEl.textContent = formattedPlaytime;
+
+    const topArtist = computeTopArtist(currentLikedSongs);
+    if (topArtistValEl) {
+        topArtistValEl.textContent = topArtist ? topArtist.name : '—';
+        topArtistValEl.title = topArtist ? `${topArtist.name} (${topArtist.count} songs)` : '';
+    }
+}
+
+/**
+ * Filter & Sort Engine
+ */
+function applyFilterAndSort() {
+    let result = [...currentLikedSongs];
+
+    // 1. Category Filter
+    if (activeFilter === 'tracks') {
+        result = result.filter(s => !s.type || s.type === 'track');
+    } else if (activeFilter === 'artists') {
+        result = result.filter(s => Boolean(s.artist && s.artist !== 'Unknown Artist'));
+    } else if (activeFilter === 'albums') {
+        result = result.filter(s => Boolean(s.album || s.album_name || s.albumTitle || s.albumName));
+    }
+
+    // 2. Search Query Filter
+    if (searchQuery) {
+        result = result.filter(s => {
+            const name = (s.name || s.title || '').toLowerCase();
+            const artist = (s.artist || '').toLowerCase();
+            const album = (s.album || s.album_name || '').toLowerCase();
+            return name.includes(searchQuery) || artist.includes(searchQuery) || album.includes(searchQuery);
+        });
+    }
+
+    // 3. Multi-Sort
+    if (activeSort === 'alpha') {
+        result.sort((a, b) => {
+            const nameA = (a.name || a.title || '').toLowerCase();
+            const nameB = (b.name || b.title || '').toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+    } else if (activeSort === 'artist') {
+        result.sort((a, b) => {
+            const artA = (a.artist || '').toLowerCase();
+            const artB = (b.artist || '').toLowerCase();
+            return artA.localeCompare(artB);
+        });
+    } else if (activeSort === 'duration') {
+        result.sort((a, b) => (Number(b.duration) || 0) - (Number(a.duration) || 0));
+    } else {
+        // 'recent' by default: preserve Firestore order or timestamp
+        result.sort((a, b) => {
+            const getTime = (item) => {
+                if (!item) return 0;
+                if (item.likedAt?.toMillis) return item.likedAt.toMillis();
+                if (item.likedAt?.seconds) return item.likedAt.seconds * 1000;
+                if (typeof item.likedAt === 'number') return item.likedAt;
+                if (typeof item.addedAt === 'number') return item.addedAt;
+                return 0;
+            };
+            return getTime(b) - getTime(a);
+        });
+    }
+
+    filteredLikedSongs = result;
+}
+
+/**
+ * Render Liked Songs with List and Grid support
+ */
+const renderLikedSongsList = () => {
+    const container = document.getElementById('likedSongsList');
     if (!container) return;
 
     const user = auth.currentUser;
 
     if (!user) {
-        if (countEl) countEl.textContent = '0 songs';
-        if (sheetCountEl) sheetCountEl.textContent = '0 songs';
+        updateCollectionInsights();
+        container.className = 'liked-songs-list view-list';
         container.innerHTML = `
             <div class="liked-songs-empty-state">
-                <div class="liked-songs-empty-icon" aria-hidden="true">
+                <div class="liked-songs-empty-icon-box" aria-hidden="true">
                     <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                     </svg>
@@ -178,7 +309,7 @@ const renderLikedSongsList = () => {
                 e.preventDefault();
                 try {
                     sessionStorage.setItem('spotiwind_auth_previous_page', 'liked-songs-mobile.html');
-                } catch {}
+                } catch { }
                 if (typeof window.navigateToAuthPage === 'function') {
                     window.navigateToAuthPage('login');
                 } else if (typeof window.loadPageContent === 'function') {
@@ -191,20 +322,21 @@ const renderLikedSongsList = () => {
         return;
     }
 
-    if (countEl) countEl.textContent = formatSongCount(currentLikedSongs.length);
-    if (sheetCountEl) sheetCountEl.textContent = formatSongCount(currentLikedSongs.length);
+    updateCollectionInsights();
+    applyFilterAndSort();
 
     // Empty state when logged in but has no liked songs
     if (currentLikedSongs.length === 0) {
+        container.className = 'liked-songs-list view-list';
         container.innerHTML = `
             <div class="liked-songs-empty-state">
-                <div class="liked-songs-empty-icon" aria-hidden="true">
+                <div class="liked-songs-empty-icon-box" aria-hidden="true">
                     <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                     </svg>
                 </div>
                 <h3 class="liked-songs-empty-title">Songs you like will appear here</h3>
-                <p class="liked-songs-empty-desc">Save songs by tapping the heart icon on any track while browsing.</p>
+                <p class="liked-songs-empty-desc">Save songs by tapping the heart icon on any track while browsing music.</p>
                 <a href="#" class="liked-songs-empty-btn" id="likedExploreBtn">Explore Music</a>
             </div>
         `;
@@ -213,207 +345,205 @@ const renderLikedSongsList = () => {
             exploreBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (typeof window.loadPageContent === 'function') {
-                    window.loadPageContent('home-mobile.html', { pushState: true });
+                    window.loadPageContent('library-mobile.html', { pushState: true, initialTab: 'overview' });
                 }
             });
         }
         return;
     }
 
-    // Filter by search query
-    let filtered = [...currentLikedSongs];
-    if (searchQuery) {
-        filtered = filtered.filter(s => {
-            const name = (s.name || s.title || '').toLowerCase();
-            const artist = (s.artist || '').toLowerCase();
-            return name.includes(searchQuery) || artist.includes(searchQuery);
-        });
-    }
-
-    if (filtered.length === 0) {
+    // No matching results for search or filter
+    if (filteredLikedSongs.length === 0) {
+        container.className = 'liked-songs-list view-list';
         container.innerHTML = `
             <div class="liked-songs-empty-state" style="padding: 2.5rem 1.5rem;">
-                <div class="liked-songs-empty-icon" aria-hidden="true" style="width: 50px; height: 50px;">
+                <div class="liked-songs-empty-icon-box" aria-hidden="true" style="width: 50px; height: 50px; margin-bottom: 0.75rem;">
                     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
                 </div>
-                <h3 class="liked-songs-empty-title">No songs found</h3>
-                <p class="liked-songs-empty-desc">Couldn't find anything matching "${escapeHTML(searchQuery)}".</p>
+                <h3 class="liked-songs-empty-title">No matching songs found</h3>
+                <p class="liked-songs-empty-desc">Try changing your search term or category chips above.</p>
             </div>
         `;
         return;
     }
 
-    const currentSong = window.spotiwind?.mobile?.getCurrentSongData?.() || window.__currentSongData || (typeof window.getCurrentSongData === 'function' ? window.getCurrentSongData() : null);
-    const activeAudio = window.__activeAudio || (typeof activeAudio !== 'undefined' ? activeAudio : document.querySelector('audio'));
-    const defaultCover = '../../public/branding/Spotiwind.webp';
+    container.className = `liked-songs-list view-${viewMode}`;
 
-    const hasMore = likedSongsVisibleLimit < filtered.length;
-    const visibleSongs = filtered.slice(0, likedSongsVisibleLimit);
-    const loaderHTML = hasMore ? createInfiniteLoaderHTML() : '';
+    const defaultCover = '/public/branding/Spotiwind.webp';
+    const visibleSongs = filteredLikedSongs.slice(0, likedSongsVisibleLimit);
+    const hasMore = likedSongsVisibleLimit < filteredLikedSongs.length;
 
-    container.innerHTML = visibleSongs.map(song => {
-        const songId = song.id || song.songId || '';
-        const name = song.name || song.title || 'Unknown Track';
-        const artist = song.artist || 'Unknown Artist';
-        const coverUrl = song.cover || song.coverUrl || song.image || defaultCover;
-        const audio = song.audio || song.audioUrl || song.songAudio || '';
-        const duration = Number(song.duration) || 0;
+    let html = '';
 
-        const isSessionActive = isLikedSongsSessionActive();
-        const isSame = isSessionActive && currentSong && (String(currentSong.id) === String(songId) || (typeof window.areSameSongs === 'function' && window.areSameSongs(currentSong, { id: songId, audio })));
-        const isActive = Boolean(isSame);
-        const isPaused = isActive && Boolean(activeAudio?.paused);
+    if (viewMode === 'grid') {
+        html = visibleSongs.map(song => {
+            const songId = escapeHTML(String(song.id || song.songId || ''));
+            const name = escapeHTML(song.name || song.title || 'Unknown Track');
+            const artist = escapeHTML(song.artist || 'Unknown Artist');
+            const coverUrl = escapeHTML(song.cover || song.coverUrl || song.image || defaultCover);
+            const audio = escapeHTML(song.audio || song.audioUrl || song.songAudio || '');
+            const duration = Number(song.duration) || 0;
 
-        return `
-            <div class="liked-song-item ${isActive ? 'is-active-song' : ''}" 
-                 data-song-id="${songId}" 
-                 data-song-audio="${audio}" 
-                 data-song-name="${escapeHTML(name)}" 
-                 data-song-artist="${escapeHTML(artist)}" 
-                 data-song-cover="${escapeHTML(coverUrl)}" 
-                 data-song-duration="${duration}">
-                <div class="liked-song-art-wrapper">
-                    <img src="${coverUrl}" alt="${escapeHTML(name)}" class="liked-song-cover" width="48" height="48" loading="lazy" onerror="this.src='${defaultCover}'">
-                    <div class="liked-song-play-overlay">
-                        ${isActive && !isPaused ? `
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
-                        ` : `
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
-                        `}
+            return `
+                <div class="liked-grid-card"
+                    data-song-id="${songId}"
+                    data-song-audio="${audio}"
+                    data-song-name="${name}"
+                    data-song-artist="${artist}"
+                    data-song-cover="${coverUrl}"
+                    data-song-duration="${duration}">
+                    <div class="liked-grid-art-box">
+                        <img src="${coverUrl}" alt="${name}" class="liked-grid-cover" loading="lazy"
+                            onerror="this.onerror=null; this.src='${defaultCover}';">
+                        <div class="liked-grid-play-overlay">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <polygon points="6 4 20 12 6 20 6 4"></polygon>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="liked-grid-info">
+                        <h4 class="liked-grid-title">${name}</h4>
+                        <p class="liked-grid-artist">${artist}</p>
+                    </div>
+                    <div class="liked-grid-footer">
+                        <button class="liked-grid-like-btn is-liked" type="button" data-song-id="${songId}" title="Unlike track" aria-label="Unlike track">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                        </button>
+                        <button class="liked-grid-more-btn liked-song-item-more-btn" type="button" data-song-id="${songId}" title="Track options" aria-label="Track options">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <circle cx="12" cy="5" r="1.75"/>
+                                <circle cx="12" cy="12" r="1.75"/>
+                                <circle cx="12" cy="19" r="1.75"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
-                <div class="liked-song-info">
-                    <h3 class="liked-song-name">${escapeHTML(name)}</h3>
-                    <p class="liked-song-artist">${escapeHTML(artist)}</p>
+            `;
+        }).join('');
+    } else {
+        html = visibleSongs.map(song => {
+            const songId = escapeHTML(String(song.id || song.songId || ''));
+            const name = escapeHTML(song.name || song.title || 'Unknown Track');
+            const artist = escapeHTML(song.artist || 'Unknown Artist');
+            const coverUrl = escapeHTML(song.cover || song.coverUrl || song.image || defaultCover);
+            const audio = escapeHTML(song.audio || song.audioUrl || song.songAudio || '');
+            const duration = Number(song.duration) || 0;
+
+            return `
+                <div class="liked-song-item"
+                    data-song-id="${songId}"
+                    data-song-audio="${audio}"
+                    data-song-name="${name}"
+                    data-song-artist="${artist}"
+                    data-song-cover="${coverUrl}"
+                    data-song-duration="${duration}">
+                    <div class="liked-song-art-wrapper">
+                        <img src="${coverUrl}" alt="${name}" class="liked-song-cover" loading="lazy"
+                            onerror="this.onerror=null; this.src='${defaultCover}';">
+                        <div class="liked-song-play-overlay">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                                <polygon points="6 4 20 12 6 20 6 4"></polygon>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="liked-song-info">
+                        <h4 class="liked-song-name">${name}</h4>
+                        <p class="liked-song-artist">${artist} • ${formatDuration(duration)}</p>
+                    </div>
+                    <div class="liked-song-actions">
+                        <button class="liked-song-like-btn is-liked" type="button" data-song-id="${songId}" title="Unlike track" aria-label="Unlike track">
+                            <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                        </button>
+                        <button class="liked-song-item-more-btn" type="button" data-song-id="${songId}" title="Track options" aria-label="Track options">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <circle cx="12" cy="5" r="1.75"/>
+                                <circle cx="12" cy="12" r="1.75"/>
+                                <circle cx="12" cy="19" r="1.75"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-                <div class="liked-song-actions">
-                    <span class="liked-song-duration">${formatDuration(duration)}</span>
-                    <button class="liked-song-like-btn is-liked" type="button" data-song-id="${songId}" title="Unlike song" aria-label="Unlike song">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" stroke="transparent" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                        </svg>
-                    </button>
-                    <button class="liked-song-item-more-btn" type="button" data-song-id="${songId}" data-song-name="${escapeHTML(name)}" title="Options" aria-label="Song options">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                            <circle cx="12" cy="5" r="1.75"></circle>
-                            <circle cx="12" cy="12" r="1.75"></circle>
-                            <circle cx="12" cy="19" r="1.75"></circle>
-                        </svg>
-                    </button>
-                </div>
+            `;
+        }).join('');
+    }
+
+    if (hasMore) {
+        html += `
+            <div class="liked-songs-infinite-loader" id="likedSongsInfiniteLoader">
+                <span class="liked-songs-infinite-spinner"></span>
+                <span class="liked-songs-infinite-text">Loading more tracks...</span>
             </div>
         `;
-    }).join('') + loaderHTML;
+    }
 
+    container.innerHTML = html;
     syncSongItemsActiveState();
 };
 
-function createInfiniteLoaderHTML() {
-    return `
-        <div class="liked-songs-infinite-loader is-loading" id="likedSongsInfiniteLoader">
-            <div class="liked-songs-infinite-spinner" aria-hidden="true"></div>
-            <span class="liked-songs-infinite-text">Memuat lainnya...</span>
-        </div>
-    `;
-}
-
 function triggerLoadMore() {
     if (isLikedSongsLoadingMore) return;
-
-    let filtered = [...currentLikedSongs];
-    if (searchQuery) {
-        filtered = filtered.filter(s => {
-            const name = (s.name || s.title || '').toLowerCase();
-            const artist = (s.artist || '').toLowerCase();
-            return name.includes(searchQuery) || artist.includes(searchQuery);
-        });
-    }
-
-    if (likedSongsVisibleLimit >= filtered.length) return;
+    if (likedSongsVisibleLimit >= filteredLikedSongs.length) return;
 
     isLikedSongsLoadingMore = true;
-    const loaderEl = document.getElementById('likedSongsInfiniteLoader');
-    if (loaderEl) {
-        loaderEl.classList.add('is-loading');
-    }
 
     setTimeout(() => {
         likedSongsVisibleLimit += PAGE_CHUNK_SIZE;
         renderLikedSongsList();
         isLikedSongsLoadingMore = false;
-        if (typeof window.syncActiveSongUI === 'function') {
-            window.syncActiveSongUI();
-        }
-    }, 200);
+        syncPlayPauseButtonUI();
+    }, 150);
 }
 
 function setupLikedSongsInfiniteScroll() {
-    let lastScrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
-    let touchStartY = 0;
-    let isTouching = false;
-
-    // 1. Natural Scroll predictive buffer (TikTok & Spotify concept)
-    const handleScroll = debounce(() => {
+    const handleScroll = () => {
         if (isLikedSongsLoadingMore) return;
-
-        const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
-        const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
-        const clientHeight = window.innerHeight || document.documentElement.clientHeight;
-
-        const isScrollingDown = scrollTop > lastScrollTop;
-        lastScrollTop = Math.max(0, scrollTop);
-
-        // Predictive buffer: when user scrolls down and reaches >= 80% or within 220px of bottom
-        if (isScrollingDown && scrollTop > 60 && (scrollTop + clientHeight >= scrollHeight - 220 || scrollTop + clientHeight >= scrollHeight * 0.80)) {
-            triggerLoadMore();
-        }
-    }, 60);
-
-    // 2. Touch support for fast swiping / pull-up near bottom
-    const handleTouchStart = (e) => {
-        if (isLikedSongsLoadingMore || !e.touches || !e.touches[0]) return;
-        touchStartY = e.touches[0].clientY;
-        isTouching = true;
-    };
-
-    const handleTouchMove = (e) => {
-        if (!isTouching || isLikedSongsLoadingMore || !e.touches || !e.touches[0]) return;
-        const currentY = e.touches[0].clientY;
-        const pullDistance = touchStartY - currentY; // positive when dragging upwards
-
-        const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
-        const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
-        const clientHeight = window.innerHeight || document.documentElement.clientHeight;
-
-        if (pullDistance > 30 && (scrollTop + clientHeight >= scrollHeight - 150)) {
+        const scrollBottom = window.innerHeight + window.scrollY;
+        const threshold = document.documentElement.scrollHeight - 380;
+        if (scrollBottom >= threshold) {
             triggerLoadMore();
         }
     };
-
-    const handleTouchEnd = () => {
-        isTouching = false;
-    };
-
     window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
-    window.addEventListener('touchend', handleTouchEnd, { passive: true });
-
     listeners.push({ element: window, type: 'scroll', handler: handleScroll });
-    listeners.push({ element: window, type: 'touchstart', handler: handleTouchStart });
-    listeners.push({ element: window, type: 'touchmove', handler: handleTouchMove });
-    listeners.push({ element: window, type: 'touchend', handler: handleTouchEnd });
 }
 
-const handlePlayAllClick = () => {
-    const activeAudio = getGlobalActiveAudio();
-    const isSessionActive = isLikedSongsSessionActive();
+/**
+ * Playback Context Handler
+ */
+const playSongInLikedSongsContext = (targetSong, playlist) => {
+    if (!targetSong) return;
 
-    // If current audio session is already playing or paused from Liked Songs, toggle play / pause (RESUME)
-    if (isSessionActive && activeAudio && activeAudio.src) {
+    if (typeof window.playPreview === 'function') {
+        window.__spotiwindPlaybackContext = 'liked-songs';
+        window.__spotiwindContext = 'liked-songs';
+
+        window.playPreview(
+            null,
+            targetSong.audio,
+            targetSong.name,
+            targetSong.artist,
+            targetSong.cover,
+            targetSong.id,
+            Number(targetSong.duration) || 0,
+            'liked-songs',
+            playlist || currentLikedSongs
+        );
+    }
+    setTimeout(syncPlayPauseButtonUI, 120);
+};
+
+const handlePlayAllClick = () => {
+    const isPlaying = isLikedSongsCurrentlyPlaying();
+    const activeAudio = getGlobalActiveAudio();
+
+    if (isLikedSongsSessionActive() && activeAudio) {
         if (!activeAudio.paused) {
             activeAudio.pause();
         } else {
@@ -426,16 +556,17 @@ const handlePlayAllClick = () => {
         return;
     }
 
-    if (!currentLikedSongs || currentLikedSongs.length === 0) {
-        showToast('Belum ada lagu yang disukai untuk diputar.');
+    const targetList = filteredLikedSongs.length > 0 ? filteredLikedSongs : currentLikedSongs;
+    if (!targetList || targetList.length === 0) {
+        showToast('No liked songs to play.');
         return;
     }
 
-    let targetSong = currentLikedSongs[0];
-    let playlistToPlay = [...currentLikedSongs];
+    let targetSong = targetList[0];
+    let playlistToPlay = [...targetList];
 
     if (isGlobalShuffleActive()) {
-        const shuffled = [...currentLikedSongs];
+        const shuffled = [...targetList];
         for (let i = shuffled.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
@@ -444,26 +575,13 @@ const handlePlayAllClick = () => {
         playlistToPlay = shuffled;
     }
 
-    if (typeof window.playPreview === 'function') {
-        window.__spotiwindPlaybackContext = 'liked-songs';
-        window.playPreview(
-            null,
-            targetSong.audio,
-            targetSong.name,
-            targetSong.artist,
-            targetSong.cover,
-            targetSong.id,
-            Number(targetSong.duration) || 0,
-            'liked-songs',
-            playlistToPlay
-        );
-    }
-    setTimeout(syncPlayPauseButtonUI, 120);
+    playSongInLikedSongsContext(targetSong, playlistToPlay);
 };
 
 const handleShuffleClick = () => {
-    if (!currentLikedSongs || currentLikedSongs.length === 0) {
-        showToast('Belum ada lagu yang disukai untuk diacak.');
+    const targetList = filteredLikedSongs.length > 0 ? filteredLikedSongs : currentLikedSongs;
+    if (!targetList || targetList.length === 0) {
+        showToast('No liked songs to shuffle.');
         return;
     }
 
@@ -477,34 +595,23 @@ const handleShuffleClick = () => {
     }
 
     if (nextShuffle) {
-        const shuffled = [...currentLikedSongs];
+        const shuffled = [...targetList];
         for (let i = shuffled.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
-        const targetSong = shuffled[0];
-        if (typeof window.playPreview === 'function') {
-            window.__spotiwindPlaybackContext = 'liked-songs';
-            window.playPreview(
-                null,
-                targetSong.audio,
-                targetSong.name,
-                targetSong.artist,
-                targetSong.cover,
-                targetSong.id,
-                Number(targetSong.duration) || 0,
-                'liked-songs',
-                shuffled
-            );
-        }
-        showToast('Shuffle diaktifkan untuk Lagu yang Disukai.');
+        playSongInLikedSongsContext(shuffled[0], shuffled);
+        showToast('Shuffle enabled for Liked Songs.');
     } else {
-        showToast('Shuffle dinonaktifkan.');
+        showToast('Shuffle disabled.');
     }
     setTimeout(syncPlayPauseButtonUI, 120);
 };
 
-const openOptionsModal = () => {
+/**
+ * Modals and Sheets Management
+ */
+const openGlobalOptions = () => {
     const modal = document.getElementById('likedSongsOptionsModal');
     if (modal) {
         modal.classList.remove('hidden');
@@ -512,12 +619,38 @@ const openOptionsModal = () => {
     }
 };
 
-const closeOptionsModal = () => {
+const closeGlobalOptions = () => {
     const modal = document.getElementById('likedSongsOptionsModal');
     if (modal) {
         modal.classList.add('hidden');
         modal.setAttribute('inert', '');
     }
+};
+
+const openSongOptions = (song) => {
+    selectedSongForOptions = song;
+    const modal = document.getElementById('likedSongItemOptionsModal');
+    const coverEl = document.getElementById('likedSongOptionsCover');
+    const titleEl = document.getElementById('likedSongOptionsTitle');
+    const artistEl = document.getElementById('likedSongOptionsArtist');
+
+    if (coverEl) coverEl.src = song.cover || '/public/branding/Spotiwind.webp';
+    if (titleEl) titleEl.textContent = song.name || 'Unknown Track';
+    if (artistEl) artistEl.textContent = `${song.artist || 'Unknown Artist'} • ${formatDuration(song.duration)}`;
+
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.removeAttribute('inert');
+    }
+};
+
+const closeSongOptions = () => {
+    const modal = document.getElementById('likedSongItemOptionsModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.setAttribute('inert', '');
+    }
+    selectedSongForOptions = null;
 };
 
 const bindUserLikedSongs = (uid) => {
@@ -563,6 +696,9 @@ const bindUserLikedSongs = (uid) => {
 export async function initLikedSongsPage(previousPage = 'library-mobile.html') {
     previousPageUrl = previousPage;
     searchQuery = '';
+    activeFilter = 'all';
+    activeSort = 'recent';
+    viewMode = localStorage.getItem('spotiwind_liked_view_mode') || 'list';
     likedSongsVisibleLimit = PAGE_CHUNK_SIZE;
     isLikedSongsLoadingMore = false;
 
@@ -573,8 +709,7 @@ export async function initLikedSongsPage(previousPage = 'library-mobile.html') {
             e.preventDefault();
             cleanupLikedSongsPage();
             const targetPage = (previousPageUrl && !previousPageUrl.includes('liked-songs')) ? previousPageUrl : 'library-mobile.html';
-            
-            // Highlight library tab in bottom navigation
+
             document.querySelectorAll('.mobile-bottom-nav .nav-item').forEach(item => {
                 const target = item.dataset.target || '';
                 item.classList.toggle('active', target.includes('library'));
@@ -595,7 +730,7 @@ export async function initLikedSongsPage(previousPage = 'library-mobile.html') {
     if (moreBtn) {
         const handleMore = (e) => {
             e.preventDefault();
-            openOptionsModal();
+            openGlobalOptions();
         };
         moreBtn.addEventListener('click', handleMore);
         listeners.push({ element: moreBtn, type: 'click', handler: handleMore });
@@ -621,6 +756,39 @@ export async function initLikedSongsPage(previousPage = 'library-mobile.html') {
         shuffleBtn.addEventListener('click', handleShuffle);
         listeners.push({ element: shuffleBtn, type: 'click', handler: handleShuffle });
     }
+
+    // 4. View Mode Switcher (List vs Grid)
+    const viewListBtn = document.getElementById('likedViewListBtn');
+    const viewGridBtn = document.getElementById('likedViewGridBtn');
+
+    const updateViewSwitcherUI = () => {
+        if (viewListBtn) viewListBtn.classList.toggle('is-active', viewMode === 'list');
+        if (viewGridBtn) viewGridBtn.classList.toggle('is-active', viewMode === 'grid');
+    };
+
+    if (viewListBtn) {
+        const handleViewList = () => {
+            viewMode = 'list';
+            localStorage.setItem('spotiwind_liked_view_mode', 'list');
+            updateViewSwitcherUI();
+            renderLikedSongsList();
+        };
+        viewListBtn.addEventListener('click', handleViewList);
+        listeners.push({ element: viewListBtn, type: 'click', handler: handleViewList });
+    }
+
+    if (viewGridBtn) {
+        const handleViewGrid = () => {
+            viewMode = 'grid';
+            localStorage.setItem('spotiwind_liked_view_mode', 'grid');
+            updateViewSwitcherUI();
+            renderLikedSongsList();
+        };
+        viewGridBtn.addEventListener('click', handleViewGrid);
+        listeners.push({ element: viewGridBtn, type: 'click', handler: handleViewGrid });
+    }
+
+    updateViewSwitcherUI();
 
     // 5. Search input setup
     const searchInput = document.getElementById('likedSongsSearchInput');
@@ -660,40 +828,117 @@ export async function initLikedSongsPage(previousPage = 'library-mobile.html') {
         listeners.push({ element: clearBtn, type: 'click', handler: handleClear });
     }
 
-    // 6. Options Modal handlers
+    // 6. Category Filter Chips
+    const chips = document.querySelectorAll('.liked-chip');
+    chips.forEach(chip => {
+        const handleChip = () => {
+            const filterVal = chip.dataset.filter || 'all';
+            activeFilter = filterVal;
+            chips.forEach(c => c.classList.toggle('is-active', c === chip));
+            likedSongsVisibleLimit = PAGE_CHUNK_SIZE;
+            renderLikedSongsList();
+        };
+        chip.addEventListener('click', handleChip);
+        listeners.push({ element: chip, type: 'click', handler: handleChip });
+    });
+
+    // 7. Sort Button & Cycle
+    const sortTriggerBtn = document.getElementById('likedSortTriggerBtn');
+    const sortLabel = document.getElementById('likedSortLabel');
+    if (sortTriggerBtn) {
+        const handleSortCycle = () => {
+            if (activeSort === 'recent') {
+                activeSort = 'alpha';
+                if (sortLabel) sortLabel.textContent = 'A-Z';
+                showToast('Sorted by title (A - Z)');
+            } else if (activeSort === 'alpha') {
+                activeSort = 'artist';
+                if (sortLabel) sortLabel.textContent = 'Artist';
+                showToast('Sorted by artist (A - Z)');
+            } else if (activeSort === 'artist') {
+                activeSort = 'duration';
+                if (sortLabel) sortLabel.textContent = 'Duration';
+                showToast('Sorted by duration (longest first)');
+            } else {
+                activeSort = 'recent';
+                if (sortLabel) sortLabel.textContent = 'Recent';
+                showToast('Sorted by recently liked');
+            }
+            renderLikedSongsList();
+        };
+        sortTriggerBtn.addEventListener('click', handleSortCycle);
+        listeners.push({ element: sortTriggerBtn, type: 'click', handler: handleSortCycle });
+    }
+
+    // 8. Global Options Sheet Handlers
     const optionsBackdrop = document.getElementById('likedSongsOptionsBackdrop');
     const optionsCloseBtn = document.getElementById('likedSongsOptionsCloseBtn');
-    const optPlayAllAction = document.getElementById('likedOptPlayAllAction');
-    const optShuffleAction = document.getElementById('likedOptShuffleAction');
+    const optSortRecent = document.getElementById('optLikedSortRecent');
+    const optSortAlpha = document.getElementById('optLikedSortAlpha');
+    const optSortArtist = document.getElementById('optLikedSortArtist');
+    const optSortDuration = document.getElementById('optLikedSortDuration');
     const optShareAction = document.getElementById('likedOptShareAction');
 
     if (optionsBackdrop) {
-        optionsBackdrop.addEventListener('click', closeOptionsModal);
-        listeners.push({ element: optionsBackdrop, type: 'click', handler: closeOptionsModal });
+        optionsBackdrop.addEventListener('click', closeGlobalOptions);
+        listeners.push({ element: optionsBackdrop, type: 'click', handler: closeGlobalOptions });
     }
     if (optionsCloseBtn) {
-        optionsCloseBtn.addEventListener('click', closeOptionsModal);
-        listeners.push({ element: optionsCloseBtn, type: 'click', handler: closeOptionsModal });
+        optionsCloseBtn.addEventListener('click', closeGlobalOptions);
+        listeners.push({ element: optionsCloseBtn, type: 'click', handler: closeGlobalOptions });
     }
-    if (optPlayAllAction) {
-        const handleOptPlay = () => {
-            closeOptionsModal();
-            handlePlayAllClick();
+
+    if (optSortRecent) {
+        const handler = () => {
+            activeSort = 'recent';
+            if (sortLabel) sortLabel.textContent = 'Recent';
+            closeGlobalOptions();
+            renderLikedSongsList();
+            showToast('Sorted by recently liked');
         };
-        optPlayAllAction.addEventListener('click', handleOptPlay);
-        listeners.push({ element: optPlayAllAction, type: 'click', handler: handleOptPlay });
+        optSortRecent.addEventListener('click', handler);
+        listeners.push({ element: optSortRecent, type: 'click', handler });
     }
-    if (optShuffleAction) {
-        const handleOptShuffle = () => {
-            closeOptionsModal();
-            handleShuffleClick();
+
+    if (optSortAlpha) {
+        const handler = () => {
+            activeSort = 'alpha';
+            if (sortLabel) sortLabel.textContent = 'A-Z';
+            closeGlobalOptions();
+            renderLikedSongsList();
+            showToast('Sorted by title (A - Z)');
         };
-        optShuffleAction.addEventListener('click', handleOptShuffle);
-        listeners.push({ element: optShuffleAction, type: 'click', handler: handleOptShuffle });
+        optSortAlpha.addEventListener('click', handler);
+        listeners.push({ element: optSortAlpha, type: 'click', handler });
     }
+
+    if (optSortArtist) {
+        const handler = () => {
+            activeSort = 'artist';
+            if (sortLabel) sortLabel.textContent = 'Artist';
+            closeGlobalOptions();
+            renderLikedSongsList();
+            showToast('Sorted by artist (A - Z)');
+        };
+        optSortArtist.addEventListener('click', handler);
+        listeners.push({ element: optSortArtist, type: 'click', handler });
+    }
+
+    if (optSortDuration) {
+        const handler = () => {
+            activeSort = 'duration';
+            if (sortLabel) sortLabel.textContent = 'Duration';
+            closeGlobalOptions();
+            renderLikedSongsList();
+            showToast('Sorted by duration (longest first)');
+        };
+        optSortDuration.addEventListener('click', handler);
+        listeners.push({ element: optSortDuration, type: 'click', handler });
+    }
+
     if (optShareAction) {
         const handleOptShare = async () => {
-            closeOptionsModal();
+            closeGlobalOptions();
             const shareData = {
                 title: 'Liked Songs on Spotiwind',
                 text: 'Check out my liked songs collection on Spotiwind!',
@@ -702,13 +947,13 @@ export async function initLikedSongsPage(previousPage = 'library-mobile.html') {
             if (navigator.share) {
                 try {
                     await navigator.share(shareData);
-                } catch {}
+                } catch { }
             } else {
                 try {
                     await navigator.clipboard.writeText(window.location.href);
-                    showToast('Tautan Liked Songs disalin ke papan klip.');
+                    showToast('Liked Songs link copied to clipboard.');
                 } catch {
-                    showToast('Gagal menyalin tautan.');
+                    showToast('Failed to copy link.');
                 }
             }
         };
@@ -716,44 +961,118 @@ export async function initLikedSongsPage(previousPage = 'library-mobile.html') {
         listeners.push({ element: optShareAction, type: 'click', handler: handleOptShare });
     }
 
-    // 7. Track items click delegation
+    // 9. Per-Song Options Sheet Handlers
+    const songItemBackdrop = document.getElementById('likedSongItemBackdrop');
+    const songItemCloseBtn = document.getElementById('likedSongItemCloseBtn');
+    const optPlayNext = document.getElementById('optLikedSongPlayNext');
+    const optDownload = document.getElementById('optLikedSongDownload');
+    const optRemove = document.getElementById('optLikedSongRemove');
+
+    if (songItemBackdrop) {
+        songItemBackdrop.addEventListener('click', closeSongOptions);
+        listeners.push({ element: songItemBackdrop, type: 'click', handler: closeSongOptions });
+    }
+    if (songItemCloseBtn) {
+        songItemCloseBtn.addEventListener('click', closeSongOptions);
+        listeners.push({ element: songItemCloseBtn, type: 'click', handler: closeSongOptions });
+    }
+
+    if (optPlayNext) {
+        const handler = () => {
+            if (selectedSongForOptions) {
+                if (typeof window.addToQueue === 'function') {
+                    window.addToQueue(selectedSongForOptions);
+                    showToast(`"${selectedSongForOptions.name || 'Track'}" will play next.`);
+                } else {
+                    showToast('Added to queue.');
+                }
+            }
+            closeSongOptions();
+        };
+        optPlayNext.addEventListener('click', handler);
+        listeners.push({ element: optPlayNext, type: 'click', handler });
+    }
+
+    if (optDownload) {
+        const handler = async () => {
+            if (selectedSongForOptions) {
+                const song = { ...selectedSongForOptions };
+                closeSongOptions();
+                if (typeof window.toggleDownloadSong === 'function') {
+                    await window.toggleDownloadSong(song);
+                } else {
+                    await downloadMp3ToDevice(song);
+                }
+            }
+        };
+        optDownload.addEventListener('click', handler);
+        listeners.push({ element: optDownload, type: 'click', handler });
+    }
+
+    if (optRemove) {
+        const handler = async () => {
+            if (!selectedSongForOptions) return;
+            const song = { ...selectedSongForOptions };
+            closeSongOptions();
+
+            const wasLiked = true;
+            syncAllLikeButtons(song.id, false);
+
+            try {
+                const updatedList = await toggleFavorite(song);
+                const isNowLiked = Array.isArray(updatedList) && updatedList.some(item => String(item.id || item.songId) === String(song.id));
+                syncAllLikeButtons(song.id, isNowLiked);
+                showToast(`Removed "${song.name || 'Track'}" from Liked Songs.`);
+                window.dispatchEvent(new CustomEvent('favorites-updated', {
+                    detail: { songId: song.id, isLiked: false, favorites: updatedList }
+                }));
+            } catch (err) {
+                console.error("Error removing favorite:", err);
+                syncAllLikeButtons(song.id, wasLiked);
+                showToast('Failed to update favorites.');
+            }
+        };
+        optRemove.addEventListener('click', handler);
+        listeners.push({ element: optRemove, type: 'click', handler });
+    }
+
+    // 10. Track items click delegation
     const listSection = document.querySelector('.liked-songs-list-section');
     if (listSection) {
         const handleListClick = async (e) => {
-            // Infinite loader click to manually load more
+            // Infinite loader click
             const loaderEl = e.target.closest('.liked-songs-infinite-loader');
             if (loaderEl) {
                 triggerLoadMore();
                 return;
             }
 
-            // Like/Unlike button
-            const likeBtn = e.target.closest('.liked-song-like-btn');
+            // Like/Unlike heart button
+            const likeBtn = e.target.closest('.liked-song-like-btn, .liked-grid-like-btn');
             if (likeBtn) {
                 e.stopPropagation();
-                const songItem = likeBtn.closest('.liked-song-item');
-                if (!songItem) return;
+                const songCard = likeBtn.closest('.liked-song-item, .liked-grid-card');
+                if (!songCard) return;
 
                 const user = auth.currentUser;
                 if (!user) {
-                    showToast("Silakan login untuk mengelola lagu favorit.");
+                    showToast("Please log in to manage your favorites.");
                     return;
                 }
 
-                const songId = songItem.dataset.songId;
+                const songId = songCard.dataset.songId;
                 const song = {
                     id: songId,
-                    name: songItem.dataset.songName,
-                    artist: songItem.dataset.songArtist,
-                    cover: songItem.dataset.songCover,
-                    audio: songItem.dataset.songAudio,
-                    duration: Number(songItem.dataset.songDuration) || 0
+                    name: songCard.dataset.songName,
+                    artist: songCard.dataset.songArtist,
+                    cover: songCard.dataset.songCover,
+                    audio: songCard.dataset.songAudio,
+                    duration: Number(songCard.dataset.songDuration) || 0
                 };
 
                 const wasLiked = likeBtn.classList.contains('is-liked');
                 const targetLiked = !wasLiked;
 
-                // Optimistic UI update
                 syncAllLikeButtons(songId, targetLiked);
 
                 try {
@@ -761,44 +1080,41 @@ export async function initLikedSongsPage(previousPage = 'library-mobile.html') {
                     const isNowLiked = Array.isArray(updatedList) && updatedList.some(item => String(item.id || item.songId) === String(songId));
                     syncAllLikeButtons(songId, isNowLiked);
 
-                    showToast(isNowLiked ? `Menambahkan "${song.name}" ke Lagu yang Disukai` : `Menghapus "${song.name}" dari Lagu yang Disukai`);
+                    showToast(isNowLiked ? `Added "${song.name}" to Liked Songs.` : `Removed "${song.name}" from Liked Songs.`);
                     window.dispatchEvent(new CustomEvent('favorites-updated', {
                         detail: { songId, isLiked: isNowLiked, favorites: updatedList }
                     }));
                 } catch (err) {
                     console.error("Error toggling favorite:", err);
                     syncAllLikeButtons(songId, wasLiked);
+                    showToast('Failed to update favorites.');
                 }
                 return;
             }
 
-            // Track options button
+            // More 3-dots options button
             const moreBtn = e.target.closest('.liked-song-item-more-btn');
             if (moreBtn) {
                 e.stopPropagation();
-                const songItem = moreBtn.closest('.liked-song-item');
-                if (songItem) {
+                const songCard = moreBtn.closest('.liked-song-item, .liked-grid-card');
+                if (songCard) {
                     const song = {
-                        id: songItem.dataset.songId,
-                        name: songItem.dataset.songName,
-                        artist: songItem.dataset.songArtist,
-                        cover: songItem.dataset.songCover,
-                        audio: songItem.dataset.songAudio,
-                        duration: Number(songItem.dataset.songDuration) || 0
+                        id: songCard.dataset.songId,
+                        name: songCard.dataset.songName,
+                        artist: songCard.dataset.songArtist,
+                        cover: songCard.dataset.songCover,
+                        audio: songCard.dataset.songAudio,
+                        duration: Number(songCard.dataset.songDuration) || 0
                     };
-                    if (typeof window.openDownloadOptions === 'function') {
-                        window.openDownloadOptions(song);
-                    } else {
-                        showToast(`Opsi untuk "${song.name}"`);
-                    }
+                    openSongOptions(song);
                 }
                 return;
             }
 
-            // Track item click to play or toggle pause/resume
-            const songItem = e.target.closest('.liked-song-item');
-            if (songItem && songItem.dataset.songAudio) {
-                const { songId, songAudio, songName, songArtist, songCover, songDuration } = songItem.dataset;
+            // Track item click to play / pause
+            const songCard = e.target.closest('.liked-song-item, .liked-grid-card');
+            if (songCard && songCard.dataset.songAudio) {
+                const { songId, songAudio, songName, songArtist, songCover, songDuration } = songCard.dataset;
                 const currentSong = getCurrentLoadedSong();
                 const activeAudio = getGlobalActiveAudio();
                 const isLikedSession = isLikedSongsSessionActive();
@@ -817,22 +1133,17 @@ export async function initLikedSongsPage(previousPage = 'library-mobile.html') {
                     return;
                 }
 
-                if (typeof window.playPreview === 'function') {
-                    window.__spotiwindPlaybackContext = 'liked-songs';
-                    window.__spotiwindContext = 'liked-songs';
-                    window.playPreview(
-                        null,
-                        songAudio,
-                        songName,
-                        songArtist,
-                        songCover,
-                        songId,
-                        Number(songDuration) || 0,
-                        'liked-songs',
-                        currentLikedSongs
-                    );
-                }
-                setTimeout(syncPlayPauseButtonUI, 100);
+                const targetSong = {
+                    id: songId,
+                    name: songName,
+                    artist: songArtist,
+                    cover: songCover,
+                    audio: songAudio,
+                    duration: Number(songDuration) || 0
+                };
+
+                const queueList = filteredLikedSongs.length > 0 ? filteredLikedSongs : currentLikedSongs;
+                playSongInLikedSongsContext(targetSong, queueList);
             }
         };
 
@@ -840,10 +1151,10 @@ export async function initLikedSongsPage(previousPage = 'library-mobile.html') {
         listeners.push({ element: listSection, type: 'click', handler: handleListClick });
     }
 
-    // 8. Setup TikTok-style predictive infinite scroll
+    // 11. Setup infinite scroll
     setupLikedSongsInfiniteScroll();
 
-    // 9. Listen to auth state and live liked songs
+    // 12. Listen to auth state and live liked songs
     authUnsubscribe = onAuthStateChanged(auth, (user) => {
         if (likedSongsUnsubscribe) {
             likedSongsUnsubscribe();
@@ -859,7 +1170,7 @@ export async function initLikedSongsPage(previousPage = 'library-mobile.html') {
         }
     });
 
-    // 9. Listen for audio element play/pause events directly
+    // 13. Direct audio events
     const activeAudio = getGlobalActiveAudio();
     if (activeAudio) {
         const handleAudioState = () => {
@@ -873,21 +1184,23 @@ export async function initLikedSongsPage(previousPage = 'library-mobile.html') {
         listeners.push({ element: activeAudio, type: 'ended', handler: handleAudioState });
     }
 
-    // 10. Listen for external player state updates
+    // 14. Global sync listeners
     const handlePlayerState = () => {
         syncPlayPauseButtonUI();
     };
     window.addEventListener('song-playback-state-changed', handlePlayerState);
     listeners.push({ element: window, type: 'song-playback-state-changed', handler: handlePlayerState });
 
-    window.addEventListener('favorites-updated', (e) => {
+    const handleFavoritesUpdated = (e) => {
         const { favorites } = e.detail || {};
         if (Array.isArray(favorites)) {
             currentLikedSongs = favorites;
             renderLikedSongsList();
             syncPlayPauseButtonUI();
         }
-    });
+    };
+    window.addEventListener('favorites-updated', handleFavoritesUpdated);
+    listeners.push({ element: window, type: 'favorites-updated', handler: handleFavoritesUpdated });
 
     syncPlayPauseButtonUI();
 }
@@ -912,5 +1225,6 @@ export function cleanupLikedSongsPage() {
     listeners.length = 0;
     likedSongsVisibleLimit = PAGE_CHUNK_SIZE;
     isLikedSongsLoadingMore = false;
-    closeOptionsModal();
+    closeGlobalOptions();
+    closeSongOptions();
 }

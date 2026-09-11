@@ -248,7 +248,7 @@ const getSongElements = (song) => {
     const elements = Array.from(document.querySelectorAll('[data-id], [data-song-id], .library-song-item, .popular-search-card, .dropdown-item, .song-card, .artist-song-list-item, .recent-track-row'));
     return elements.filter(element => {
         // Exclude mix cards, mix track rows, and liked song items because they are strictly scoped by their playback context
-        if (element.classList.contains('mix-card') || element.classList.contains('mix-track-row') || element.classList.contains('liked-song-item')) {
+        if (element.classList.contains('mix-card') || element.classList.contains('mix-track-row') || element.classList.contains('liked-song-item') || element.classList.contains('liked-grid-card')) {
             return false;
         }
         const id = element.dataset.id || element.dataset.songId || element.dataset.popularId;
@@ -276,7 +276,7 @@ const syncActiveSongUI = () => {
         if (el.classList.contains('play-overlay')) el.innerHTML = PLAY_ICON;
     });
 
-    document.querySelectorAll('.library-song-play-icon, .popular-search-play-icon, .artist-song-play-icon, .mix-track-play-icon, .recent-track-play-icon, .your-track-play-overlay, .your-download-play-overlay, .liked-song-play-overlay').forEach(el => {
+    document.querySelectorAll('.library-song-play-icon, .popular-search-play-icon, .artist-song-play-icon, .mix-track-play-icon, .recent-track-play-icon, .your-track-play-overlay, .your-download-play-overlay, .liked-song-play-overlay, .liked-grid-play-overlay').forEach(el => {
         el.innerHTML = PLAY_ICON;
     });
 
@@ -362,7 +362,7 @@ const syncActiveSongUI = () => {
                 const playIcon = row.querySelector('.mix-track-play-icon');
                 if (playIcon) playIcon.innerHTML = isPlaying ? PAUSE_ICON : PLAY_ICON;
                 if (mixDetailPlayAllBtn) {
-                    mixDetailPlayAllBtn.innerHTML = isPlaying 
+                    mixDetailPlayAllBtn.innerHTML = isPlaying
                         ? `<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`
                         : `<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
                 }
@@ -372,7 +372,7 @@ const syncActiveSongUI = () => {
         // Sync active state for Artist Page main play/pause button
         if (artistPlayAllBtn && currentSongData) {
             const pageArtistTitle = document.getElementById('artistPageName')?.textContent?.trim() ||
-                                    document.querySelector('.artist-hero-name')?.textContent?.trim();
+                document.querySelector('.artist-hero-name')?.textContent?.trim();
             const currentArtist = currentSongData.artist?.trim();
             const isCurrentArtist = pageArtistTitle && currentArtist && (
                 pageArtistTitle.toLowerCase() === currentArtist.toLowerCase() ||
@@ -380,31 +380,31 @@ const syncActiveSongUI = () => {
                 pageArtistTitle.toLowerCase().includes(currentArtist.toLowerCase())
             );
             if (isCurrentArtist) {
-                artistPlayAllBtn.innerHTML = isPlaying 
+                artistPlayAllBtn.innerHTML = isPlaying
                     ? `<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`
                     : `<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
             }
         }
 
-        // Sync active state for Liked Songs Page (strictly scoped to liked-songs context)
+        // Sync active state for Liked Songs Page (List and Grid view)
         const isLikedContext = (currentPlaybackContext === 'liked-songs' || window.__spotiwindPlaybackContext === 'liked-songs' || window.__spotiwindContext === 'liked-songs');
-        if (isLikedContext && currentSongData) {
-            document.querySelectorAll('.liked-song-item').forEach(item => {
+        if (currentSongData) {
+            document.querySelectorAll('.liked-song-item, .liked-grid-card').forEach(item => {
                 const songId = item.dataset.songId;
                 const songAudio = item.dataset.songAudio;
                 if (songId === String(currentSongData.id) || (songAudio && currentSongData.audio === songAudio) || areSameSongs(currentSongData, { id: songId, audio: songAudio })) {
                     item.classList.add('is-active-song');
                     if (isPaused) item.classList.add('is-paused');
-                    const overlay = item.querySelector('.liked-song-play-overlay');
+                    const overlay = item.querySelector('.liked-song-play-overlay, .liked-grid-play-overlay');
                     if (overlay) {
-                        overlay.innerHTML = isPlaying 
+                        overlay.innerHTML = isPlaying
                             ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`
                             : `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
                     }
-                    if (likedPlayIconWrapper) {
+                    if (likedPlayIconWrapper && isLikedContext) {
                         likedPlayIconWrapper.innerHTML = isPlaying ? PAUSE_ICON : PLAY_ICON;
                     }
-                    if (likedPlayAllText) {
+                    if (likedPlayAllText && isLikedContext) {
                         likedPlayAllText.textContent = isPlaying ? 'Pause' : 'Play all';
                     }
                 }
@@ -510,7 +510,7 @@ activeAudio.addEventListener('timeupdate', () => {
     if (activeAudio.duration) {
         const percent = (activeAudio.currentTime / activeAudio.duration) * 100;
         mobileProgressThumbs.forEach(thumb => thumb.style.width = `${percent}%`);
-        
+
         // Sync Full Player Progress
         document.getElementById('fullProgressBar').style.width = `${percent}%`;
         document.getElementById('fullCurrentTime').textContent = formatTime(activeAudio.currentTime);
@@ -586,7 +586,7 @@ activeAudio.addEventListener('play', () => {
     // Sync Full Player Play Button
     const fullPlayBtn = document.getElementById('fullMainPlayBtn');
     if (fullPlayBtn) fullPlayBtn.innerHTML = PAUSE_ICON;
-    
+
     // Sync ALL instances of this song across all pages
     syncActiveSongUI();
 });
@@ -601,7 +601,7 @@ activeAudio.addEventListener('pause', () => {
     // Sync Full Player Pause Button
     const fullPlayBtn = document.getElementById('fullMainPlayBtn');
     if (fullPlayBtn) fullPlayBtn.innerHTML = PLAY_ICON;
-    
+
     syncActiveSongUI();
 });
 
@@ -629,12 +629,12 @@ const triggerSongByIndex = (index) => {
 
     // Find the specific play-overlay element to avoid overwriting the main container
     const activeEl = getSongElements(song).find(element => element.classList.contains('is-active-song')) ||
-                     getSongElements(song)[0];
+        getSongElements(song)[0];
     const btn = activeEl?.querySelector('.play-overlay');
 
     window.playPreview(btn, song.audio, song.name, song.artist, song.cover, song.id, song.duration, currentPlaybackContext, currentPlaylist, activeMixId);
 };
- 
+
 /**
  * Function to update user activity in Firestore
  */
@@ -695,7 +695,7 @@ window.syncAllLikeButtons = syncAllLikeButtons;
 const syncPlayerLikeButtons = (isLiked) => {
     const mobileLikeBtn = document.getElementById('mobileLoveBtn');
     if (mobileLikeBtn) mobileLikeBtn.classList.toggle('liked', isLiked);
-    
+
     const fullLikeBtn = document.getElementById('fullLoveBtn');
     if (fullLikeBtn) fullLikeBtn.classList.toggle('liked', isLiked);
 
@@ -773,7 +773,7 @@ const listenToFriendPresence = (friendUid) => {
 
     const unsubscribe = watchFriendPresence(friendUid, ({ isOnline }) => {
         friendOnlineStatus[friendUid] = isOnline;
-        
+
         // Update UI if the friend's element is on the page (e.g., in the activity list)
         const statusElements = document.querySelectorAll(`.friend-item[data-uid="${friendUid}"] .online-status`);
         statusElements.forEach(el => {
@@ -892,7 +892,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const sidebar = document.querySelector('.mobile-sidebar');
         const overlay = document.querySelector('.sidebar-overlay');
         const menuButton = document.querySelector('.menu-btn');
-        
+
         // Remove focus from inside sidebar BEFORE setting aria-hidden
         if (sidebar && sidebar.contains(document.activeElement)) {
             if (menuButton && typeof menuButton.focus === 'function' && document.body.contains(menuButton)) {
@@ -1303,20 +1303,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-/**
- * Special function to play a song from the search dropdown results.
- * It updates currentPlaylist so that the Next/Prev features are in sync with the search results.
- */
-window.playFromSearch = (audioUrl, title, artist, cover, id) => {
-    // Get duration from lastSearchResults if available
-    const songData = window.lastSearchResults?.find(s => String(s.id) === String(id));
-    const duration = songData ? songData.duration : 0; // Default to 0 if not found
-    const isSameActiveSong = currentSongData && areSameSongs(currentSongData, { id, audio: audioUrl }) && activeAudio.src;
-    window.playPreview(null, audioUrl, title, artist, cover, id, duration, isSameActiveSong ? null : 'search');
-};
+    /**
+     * Special function to play a song from the search dropdown results.
+     * It updates currentPlaylist so that the Next/Prev features are in sync with the search results.
+     */
+    window.playFromSearch = (audioUrl, title, artist, cover, id) => {
+        // Get duration from lastSearchResults if available
+        const songData = window.lastSearchResults?.find(s => String(s.id) === String(id));
+        const duration = songData ? songData.duration : 0; // Default to 0 if not found
+        const isSameActiveSong = currentSongData && areSameSongs(currentSongData, { id, audio: audioUrl }) && activeAudio.src;
+        window.playPreview(null, audioUrl, title, artist, cover, id, duration, isSameActiveSong ? null : 'search');
+    };
 
-window.isSongDownloaded = isSongDownloaded;
-window.toggleDownloadSong = toggleDownloadSong;
+    window.isSongDownloaded = isSongDownloaded;
+    window.toggleDownloadSong = toggleDownloadSong;
 
     /**
      * Function to play/pause audio
@@ -1342,7 +1342,7 @@ window.toggleDownloadSong = toggleDownloadSong;
         // If btn is null (called from Up Next/Next/Prev/Library/Search), try to find the button in the DOM to sync the UI
         if (!btn) {
             const activeEl = getSongElements(targetSong).find(element => element.classList.contains('is-active-song')) ||
-                             getSongElements(targetSong)[0];
+                getSongElements(targetSong)[0];
             btn = activeEl?.querySelector('.play-overlay');
         }
 
@@ -1422,55 +1422,55 @@ window.toggleDownloadSong = toggleDownloadSong;
                     try {
                         const raw = localStorage.getItem('recently_played_songs') || localStorage.getItem('recentlyPlayed') || '[]';
                         const list = JSON.parse(raw);
-                    allRecentSongs = (Array.isArray(list) ? list : []).map(s => ({
-                        id: String(s.id),
-                        audio: s.audio,
-                        name: s.name || s.title || 'Untitled',
-                        artist: s.artist || 'Unknown Artist',
-                        cover: s.cover || '../../public/branding/Spotiwind.webp',
-                        duration: Number(s.duration) || 0
-                    })).filter(s => s.audio);
-                } catch {
-                    allRecentSongs = [];
-                }
+                        allRecentSongs = (Array.isArray(list) ? list : []).map(s => ({
+                            id: String(s.id),
+                            audio: s.audio,
+                            name: s.name || s.title || 'Untitled',
+                            artist: s.artist || 'Unknown Artist',
+                            cover: s.cover || '../../public/branding/Spotiwind.webp',
+                            duration: Number(s.duration) || 0
+                        })).filter(s => s.audio);
+                    } catch {
+                        allRecentSongs = [];
+                    }
 
-                const recentGrid = document.getElementById('accountRecentList');
-                if (recentGrid) {
-                    const cards = Array.from(recentGrid.querySelectorAll('.song-card'));
-                    const gridSongs = cards.map(card => {
-                        const ov = card.querySelector('.play-overlay');
-                        const dt = ov ? ov.dataset : {};
-                        const titleEl = card.querySelector('.song-name');
-                        const artistEl = card.querySelector('.song-artist');
-                        const imgEl = card.querySelector('.song-cover img');
-                        return {
-                            id: String(card.dataset.id || dt.id || ''),
-                            audio: card.dataset.audio || dt.audio || '',
-                            name: dt.name || titleEl?.textContent?.trim() || 'Untitled',
-                            artist: dt.artist || artistEl?.textContent?.trim() || 'Unknown Artist',
-                            cover: dt.cover || imgEl?.src || '../../public/branding/Spotiwind.webp',
-                            duration: Number(dt.duration) || 0
-                        };
-                    }).filter(s => s.audio);
+                    const recentGrid = document.getElementById('accountRecentList');
+                    if (recentGrid) {
+                        const cards = Array.from(recentGrid.querySelectorAll('.song-card'));
+                        const gridSongs = cards.map(card => {
+                            const ov = card.querySelector('.play-overlay');
+                            const dt = ov ? ov.dataset : {};
+                            const titleEl = card.querySelector('.song-name');
+                            const artistEl = card.querySelector('.song-artist');
+                            const imgEl = card.querySelector('.song-cover img');
+                            return {
+                                id: String(card.dataset.id || dt.id || ''),
+                                audio: card.dataset.audio || dt.audio || '',
+                                name: dt.name || titleEl?.textContent?.trim() || 'Untitled',
+                                artist: dt.artist || artistEl?.textContent?.trim() || 'Unknown Artist',
+                                cover: dt.cover || imgEl?.src || '../../public/branding/Spotiwind.webp',
+                                duration: Number(dt.duration) || 0
+                            };
+                        }).filter(s => s.audio);
 
-                    if (gridSongs.length > 0) {
-                        const gridIds = new Set(gridSongs.map(s => String(s.id)));
-                        const remainingHistorySongs = allRecentSongs.filter(s => !gridIds.has(String(s.id)));
-                        allRecentSongs = [...gridSongs, ...remainingHistorySongs];
+                        if (gridSongs.length > 0) {
+                            const gridIds = new Set(gridSongs.map(s => String(s.id)));
+                            const remainingHistorySongs = allRecentSongs.filter(s => !gridIds.has(String(s.id)));
+                            allRecentSongs = [...gridSongs, ...remainingHistorySongs];
+                        }
+                    }
+
+                    const clickedIdx = allRecentSongs.findIndex(s => areSameSongs(s, targetSong) || String(s.id) === String(songId) || (s.audio && s.audio === targetSong.audio));
+                    if (clickedIdx !== -1) {
+                        baseQueue = [
+                            ...allRecentSongs.slice(clickedIdx),
+                            ...allRecentSongs.slice(0, clickedIdx)
+                        ];
+                    } else {
+                        baseQueue = [targetSong, ...allRecentSongs.filter(s => !areSameSongs(s, targetSong))];
                     }
                 }
-
-                const clickedIdx = allRecentSongs.findIndex(s => areSameSongs(s, targetSong) || String(s.id) === String(songId) || (s.audio && s.audio === targetSong.audio));
-                if (clickedIdx !== -1) {
-                    baseQueue = [
-                        ...allRecentSongs.slice(clickedIdx),
-                        ...allRecentSongs.slice(0, clickedIdx)
-                    ];
-                } else {
-                    baseQueue = [targetSong, ...allRecentSongs.filter(s => !areSameSongs(s, targetSong))];
-                }
             }
-        }
 
             if (baseQueue.length === 0) {
                 baseQueue = [targetSong];
@@ -1692,11 +1692,11 @@ window.toggleDownloadSong = toggleDownloadSong;
     const fetchArtistSongs = async (artistId, artistName) => {
         const songsGrid = document.getElementById('artistSongsGrid');
         if (!songsGrid) return false; // Indicate failure if grid not found
-    
+
         try {
             const artistSongs = await getArtistCatalog(artistId, artistName);
             if (artistSongs.length > 0) {
-    
+
                 artistPageCurrentSongs = artistSongs; // Store for playPreview
                 window.__artistPageCurrentSongs = artistSongs;
                 await renderGridProgressively('#artistSongsGrid', artistSongs, (song) => createArtistSongListItemHTML(song, `artist-${artistId}`), '.artist-song-list-item-skeleton', `artist-${artistId}`);
@@ -1755,7 +1755,7 @@ window.toggleDownloadSong = toggleDownloadSong;
      * @param {string} type - Skeleton type ('song' or 'artist').
      * @param {number} count - Number of skeletons to display.
      */
-    const showSkeletonLoader = (gridSelector, type, count = 6) => { 
+    const showSkeletonLoader = (gridSelector, type, count = 6) => {
         const grid = document.querySelector(gridSelector);
         if (!grid) return;
 
@@ -2030,7 +2030,7 @@ window.toggleDownloadSong = toggleDownloadSong;
      * Function to fetch popular song data from Firebase Firestore in REAL-TIME
      */
     const fetchTrendingMusic = async () => {
-        const gridSelector = '.popular-section .song-grid'; 
+        const gridSelector = '.popular-section .song-grid';
         const sectionTitle = document.getElementById('sectionTitle');
         if (sectionTitle) sectionTitle.textContent = "Popular Right Now";
 
@@ -2217,56 +2217,56 @@ window.toggleDownloadSong = toggleDownloadSong;
     const updateUserAvatar = (user, avatarElement) => {
         if (!user || !avatarElement) return;
 
-            const nameForAvatar = user.displayName || user.email.split('@')[0];
-            const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(nameForAvatar)}&background=B91EC9&color=fff&bold=true&size=512`;
-            
-            // Normalize Google photoURL to high-res (512px)
-            let originalPhotoURL = user.photoURL ? String(user.photoURL).trim() : '';
-            if (originalPhotoURL && (originalPhotoURL.includes('googleusercontent.com') || originalPhotoURL.includes('google.com') || originalPhotoURL.includes('ggpht.com'))) {
-                if (/=s\d+([a-zA-Z0-9_-]*)/.test(originalPhotoURL)) {
-                    originalPhotoURL = originalPhotoURL.replace(/=s\d+([a-zA-Z0-9_-]*)/, '=s512-c');
-                } else if (/([?&])sz=\d+/.test(originalPhotoURL)) {
-                    originalPhotoURL = originalPhotoURL.replace(/([?&])sz=\d+/, '$1sz=512');
+        const nameForAvatar = user.displayName || user.email.split('@')[0];
+        const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(nameForAvatar)}&background=B91EC9&color=fff&bold=true&size=512`;
+
+        // Normalize Google photoURL to high-res (512px)
+        let originalPhotoURL = user.photoURL ? String(user.photoURL).trim() : '';
+        if (originalPhotoURL && (originalPhotoURL.includes('googleusercontent.com') || originalPhotoURL.includes('google.com') || originalPhotoURL.includes('ggpht.com'))) {
+            if (/=s\d+([a-zA-Z0-9_-]*)/.test(originalPhotoURL)) {
+                originalPhotoURL = originalPhotoURL.replace(/=s\d+([a-zA-Z0-9_-]*)/, '=s512-c');
+            } else if (/([?&])sz=\d+/.test(originalPhotoURL)) {
+                originalPhotoURL = originalPhotoURL.replace(/([?&])sz=\d+/, '$1sz=512');
+            } else {
+                const hasQuery = originalPhotoURL.includes('?');
+                if (hasQuery) {
+                    const parts = originalPhotoURL.split('?');
+                    originalPhotoURL = `${parts[0]}=s512-c?${parts[1]}`;
                 } else {
-                    const hasQuery = originalPhotoURL.includes('?');
-                    if (hasQuery) {
-                        const parts = originalPhotoURL.split('?');
-                        originalPhotoURL = `${parts[0]}=s512-c?${parts[1]}`;
-                    } else {
-                        originalPhotoURL = `${originalPhotoURL}=s512-c`;
-                    }
-                }
-            } else if (originalPhotoURL && originalPhotoURL.includes('ui-avatars.com')) {
-                if (/size=\d+/.test(originalPhotoURL)) {
-                    originalPhotoURL = originalPhotoURL.replace(/size=\d+/, 'size=512');
-                } else {
-                    const sep = originalPhotoURL.includes('?') ? '&' : '?';
-                    originalPhotoURL = `${originalPhotoURL}${sep}size=512`;
+                    originalPhotoURL = `${originalPhotoURL}=s512-c`;
                 }
             }
-            
-            let originalRetry = 0; 
-            const maxRetries = 2; 
+        } else if (originalPhotoURL && originalPhotoURL.includes('ui-avatars.com')) {
+            if (/size=\d+/.test(originalPhotoURL)) {
+                originalPhotoURL = originalPhotoURL.replace(/size=\d+/, 'size=512');
+            } else {
+                const sep = originalPhotoURL.includes('?') ? '&' : '?';
+                originalPhotoURL = `${originalPhotoURL}${sep}size=512`;
+            }
+        }
 
-            avatarElement.referrerPolicy = "no-referrer";
+        let originalRetry = 0;
+        const maxRetries = 2;
 
-            avatarElement.onerror = function() {
-                if (originalPhotoURL && this.src.includes(originalPhotoURL.split('?')[0]) && originalRetry < maxRetries) {
-                    originalRetry++;
-                    console.log(`Mobile: Failed to load original photo, retrying (${originalRetry}/${maxRetries})...`);
-                    setTimeout(() => {
-                        const sep = originalPhotoURL.includes('?') ? '&' : '?';
-                        this.src = `${originalPhotoURL}${sep}t=${Date.now()}`;
-                    }, 2000);
-                } 
-                else if (this.src !== defaultAvatar && !this.src.includes('ui-avatars.com')) {
-                    console.log("Mobile: Original photo failed, switching to initials...");
-                    this.src = defaultAvatar;
-                } else {
-                    this.onerror = null;
-                }
-            };
-            avatarElement.src = originalPhotoURL || defaultAvatar;
+        avatarElement.referrerPolicy = "no-referrer";
+
+        avatarElement.onerror = function () {
+            if (originalPhotoURL && this.src.includes(originalPhotoURL.split('?')[0]) && originalRetry < maxRetries) {
+                originalRetry++;
+                console.log(`Mobile: Failed to load original photo, retrying (${originalRetry}/${maxRetries})...`);
+                setTimeout(() => {
+                    const sep = originalPhotoURL.includes('?') ? '&' : '?';
+                    this.src = `${originalPhotoURL}${sep}t=${Date.now()}`;
+                }, 2000);
+            }
+            else if (this.src !== defaultAvatar && !this.src.includes('ui-avatars.com')) {
+                console.log("Mobile: Original photo failed, switching to initials...");
+                this.src = defaultAvatar;
+            } else {
+                this.onerror = null;
+            }
+        };
+        avatarElement.src = originalPhotoURL || defaultAvatar;
     };
 
     let lastGreetingHour = -1;
@@ -2437,9 +2437,9 @@ window.toggleDownloadSong = toggleDownloadSong;
             const aSlug = aName.replace(/\s+/g, '-');
 
             const matchesId = (uniqueId && uniqueId === queryId) ||
-                              (aId && aId === lowerQuery) ||
-                              (aSlug && aSlug === lowerQuery) ||
-                              (aName && aName === lowerQuery);
+                (aId && aId === lowerQuery) ||
+                (aSlug && aSlug === lowerQuery) ||
+                (aName && aName === lowerQuery);
 
             const matchesName = cleanQueryName && (
                 aName === lowerQueryName ||
@@ -2461,9 +2461,9 @@ window.toggleDownloadSong = toggleDownloadSong;
                 const uniqueId = getArtistUniqueId(tempArtist);
 
                 return (uniqueId && uniqueId === queryId) ||
-                       sArtistSlug === lowerQuery ||
-                       sArtistLower === lowerQuery ||
-                       (cleanQueryName && (sArtistLower === lowerQueryName || sArtistLower.includes(lowerQueryName)));
+                    sArtistSlug === lowerQuery ||
+                    sArtistLower === lowerQuery ||
+                    (cleanQueryName && (sArtistLower === lowerQueryName || sArtistLower.includes(lowerQueryName)));
             });
 
             if (songMatch) {
@@ -2573,6 +2573,15 @@ window.toggleDownloadSong = toggleDownloadSong;
                 route: '/liked-songs',
                 title: 'Liked Songs | Spotiwind',
                 state: { route: 'liked-songs' }
+            });
+        } else if (cleanPath === '/downloads' || cleanPath.startsWith('/downloads')) {
+            updateSidebarActiveState('library-mobile.html');
+            updateBottomNavActive('library-mobile.html');
+            await loadPageContent('downloads-mobile.html', {
+                pushState: shouldPushState,
+                route: '/downloads',
+                title: 'Downloads | Spotiwind',
+                state: { route: 'downloads' }
             });
         } else if (cleanPath === '/windflow' || cleanPath === '/radio') {
             updateSidebarActiveState('windflow-mobile.html');
@@ -2907,20 +2916,20 @@ window.toggleDownloadSong = toggleDownloadSong;
         loadLocalCatalogData();
     };
 
-// Expose public API to window scope
-window.isCurrentUserPro = () => Boolean(currentUserIsPro);
-window.spotiwind = {
-    mobile: {
-        fetchWithContinuousRetry,
-        fetchLocalArtistSongs,
-        fetchArtistSongs,
-        loadPageContent,
-        initializeSkeletons,
-        syncActiveSongUI,
-        getCurrentSongData: () => currentSongData,
-        isCurrentUserPro: () => Boolean(currentUserIsPro)
-    }
-};
+    // Expose public API to window scope
+    window.isCurrentUserPro = () => Boolean(currentUserIsPro);
+    window.spotiwind = {
+        mobile: {
+            fetchWithContinuousRetry,
+            fetchLocalArtistSongs,
+            fetchArtistSongs,
+            loadPageContent,
+            initializeSkeletons,
+            syncActiveSongUI,
+            getCurrentSongData: () => currentSongData,
+            isCurrentUserPro: () => Boolean(currentUserIsPro)
+        }
+    };
 
     // Initial render and data fetch
     initializeSkeletons();
@@ -3026,10 +3035,10 @@ window.spotiwind = {
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const x = clientX - rect.left;
             const percentage = Math.max(0, Math.min(1, x / rect.width));
-            
+
             document.getElementById('fullProgressBar').style.width = `${percentage * 100}%`;
             document.getElementById('fullCurrentTime').textContent = formatTime(percentage * activeAudio.duration);
-            
+
             activeAudio.currentTime = percentage * activeAudio.duration;
         };
 
@@ -3056,11 +3065,11 @@ window.spotiwind = {
         fullProgressTrack.addEventListener('touchstart', startDragging, { passive: false });
         window.addEventListener('touchmove', moveDragging, { passive: false });
         window.addEventListener('touchend', stopDragging);
-        
+
         fullProgressTrack.addEventListener('mousedown', startDragging);
         window.addEventListener('mousemove', moveDragging);
         window.addEventListener('mouseup', stopDragging);
-        
+
         fullProgressTrack.addEventListener('click', seek);
     }
 
@@ -3103,92 +3112,92 @@ window.spotiwind = {
         }
     });
 
-        // [ROUTER] Initialize SPA Router Context
-        const routerContext = {
-            searchParams: {
-                debounce,
-                activeAudio,
-                getCurrentSongData: () => currentSongData,
-                getSongs: () => indonesianSongsPlaylist,
-                getArtists: () => indonesianArtistsPlaylist,
-                getAlbums: () => indonesianAlbumsPlaylist,
-                navigateToArtistPage: (artist) => {
-                    navigateToArtistPage(artist, true);
-                },
-                setHomeScrollPosition: (pos) => {
-                    homeScrollPosition = pos;
-                    setHomeScrollPosition(pos);
-                },
-                setPageScrollPosition: (page, pos) => {
-                    setPageScrollPosition(page, pos);
-                },
-                getPageScrollPosition: (page) => getPageScrollPosition(page),
-                getLastSearchQuery: () => lastSearchQuery,
-                setLastSearchQuery: (query) => { lastSearchQuery = query; },
-                setSearchPlaylist: (playlist) => { searchPlaylist = playlist; },
-                setPopularPlaylist: (playlist) => { popularPlaylist = playlist; }
-            },
-            get artistData() {
-                return artistDataForPageLoad;
-            },
-            onHomeMounted: () => {
-                // Callback when home is restored (e.g. from sub-page back to home)
-                initializeHomeContent();
-                syncActiveSongUI();
-                initializeData();
-                const user = auth.currentUser;
-                if (user) {
-                    initializeUserUI(user);
-                    loadLikedSongsCount(user.uid);
-                    renderHomeRecentlyPlayed(true);
-                    setupUnreadNotificationsListener(user.uid);
-                    setupUserPresence(user);
-                } else {
-                    initializeGuestUI();
-                    renderHomeRecentlyPlayed(true);
-                }
-                const notificationBtn = document.getElementById('notificationBtn');
-                if (notificationBtn) {
-                    notificationBtn.addEventListener('click', () => navigateToNotificationPage(true));
-                }
-            }
-        };
-
-        // Legacy support for modules relying on window.spotiwind.mobile
-        window.spotiwind = window.spotiwind || {};
-        window.spotiwind.mobile = {
-            fetchWithContinuousRetry,
-            fetchLocalArtistSongs,
-            fetchArtistSongs,
-            getArtists: () => indonesianArtistsPlaylist,
+    // [ROUTER] Initialize SPA Router Context
+    const routerContext = {
+        searchParams: {
+            debounce,
+            activeAudio,
+            getCurrentSongData: () => currentSongData,
             getSongs: () => indonesianSongsPlaylist,
-            loadPageContent: (page, opts) => window.loadPageContent && window.loadPageContent(page, opts),
-            navigateToArtistPage: (artist, shouldPushState = true) => navigateToArtistPage(artist, shouldPushState),
-            initializeSkeletons: () => {
-                if (typeof showSkeletonLoader === 'function') showSkeletonLoader('#artistSongsGrid', 'artist-song-list', 6);
-            }
-        };
-
-        initPageRouter(routerContext);
-
-        // [ROUTER] Popstate listener for browser Back / Forward buttons
-        window.addEventListener('popstate', async (event) => {
-            const currentPath = window.location.pathname;
-            await handleRoutePath(currentPath, event.state, false);
-        });
-
-        // [ROUTER] Handle initial deep link or route stored in sessionStorage
-        const pendingRoute = sessionStorage.getItem('spotiwind_target_route');
-        if (pendingRoute) {
-            sessionStorage.removeItem('spotiwind_target_route');
-            handleRoutePath(pendingRoute, null, false);
-        } else {
-            const currentPath = window.location.pathname;
-            const cleanPath = currentPath;
-            if (cleanPath && cleanPath !== '/' && !cleanPath.endsWith('.html')) {
-                handleRoutePath(cleanPath, null, false);
+            getArtists: () => indonesianArtistsPlaylist,
+            getAlbums: () => indonesianAlbumsPlaylist,
+            navigateToArtistPage: (artist) => {
+                navigateToArtistPage(artist, true);
+            },
+            setHomeScrollPosition: (pos) => {
+                homeScrollPosition = pos;
+                setHomeScrollPosition(pos);
+            },
+            setPageScrollPosition: (page, pos) => {
+                setPageScrollPosition(page, pos);
+            },
+            getPageScrollPosition: (page) => getPageScrollPosition(page),
+            getLastSearchQuery: () => lastSearchQuery,
+            setLastSearchQuery: (query) => { lastSearchQuery = query; },
+            setSearchPlaylist: (playlist) => { searchPlaylist = playlist; },
+            setPopularPlaylist: (playlist) => { popularPlaylist = playlist; }
+        },
+        get artistData() {
+            return artistDataForPageLoad;
+        },
+        onHomeMounted: () => {
+            // Callback when home is restored (e.g. from sub-page back to home)
+            initializeHomeContent();
+            syncActiveSongUI();
+            initializeData();
+            const user = auth.currentUser;
+            if (user) {
+                initializeUserUI(user);
+                loadLikedSongsCount(user.uid);
+                renderHomeRecentlyPlayed(true);
+                setupUnreadNotificationsListener(user.uid);
+                setupUserPresence(user);
             } else {
-                updateAppUrl('/', 'Spotiwind - Feel The Music, Ride The Wind', { route: 'home' }, false);
+                initializeGuestUI();
+                renderHomeRecentlyPlayed(true);
+            }
+            const notificationBtn = document.getElementById('notificationBtn');
+            if (notificationBtn) {
+                notificationBtn.addEventListener('click', () => navigateToNotificationPage(true));
             }
         }
+    };
+
+    // Legacy support for modules relying on window.spotiwind.mobile
+    window.spotiwind = window.spotiwind || {};
+    window.spotiwind.mobile = {
+        fetchWithContinuousRetry,
+        fetchLocalArtistSongs,
+        fetchArtistSongs,
+        getArtists: () => indonesianArtistsPlaylist,
+        getSongs: () => indonesianSongsPlaylist,
+        loadPageContent: (page, opts) => window.loadPageContent && window.loadPageContent(page, opts),
+        navigateToArtistPage: (artist, shouldPushState = true) => navigateToArtistPage(artist, shouldPushState),
+        initializeSkeletons: () => {
+            if (typeof showSkeletonLoader === 'function') showSkeletonLoader('#artistSongsGrid', 'artist-song-list', 6);
+        }
+    };
+
+    initPageRouter(routerContext);
+
+    // [ROUTER] Popstate listener for browser Back / Forward buttons
+    window.addEventListener('popstate', async (event) => {
+        const currentPath = window.location.pathname;
+        await handleRoutePath(currentPath, event.state, false);
+    });
+
+    // [ROUTER] Handle initial deep link or route stored in sessionStorage
+    const pendingRoute = sessionStorage.getItem('spotiwind_target_route');
+    if (pendingRoute) {
+        sessionStorage.removeItem('spotiwind_target_route');
+        handleRoutePath(pendingRoute, null, false);
+    } else {
+        const currentPath = window.location.pathname;
+        const cleanPath = currentPath;
+        if (cleanPath && cleanPath !== '/' && !cleanPath.endsWith('.html')) {
+            handleRoutePath(cleanPath, null, false);
+        } else {
+            updateAppUrl('/', 'Spotiwind - Feel The Music, Ride The Wind', { route: 'home' }, false);
+        }
+    }
 });

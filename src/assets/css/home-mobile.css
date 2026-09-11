@@ -957,18 +957,21 @@ body.mix-detail-open .mobile-header {
 
 /* Hero Card Styles for Mobile */
 .hero-card {
-    background: linear-gradient(to right, rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.4)), url('../../../public/images/Hero%20Section.webp');
-    background-size: 100% 130%;
-    background-position: center calc(50% + 10px);
-    border: 1px solid var(--glass-border);
+    background: linear-gradient(to right, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.5) 60%, rgba(15, 23, 42, 0.2) 100%), url('../../../public/images/Hero%20Section.webp');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     border-radius: 1rem;
     padding: 1.5rem var(--mobile-horizontal-padding);
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: flex-start;
     gap: 0.5rem;
+    min-height: 150px;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4);
 }
 
 .hero-card h1 {
