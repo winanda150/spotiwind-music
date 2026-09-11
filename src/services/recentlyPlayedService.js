@@ -13,6 +13,7 @@ import {
     onSnapshot,
     serverTimestamp
 } from "../assets/js/firebase-config.js";
+import { areSameSongs } from '../utils/audioUtils.js';
 
 const LOCAL_STORAGE_KEY = 'recently_played_songs';
 const MAX_LOCAL_ITEMS = 30;
@@ -101,16 +102,30 @@ const queueSongCloudSync = (uid, song) => {
             const songId = String(song.id || song.audio).trim();
             if (!songId) return;
 
+            let songDuration = Number(song.duration) || 0;
+            if (typeof window !== 'undefined') {
+                const localCatalog = window.__indonesianSongsPlaylist || window.__desktopLocalSongs;
+                if (Array.isArray(localCatalog)) {
+                    const matched = localCatalog.find(s => areSameSongs(s, song));
+                    if (matched && Number(matched.duration) > 0) {
+                        songDuration = Number(matched.duration);
+                    }
+                }
+            }
+
             const docRef = getRecentlyPlayedDocRef(uid, songId);
-            await setDoc(docRef, {
+            const docData = {
                 id: songId,
                 name: String(song.name || ''),
                 artist: String(song.artist || ''),
                 cover: String(song.cover || ''),
                 audio: String(song.audio || ''),
-                duration: Number(song.duration) || 0,
                 playedAt: serverTimestamp()
-            }, { merge: true });
+            };
+            if (songDuration > 0) {
+                docData.duration = songDuration;
+            }
+            await setDoc(docRef, docData, { merge: true });
 
             // Automatically prune oldest records exceeding MAX_CLOUD_ITEMS limit
             await pruneOldestCloudSongs(uid);

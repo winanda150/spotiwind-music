@@ -510,7 +510,12 @@ activeAudio.addEventListener('timeupdate', () => {
 
 // Update total duration when song metadata is loaded
 activeAudio.addEventListener('loadedmetadata', () => {
+    const dur = Math.round(activeAudio.duration || 0);
     document.getElementById('fullTotalTime').textContent = formatTime(activeAudio.duration);
+    if (currentSongData && (!currentSongData.duration || currentSongData.duration === 0) && dur > 0) {
+        currentSongData.duration = dur;
+        recordRecentlyPlayedSong(currentSongData);
+    }
 });
 
 let isAudioBuffering = false;
@@ -1298,10 +1303,18 @@ document.addEventListener('DOMContentLoaded', () => {
      * Special function to play a song from the search dropdown results.
      * It updates currentPlaylist so that the Next/Prev features are in sync with the search results.
      */
-    window.playFromSearch = (audioUrl, title, artist, cover, id) => {
-        // Get duration from lastSearchResults if available
-        const songData = window.lastSearchResults?.find(s => String(s.id) === String(id));
-        const duration = songData ? songData.duration : 0; // Default to 0 if not found
+    window.playFromSearch = (audioUrl, title, artist, cover, id, durationParam = null) => {
+        let duration = Number(durationParam) || 0;
+        if (!duration || duration === 0) {
+            const songData = window.lastSearchResults?.find(s => String(s.id) === String(id));
+            duration = songData && Number(songData.duration) > 0 ? Number(songData.duration) : 0;
+        }
+        if (!duration || duration === 0) {
+            const localSong = (indonesianSongsPlaylist || []).find(s => String(s.id) === String(id) || areSameSongs(s, { id, audio: audioUrl, name: title, artist }));
+            if (localSong && Number(localSong.duration) > 0) {
+                duration = Number(localSong.duration);
+            }
+        }
         const isSameActiveSong = currentSongData && areSameSongs(currentSongData, { id, audio: audioUrl }) && activeAudio.src;
         window.playPreview(null, audioUrl, title, artist, cover, id, duration, isSameActiveSong ? null : 'search');
     };
@@ -1318,13 +1331,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const songId = String(id);
+        const localSong = (indonesianSongsPlaylist || []).find(s => areSameSongs(s, { id: songId, audio: audioUrl, name: title, artist }));
+        let songDuration = (localSong && Number(localSong.duration) > 0)
+            ? Number(localSong.duration)
+            : (Number(duration) || 0);
+
         const targetSong = {
             id: songId,
             audio: audioUrl,
             name: title,
             artist,
             cover,
-            duration: Number(duration) || 0
+            duration: songDuration
         };
 
         const wasSameSong = Boolean(currentSongData && areSameSongs(currentSongData, targetSong));
@@ -2004,6 +2022,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     indonesianSongsPlaylist = catalog.songs || [];
                     indonesianAlbumsPlaylist = catalog.albums || [];
                     window.__indonesianArtistsPlaylist = indonesianArtistsPlaylist;
+                    window.__indonesianSongsPlaylist = indonesianSongsPlaylist;
                     return catalog;
                 } catch (error) {
                     console.error('Failed to load local song catalog:', error);
@@ -2059,13 +2078,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     `;
                 } else {
-                    trendingPlaylist = rawSongs;
+                    const enrichedTracks = rawSongs.map((song) => {
+                        const local = (indonesianSongsPlaylist || []).find((s) => areSameSongs(s, song));
+                        return local && Number(local.duration) > 0 ? { ...song, duration: Number(local.duration) } : song;
+                    });
+                    trendingPlaylist = enrichedTracks;
                     const hasSkeletons = Boolean(grid.querySelector('.song-card-skeleton'));
                     if (isFirstLoad && hasSkeletons) {
-                        renderGridProgressively(gridSelector, rawSongs, createSongCardHTML, '.song-card-skeleton', 'trending');
+                        renderGridProgressively(gridSelector, enrichedTracks, createSongCardHTML, '.song-card-skeleton', 'trending');
                     } else {
                         // Realtime update atau pemulihan DOM: update grid langsung dan sinkronkan UI
-                        grid.innerHTML = rawSongs.map(song => createSongCardHTML(song, 'trending')).join('');
+                        grid.innerHTML = enrichedTracks.map(song => createSongCardHTML(song, 'trending')).join('');
                         syncActiveSongUI();
                     }
                 }
@@ -2623,7 +2646,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 debounce,
                 activeAudio,
                 getCurrentSongData: () => currentSongData,
-                getSongs: () => currentPlaylist,
+                getSongs: () => indonesianSongsPlaylist.length > 0 ? indonesianSongsPlaylist : currentPlaylist,
                 getArtists: () => indonesianArtistsPlaylist,
                 getAlbums: () => indonesianAlbumsPlaylist,
                 navigateToArtistPage,

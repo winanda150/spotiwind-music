@@ -74,8 +74,14 @@ activeAudio.addEventListener('timeupdate', () => {
 
 // Update total duration when song metadata is loaded
 activeAudio.addEventListener('loadedmetadata', () => {
+    const dur = Math.round(activeAudio.duration || 0);
     const durationEls = document.querySelectorAll('.time-info span:last-child, .total-time');
     durationEls.forEach(el => el.textContent = formatTime(activeAudio.duration));
+    if (currentSongData && (!currentSongData.duration || currentSongData.duration === 0) && dur > 0) {
+        currentSongData.duration = dur;
+        recordRecentlyPlayed(currentSongData);
+        recordTrackPlay(currentSongData);
+    }
 });
 
 // Logic Event Listeners (Sync with Mobile)
@@ -294,13 +300,17 @@ const toggleLike = async (e) => {
 window.playPreview = async (btn, audioUrl, title, artist, cover, id, duration = 0, context = null, customPlaylist = null, mixId = null) => {
     const previousMixId = activeMixId;
     const songId = String(id);
+    const localSong = (desktopLocalSongs || []).find(s => areSameSongs(s, { id: songId, audio: audioUrl, name: title, artist }));
+    let songDuration = (localSong && Number(localSong.duration) > 0)
+        ? Number(localSong.duration)
+        : (Number(duration) || 0);
     const targetSong = {
         id: songId,
         audio: audioUrl,
         name: title,
         artist,
         cover,
-        duration: Number(duration) || 0
+        duration: songDuration
     };
     const wasSameSong = Boolean(currentSongData && areSameSongs(currentSongData, targetSong));
     const isSameSong = Boolean(
@@ -538,7 +548,7 @@ const createSongCardHTML = (song) => {
         <div class="song-cover">
             <img src="${song.cover}" alt="${song.name}" style="width:100%; height:100%; object-fit:cover;">
             <button class="play-overlay" aria-label="Play ${song.name}"
-                data-audio="${song.audio}" data-name="${safeName}" data-artist="${safeArtist}" data-cover="${song.cover}">
+                data-audio="${song.audio}" data-name="${safeName}" data-artist="${safeArtist}" data-cover="${song.cover}" data-duration="${song.duration || 0}">
                 ${isActive && !isPaused ? PAUSE_ICON : PLAY_ICON}
             </button>
         </div>
@@ -788,13 +798,17 @@ const fetchTrendingMusic = async () => {
                     </div>
                 `;
             } else {
-                currentPlaylist = rawSongs;
+                const enrichedTracks = rawSongs.map((song) => {
+                    const local = (desktopLocalSongs || []).find((s) => areSameSongs(s, song));
+                    return local && Number(local.duration) > 0 ? { ...song, duration: Number(local.duration) } : song;
+                });
+                currentPlaylist = enrichedTracks;
                 syncQueueState(currentPlaylist, null, -1);
                 const hasSkeletons = Boolean(grid.querySelector('.song-card-skeleton'));
                 if (isFirstLoad && hasSkeletons) {
-                    renderGridProgressively(gridSelector, rawSongs, createSongCardHTML, '.song-card-skeleton');
+                    renderGridProgressively(gridSelector, enrichedTracks, createSongCardHTML, '.song-card-skeleton');
                 } else {
-                    grid.innerHTML = rawSongs.map(createSongCardHTML).join('');
+                    grid.innerHTML = enrichedTracks.map(createSongCardHTML).join('');
                     syncActiveDesktopUI();
                 }
             }
@@ -1158,10 +1172,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const card = playBtn.closest('.song-card');
         if (!card) return;
         const overlay = card.querySelector('.play-overlay');
-        const { audio, name, artist, cover } = overlay.dataset;
+        const { audio, name, artist, cover, duration } = overlay.dataset;
         const id = card.dataset.id;
 
-        window.playPreview(overlay, audio, name, artist, cover, id, 0, 'trending');
+        window.playPreview(overlay, audio, name, artist, cover, id, Number(duration) || 0, 'trending');
     });
     /**
      * NEW: Wrapper to continuously retry a fetch function upon failure.
@@ -2118,6 +2132,7 @@ const initDesktopSearch = async () => {
         desktopLocalArtists = cat.artists || [];
         desktopLocalSongs = cat.songs || [];
         desktopLocalAlbums = cat.albums || [];
+        window.__desktopLocalSongs = desktopLocalSongs;
     }).catch(() => { });
 
     window.handleDesktopAlbumClick = (albumId) => {

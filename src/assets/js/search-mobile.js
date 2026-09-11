@@ -57,7 +57,7 @@ export const initSearchPage = ({
             lastRankedSongId = String(id);
             await recordSearchSelection('songs', { id, name, artist, cover, audio, duration });
         }
-        window.playFromSearch(audio, name, artist, cover, id);
+        window.playFromSearch(audio, name, artist, cover, id, Number(duration) || 0);
     };
 
     window.handleAlbumSearchClick = async (id, name, artist, cover) => {
@@ -80,7 +80,7 @@ export const initSearchPage = ({
                     }
                     const firstSong = albumSongs[0];
                     if (firstSong && typeof window.playFromSearch === 'function') {
-                        window.playFromSearch(firstSong.audio, firstSong.name, firstSong.artist, firstSong.cover, firstSong.id);
+                        window.playFromSearch(firstSong.audio, firstSong.name, firstSong.artist, firstSong.cover, firstSong.id, Number(firstSong.duration) || 0);
                         if (typeof window.showToast === 'function') {
                             window.showToast(`Memutar album: ${name}`);
                         }

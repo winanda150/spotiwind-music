@@ -11,6 +11,7 @@ import {
     increment,
     serverTimestamp
 } from "../assets/js/firebase-config.js";
+import { areSameSongs } from '../utils/audioUtils.js';
 
 const DEFAULT_LIMIT = 10;
 const POPULAR_TRACKS_COLLECTION = 'popular_tracks';
@@ -103,7 +104,18 @@ export const syncPopularTrackPathToFirestore = async (docId, rawData = {}) => {
         rawAudio !== targetAudio
     );
 
-    if (hasLegacyCover || hasLegacyAudio) {
+    let durationUpdate = null;
+    if (typeof window !== 'undefined') {
+        const localCatalog = window.__indonesianSongsPlaylist || window.__desktopLocalSongs;
+        if (Array.isArray(localCatalog)) {
+            const matched = localCatalog.find(s => areSameSongs(s, { id: docId, ...rawData }));
+            if (matched && Number(matched.duration) > 0 && Number(rawData.duration) !== Number(matched.duration)) {
+                durationUpdate = Number(matched.duration);
+            }
+        }
+    }
+
+    if (hasLegacyCover || hasLegacyAudio || durationUpdate !== null) {
         try {
             const trackRef = doc(getPopularTracksRef(), docId);
             const updates = {
@@ -111,6 +123,7 @@ export const syncPopularTrackPathToFirestore = async (docId, rawData = {}) => {
             };
             if (hasLegacyCover) updates.cover = targetCover;
             if (hasLegacyAudio) updates.audio = targetAudio;
+            if (durationUpdate !== null) updates.duration = durationUpdate;
 
             await setDoc(trackRef, updates, { merge: true });
         } catch {
@@ -140,6 +153,19 @@ export const recordTrackPlay = async (song) => {
     recentlyRecordedTracks.set(trackId, now);
 
     try {
+        let songDuration = Number(song.duration) || 0;
+
+        // Check local catalog: songs.json is the source of truth for duration & metadata
+        if (typeof window !== 'undefined') {
+            const localCatalog = window.__indonesianSongsPlaylist || window.__desktopLocalSongs;
+            if (Array.isArray(localCatalog)) {
+                const matched = localCatalog.find(s => areSameSongs(s, song));
+                if (matched && Number(matched.duration) > 0) {
+                    songDuration = Number(matched.duration);
+                }
+            }
+        }
+
         const trackRef = doc(getPopularTracksRef(), trackId);
         const trackData = {
             id: song.id ? String(song.id) : trackId,
@@ -147,10 +173,15 @@ export const recordTrackPlay = async (song) => {
             artist: String(song.artist || song.artist_name || 'Unknown Artist').replace(/\\'/g, "'").trim(),
             cover: normalizePopularTrackAssetUrl(song.cover || song.image || '../../public/branding/Spotiwind.webp'),
             audio: normalizePopularTrackAssetUrl(song.audio || ''),
-            duration: Number(song.duration) || 0,
             playCount: increment(1),
             updatedAt: serverTimestamp()
         };
+
+        // CRITICAL FIX: Only set duration in Firestore if we have a valid positive duration (> 0)
+        // Never overwrite an existing Firestore duration with 0!
+        if (songDuration > 0) {
+            trackData.duration = songDuration;
+        }
 
         await setDoc(trackRef, trackData, { merge: true });
     } catch (error) {

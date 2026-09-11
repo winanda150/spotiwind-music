@@ -77,6 +77,7 @@ export const recordSearchSelection = async (type, item) => {
 
     try {
         const itemRef = doc(getStatsRef(type), getEntityId(type, item));
+        const songDuration = Number(item.duration) || 0;
         const itemData = type === 'artists'
             ? { 
                 id: item.id, 
@@ -89,7 +90,7 @@ export const recordSearchSelection = async (type, item) => {
                 artist: item.artist || item.artist_name || '', 
                 cover: normalizePopularityAssetUrl(item.cover || item.image || ''), 
                 audio: normalizePopularityAssetUrl(item.audio || ''), 
-                duration: Number(item.duration) || 0 
+                ...(songDuration > 0 ? { duration: songDuration } : {})
               };
         await setDoc(itemRef, { ...itemData, type, searchCount: increment(1), updatedAt: serverTimestamp() }, { merge: true });
     } catch (error) {
