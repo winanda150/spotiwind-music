@@ -1261,6 +1261,11 @@ body.mix-detail-open .mobile-header {
     z-index: 2;
 }
 
+.play-overlay svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+
 .song-info {
     padding: 0.75rem 0.85rem 0.9rem 0.85rem;
     display: flex;
@@ -3543,8 +3548,8 @@ body.player-active .mix-detail-modal .mix-detail-scrollable {
 }
 
 .recent-track-play-icon svg {
-    width: 20px;
-    height: 20px;
+    width: 16px !important;
+    height: 16px !important;
     fill: currentColor;
 }
 

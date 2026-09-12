@@ -303,6 +303,11 @@
     color: #ffffff;
 }
 
+.popular-search-play-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+
 .popular-search-card:hover .popular-search-play-icon,
 .popular-search-card.is-active-song .popular-search-play-icon {
     opacity: 1;

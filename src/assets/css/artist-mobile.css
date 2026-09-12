@@ -348,6 +348,11 @@
     color: #ffffff;
 }
 
+.artist-song-play-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+
 .artist-song-list-item:hover .artist-song-play-icon,
 .artist-song-list-item.is-active-song .artist-song-play-icon {
     opacity: 1;

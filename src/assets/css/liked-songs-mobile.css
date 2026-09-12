@@ -690,6 +690,12 @@
     transition: opacity 0.15s ease;
 }
 
+.liked-song-play-overlay svg,
+.liked-grid-play-overlay svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+
 .liked-song-item:hover .liked-song-play-overlay {
     opacity: 1;
     color: var(--text-main, #ffffff);
@@ -697,7 +703,7 @@
 
 .liked-song-item.is-active-song .liked-song-play-overlay {
     opacity: 1;
-    color: #22c55e;
+    color: var(--text-main);
 }
 
 .liked-song-info {

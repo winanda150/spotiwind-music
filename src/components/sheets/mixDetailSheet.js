@@ -5,6 +5,8 @@
 import { audioEngine } from '../../core/audioEngine.js';
 import { areSameSongs } from '../../utils/audioUtils.js';
 import { PLAY_ICON, PAUSE_ICON } from '../../constants/icons.js';
+const TRACK_PLAY_ICON_16 = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
+const TRACK_PAUSE_ICON_16 = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
 
 let activeDetailMix = null;
 let isMixDetailTransitioning = false;
@@ -78,7 +80,7 @@ export const openMixDetailModal = async (mixId, madeForYouMixes = []) => {
             <div class="mix-track-cover-wrapper">
                 <img src="${song.cover}" alt="${song.name}" class="mix-track-cover" width="44" height="44" loading="lazy">
                 <div class="mix-track-play-icon" aria-hidden="true">
-                    ${isCurrent && isPlaying ? PAUSE_ICON : PLAY_ICON}
+                    ${isCurrent && isPlaying ? TRACK_PAUSE_ICON_16 : TRACK_PLAY_ICON_16}
                 </div>
             </div>
             <div class="mix-track-info">

@@ -562,6 +562,12 @@
     display: block;
 }
 
+.account-recent-section .song-card .play-overlay svg,
+.account-recent-grid .play-overlay svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+
 .account-recent-section .song-card .song-info {
     padding: 0.75rem 0.85rem 0.9rem 0.85rem;
 }

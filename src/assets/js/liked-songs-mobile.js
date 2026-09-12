@@ -123,15 +123,11 @@ const isLikedSongsSessionActive = () => {
 const isLikedSongsCurrentlyPlaying = () => {
     const activeAudio = getGlobalActiveAudio();
     if (!activeAudio || activeAudio.paused || activeAudio.ended) return false;
-    if (isLikedSongsSessionActive()) return true;
-    const currentSong = getCurrentLoadedSong();
-    if (currentSong && currentLikedSongs.some(s => String(s.id) === String(currentSong.id) || (typeof window.areSameSongs === 'function' && window.areSameSongs(currentSong, s)))) {
-        return true;
-    }
-    return false;
+    return isLikedSongsSessionActive();
 };
 
 const syncSongItemsActiveState = () => {
+    const isSessionActive = isLikedSongsSessionActive();
     const currentSong = getCurrentLoadedSong();
     const activeAudio = getGlobalActiveAudio();
     const isPlaying = activeAudio && !activeAudio.paused && !activeAudio.ended;
@@ -139,16 +135,22 @@ const syncSongItemsActiveState = () => {
     document.querySelectorAll('.liked-song-item, .liked-grid-card').forEach(item => {
         const songId = item.dataset.songId;
         const songAudio = item.dataset.songAudio;
-        const isSame = currentSong && (String(currentSong.id) === String(songId) || (typeof window.areSameSongs === 'function' && window.areSameSongs(currentSong, { id: songId, audio: songAudio })));
+        const isSame = isSessionActive && currentSong && (String(currentSong.id) === String(songId) || (typeof window.areSameSongs === 'function' && window.areSameSongs(currentSong, { id: songId, audio: songAudio })));
 
         item.classList.toggle('is-active-song', Boolean(isSame));
         item.classList.toggle('is-paused', Boolean(isSame && !isPlaying));
 
         const overlay = item.querySelector('.liked-song-play-overlay, .liked-grid-play-overlay');
         if (overlay) {
-            if (isSame && isPlaying) {
-                overlay.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
+            if (isSame) {
+                overlay.style.color = '#22c55e';
+                if (isPlaying) {
+                    overlay.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="#22c55e" style="color:#22c55e;fill:#22c55e;"><rect x="6" y="4" width="4" height="16" fill="#22c55e"></rect><rect x="14" y="4" width="4" height="16" fill="#22c55e"></rect></svg>`;
+                } else {
+                    overlay.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="#22c55e" style="color:#22c55e;fill:#22c55e;"><polygon points="6 4 20 12 6 20 6 4" fill="#22c55e"></polygon></svg>`;
+                }
             } else {
+                overlay.style.color = '';
                 overlay.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
             }
         }
@@ -446,7 +448,7 @@ const renderLikedSongsList = () => {
                         <img src="${coverUrl}" alt="${name}" class="liked-song-cover" loading="lazy"
                             onerror="this.onerror=null; this.src='${defaultCover}';">
                         <div class="liked-song-play-overlay">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                                 <polygon points="6 4 20 12 6 20 6 4"></polygon>
                             </svg>
                         </div>

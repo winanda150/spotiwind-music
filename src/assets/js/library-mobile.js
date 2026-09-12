@@ -728,9 +728,9 @@ function createSongItemHTML(song, options = {}) {
                 <img src="${coverUrl}" alt="${escapeHTML(name)}" class="${context === 'overview' ? 'overview-song-cover' : (context === 'download' ? 'download-cover' : 'track-cover')} library-song-cover" width="46" height="46" loading="lazy" onerror="this.src='${defaultCover}'">
                 <div class="${context === 'overview' ? 'overview-song-play-icon' : (context === 'download' ? 'download-play-icon' : 'track-play-icon')} library-song-play-icon" aria-hidden="true">
                     ${isActive && !isPaused ? `
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
                     ` : `
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
                     `}
                 </div>
             </div>
@@ -1179,7 +1179,7 @@ function renderAlbumsPanel(songs = [], isGuest = false) {
                     <div class="your-album-grid-cover">
                         <img src="${album.cover}" alt="${escapeHTML(album.name)}" class="your-album-grid-cover-img" width="160" height="160" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80'">
                         <div class="your-album-grid-play-overlay">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
                             </svg>
                         </div>

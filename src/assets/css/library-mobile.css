@@ -1797,6 +1797,11 @@
     opacity: 1;
 }
 
+.your-album-play-overlay svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+
 .your-album-info {
     flex: 1;
     min-width: 0;
@@ -1913,6 +1918,11 @@
 
 .your-album-grid-card:hover .your-album-grid-play-overlay {
     opacity: 1;
+}
+
+.your-album-grid-play-overlay svg {
+    width: 16px !important;
+    height: 16px !important;
 }
 
 .your-album-grid-info {
@@ -3198,6 +3208,11 @@
     opacity: 1;
 }
 
+.your-track-play-overlay svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+
 .your-track-info {
     flex: 1;
     min-width: 0;
@@ -4034,6 +4049,11 @@
     opacity: 1;
 }
 
+.your-download-play-overlay svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+
 .your-download-info {
     flex: 1;
     min-width: 0;
@@ -4379,6 +4399,11 @@
 .library-song-item:hover .library-song-play-icon,
 .library-song-item.is-active-song .library-song-play-icon {
     opacity: 1;
+}
+
+.library-song-play-icon svg {
+    width: 16px !important;
+    height: 16px !important;
 }
 
 .library-song-info {

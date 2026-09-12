@@ -21,6 +21,8 @@ import { recordArtistPlay, subscribeTopArtists } from '../../services/topArtistS
 import { getMadeForYouMixes } from '../../services/madeForYouService.js';
 
 import { PLAY_ICON, PAUSE_ICON } from '../../constants/icons.js';
+const TRACK_PLAY_ICON_16 = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
+const TRACK_PAUSE_ICON_16 = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
 import { formatTime, debounce } from '../../utils/formatters.js';
 import { areSameSongs, getArtistUniqueId } from '../../utils/audioUtils.js';
 import { showToast, createHeartParticles } from '../../utils/domUtils.js';
@@ -238,8 +240,8 @@ const getSongElements = (song) => {
     if (!song) return [];
     const elements = Array.from(document.querySelectorAll('[data-id], [data-song-id], .library-song-item, .popular-search-card, .dropdown-item, .song-card, .artist-song-list-item, .recent-track-row'));
     return elements.filter(element => {
-        // Exclude mix cards, mix track rows, and liked song items because they are strictly scoped by their playback context
-        if (element.classList.contains('mix-card') || element.classList.contains('mix-track-row') || element.classList.contains('liked-song-item') || element.classList.contains('liked-grid-card')) {
+        // Exclude mix cards, mix track rows, liked song items, and download items because they are strictly scoped by their playback context
+        if (element.classList.contains('mix-card') || element.classList.contains('mix-track-row') || element.classList.contains('liked-song-item') || element.classList.contains('liked-grid-card') || element.classList.contains('download-song-item') || element.classList.contains('download-grid-card')) {
             return false;
         }
         const id = element.dataset.id || element.dataset.songId || element.dataset.popularId;
@@ -264,11 +266,12 @@ const syncActiveSongUI = () => {
         if (!isAudioBuffering) {
             el.classList.remove('btn-loading');
         }
-        if (el.classList.contains('play-overlay')) el.innerHTML = PLAY_ICON;
+        if (el.classList.contains('play-overlay')) el.innerHTML = TRACK_PLAY_ICON_16;
     });
 
     document.querySelectorAll('.library-song-play-icon, .popular-search-play-icon, .artist-song-play-icon, .mix-track-play-icon, .recent-track-play-icon, .your-track-play-overlay, .your-download-play-overlay, .liked-song-play-overlay, .liked-grid-play-overlay').forEach(el => {
-        el.innerHTML = PLAY_ICON;
+        el.innerHTML = TRACK_PLAY_ICON_16;
+        el.style.color = '';
     });
 
     const likedPlayIconWrapper = document.getElementById('likedPlayIconWrapper');
@@ -317,11 +320,11 @@ const syncActiveSongUI = () => {
             }
             const overlay = el.querySelector('.play-overlay, .your-track-play-overlay, .your-download-play-overlay');
             if (overlay) {
-                overlay.innerHTML = isPlaying ? PAUSE_ICON : PLAY_ICON;
+                overlay.innerHTML = isPlaying ? TRACK_PAUSE_ICON_16 : TRACK_PLAY_ICON_16;
             }
-            const playIcon = el.querySelector('.library-song-play-icon, .popular-search-play-icon, .artist-song-play-icon, .recent-track-play-icon, .your-track-play-overlay, .your-download-play-overlay');
+            const playIcon = el.querySelector('.library-song-play-icon, .popular-search-play-icon, .artist-song-play-icon, .recent-track-play-icon');
             if (playIcon) {
-                playIcon.innerHTML = isPlaying ? PAUSE_ICON : PLAY_ICON;
+                playIcon.innerHTML = isPlaying ? TRACK_PAUSE_ICON_16 : TRACK_PLAY_ICON_16;
             }
         });
 
@@ -336,7 +339,7 @@ const syncActiveSongUI = () => {
                 if (isPaused) mixCard.classList.add('is-paused');
                 const overlay = mixCard.querySelector('.play-overlay');
                 if (overlay) {
-                    overlay.innerHTML = isPlaying ? PAUSE_ICON : PLAY_ICON;
+                    overlay.innerHTML = isPlaying ? TRACK_PAUSE_ICON_16 : TRACK_PLAY_ICON_16;
                 }
             }
         });
@@ -351,7 +354,7 @@ const syncActiveSongUI = () => {
                 row.classList.add('is-active-song');
                 if (isPaused) row.classList.add('is-paused');
                 const playIcon = row.querySelector('.mix-track-play-icon');
-                if (playIcon) playIcon.innerHTML = isPlaying ? PAUSE_ICON : PLAY_ICON;
+                if (playIcon) playIcon.innerHTML = isPlaying ? TRACK_PAUSE_ICON_16 : TRACK_PLAY_ICON_16;
                 if (mixDetailPlayAllBtn) {
                     mixDetailPlayAllBtn.innerHTML = isPlaying
                         ? `<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`
@@ -383,23 +386,32 @@ const syncActiveSongUI = () => {
             document.querySelectorAll('.liked-song-item, .liked-grid-card').forEach(item => {
                 const songId = item.dataset.songId;
                 const songAudio = item.dataset.songAudio;
-                if (songId === String(currentSongData.id) || (songAudio && currentSongData.audio === songAudio) || areSameSongs(currentSongData, { id: songId, audio: songAudio })) {
+                const isSameSong = isLikedContext && (songId === String(currentSongData.id) || (songAudio && currentSongData.audio === songAudio) || areSameSongs(currentSongData, { id: songId, audio: songAudio }));
+                if (isSameSong) {
                     item.classList.add('is-active-song');
                     if (isPaused) item.classList.add('is-paused');
                     const overlay = item.querySelector('.liked-song-play-overlay, .liked-grid-play-overlay');
                     if (overlay) {
+                        overlay.style.color = '#22c55e';
                         overlay.innerHTML = isPlaying
-                            ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`
-                            : `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
+                            ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="#22c55e" style="color:#22c55e;fill:#22c55e;"><rect x="6" y="4" width="4" height="16" fill="#22c55e"></rect><rect x="14" y="4" width="4" height="16" fill="#22c55e"></rect></svg>`
+                            : `<svg viewBox="0 0 24 24" width="16" height="16" fill="#22c55e" style="color:#22c55e;fill:#22c55e;"><polygon points="6 4 20 12 6 20 6 4" fill="#22c55e"></polygon></svg>`;
                     }
-                    if (likedPlayIconWrapper && isLikedContext) {
-                        likedPlayIconWrapper.innerHTML = isPlaying ? PAUSE_ICON : PLAY_ICON;
-                    }
-                    if (likedPlayAllText && isLikedContext) {
-                        likedPlayAllText.textContent = isPlaying ? 'Pause' : 'Play all';
+                } else {
+                    item.classList.remove('is-active-song', 'is-paused');
+                    const overlay = item.querySelector('.liked-song-play-overlay, .liked-grid-play-overlay');
+                    if (overlay) {
+                        overlay.style.color = '';
+                        overlay.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
                     }
                 }
             });
+            if (likedPlayIconWrapper) {
+                likedPlayIconWrapper.innerHTML = (isPlaying && isLikedContext) ? PAUSE_ICON : PLAY_ICON;
+            }
+            if (likedPlayAllText) {
+                likedPlayAllText.textContent = (isPlaying && isLikedContext) ? 'Pause' : 'Play all';
+            }
         }
     }
 };
@@ -1819,7 +1831,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="play-overlay" aria-label="Play ${song.name}" 
                     data-audio="${song.audio}" data-name="${safeName}" data-artist="${safeArtist}" 
                     data-cover="${song.cover}" data-duration="${song.duration}" data-context="${context}">
-                    ${isActive && !activeAudio.paused ? PAUSE_ICON : PLAY_ICON}
+                    ${isActive && !activeAudio.paused ? TRACK_PAUSE_ICON_16 : TRACK_PLAY_ICON_16}
                 </button>
             </div>
             <div class="song-info">
@@ -1858,7 +1870,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="item-left">
                 <img src="${song.cover}" class="item-cover" alt="${song.name}">
                 <div class="artist-song-play-icon" aria-hidden="true">
-                    ${isActive && !activeAudio.paused ? PAUSE_ICON : PLAY_ICON}
+                    ${isActive && !activeAudio.paused ? TRACK_PAUSE_ICON_16 : TRACK_PLAY_ICON_16}
                 </div>
             </div>
             <div class="item-info">
@@ -1972,7 +1984,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="mix-color-strip" style="background: ${mix.accentColor};"></div>
                 <button class="play-overlay mix-play-btn" aria-label="Play ${mix.title}" 
                     data-mix-id="${mix.id}" data-context="made-for-you">
-                    ${isPlaying ? PAUSE_ICON : PLAY_ICON}
+                    ${isPlaying ? TRACK_PAUSE_ICON_16 : TRACK_PLAY_ICON_16}
                 </button>
             </div>
             <div class="song-info mix-info">
@@ -2891,7 +2903,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="recent-track-cover-wrapper">
                             <img src="${cover}" alt="${safeName}" class="recent-track-cover" width="46" height="46" loading="lazy">
                             <div class="recent-track-play-icon" aria-hidden="true">
-                                ${isActive && isAudioPlaying ? PAUSE_ICON : PLAY_ICON}
+                                ${isActive && isAudioPlaying ? TRACK_PAUSE_ICON_16 : TRACK_PLAY_ICON_16}
                             </div>
                         </div>
                         <div class="recent-track-info">
