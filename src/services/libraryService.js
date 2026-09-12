@@ -66,7 +66,7 @@ export const isSongInLibrary = async (songId) => {
     if (!uid || !songId) return false;
 
     const library = await getLibrarySongs(uid);
-    return library.some((item) => String(item.id ?? item.songId) === String(songId));
+    return Array.isArray(library) ? library.some((item) => String(item.id ?? item.songId) === String(songId)) : false;
 };
 
 export const getUserPlaylists = async (uid) => {

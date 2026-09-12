@@ -143,11 +143,11 @@ const syncSongItemsActiveState = () => {
         const overlay = item.querySelector('.liked-song-play-overlay, .liked-grid-play-overlay');
         if (overlay) {
             if (isSame) {
-                overlay.style.color = '#22c55e';
+                overlay.style.color = '';
                 if (isPlaying) {
-                    overlay.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="#22c55e" style="color:#22c55e;fill:#22c55e;"><rect x="6" y="4" width="4" height="16" fill="#22c55e"></rect><rect x="14" y="4" width="4" height="16" fill="#22c55e"></rect></svg>`;
+                    overlay.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
                 } else {
-                    overlay.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="#22c55e" style="color:#22c55e;fill:#22c55e;"><polygon points="6 4 20 12 6 20 6 4" fill="#22c55e"></polygon></svg>`;
+                    overlay.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
                 }
             } else {
                 overlay.style.color = '';
@@ -400,11 +400,11 @@ const renderLikedSongsList = () => {
                     <div class="liked-grid-art-box">
                         <img src="${coverUrl}" alt="${name}" class="liked-grid-cover" width="160" height="160" loading="lazy"
                             onerror="this.onerror=null; this.src='${defaultCover}';">
-                        <div class="liked-grid-play-overlay">
+                        <button class="liked-grid-play-overlay" type="button" aria-label="Play ${name}">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                                 <polygon points="6 4 20 12 6 20 6 4"></polygon>
                             </svg>
-                        </div>
+                        </button>
                     </div>
                     <div class="liked-grid-info">
                         <h4 class="liked-grid-title">${name}</h4>
@@ -613,9 +613,28 @@ const handleShuffleClick = () => {
 /**
  * Modals and Sheets Management
  */
+let cleanupGlobalDrag = null;
+let cleanupSongDrag = null;
+
+const resetSheetStyles = (modal) => {
+    if (!modal) return;
+    const sheet = modal.querySelector('.liked-songs-options-sheet');
+    const backdrop = modal.querySelector('.liked-songs-options-backdrop');
+    if (sheet) {
+        sheet.classList.remove('is-dragging');
+        sheet.style.transform = '';
+        sheet.style.transition = '';
+    }
+    if (backdrop) {
+        backdrop.style.opacity = '';
+        backdrop.style.transition = '';
+    }
+};
+
 const openGlobalOptions = () => {
     const modal = document.getElementById('likedSongsOptionsModal');
     if (modal) {
+        resetSheetStyles(modal);
         modal.classList.remove('hidden');
         modal.removeAttribute('inert');
     }
@@ -626,6 +645,7 @@ const closeGlobalOptions = () => {
     if (modal) {
         modal.classList.add('hidden');
         modal.setAttribute('inert', '');
+        resetSheetStyles(modal);
     }
 };
 
@@ -641,6 +661,7 @@ const openSongOptions = (song) => {
     if (artistEl) artistEl.textContent = `${song.artist || 'Unknown Artist'} • ${formatDuration(song.duration)}`;
 
     if (modal) {
+        resetSheetStyles(modal);
         modal.classList.remove('hidden');
         modal.removeAttribute('inert');
     }
@@ -651,8 +672,176 @@ const closeSongOptions = () => {
     if (modal) {
         modal.classList.add('hidden');
         modal.setAttribute('inert', '');
+        resetSheetStyles(modal);
     }
     selectedSongForOptions = null;
+};
+
+/**
+ * Setup swipe-down (drag to dismiss) gesture for bottom sheet modals
+ */
+const setupSheetDrag = (modalEl, onCloseCallback) => {
+    if (!modalEl) return () => {};
+
+    const sheet = modalEl.querySelector('.liked-songs-options-sheet');
+    const backdrop = modalEl.querySelector('.liked-songs-options-backdrop');
+    if (!sheet) return () => {};
+
+    let startX = 0;
+    let startY = 0;
+    let currentDeltaY = 0;
+    let isDragging = false;
+    let startTime = 0;
+    let isListeningWindow = false;
+
+    const resetDragStyles = () => {
+        isDragging = false;
+        sheet.classList.remove('is-dragging');
+        sheet.style.transform = '';
+        sheet.style.transition = '';
+        if (backdrop) {
+            backdrop.style.opacity = '';
+            backdrop.style.transition = '';
+        }
+        removeWindowListeners();
+    };
+
+    const removeWindowListeners = () => {
+        if (!isListeningWindow) return;
+        isListeningWindow = false;
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerCancel);
+    };
+
+    const onPointerMove = (e) => {
+        if (e.pointerType === 'mouse' && e.buttons === 0) {
+            onPointerUp(e);
+            return;
+        }
+
+        const deltaX = e.clientX - startX;
+        const deltaY = e.clientY - startY;
+
+        if (!isDragging) {
+            // Ignore gesture if predominantly horizontal
+            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 8) {
+                return;
+            }
+
+            const handle = sheet.querySelector('.liked-songs-options-handle-wrapper');
+            const header = sheet.querySelector('.liked-songs-options-header');
+            const isHandleOrHeader = Boolean(
+                (handle && handle.contains(e.target)) ||
+                (header && header.contains(e.target))
+            );
+            const dragStartThreshold = isHandleOrHeader ? 10 : 20;
+
+            if (deltaY > dragStartThreshold) {
+                isDragging = true;
+                sheet.classList.add('is-dragging');
+                sheet.style.transition = 'none';
+                if (backdrop) backdrop.style.transition = 'none';
+            } else if (deltaY < -10) {
+                const rubberBand = Math.max(-12, deltaY * 0.12);
+                sheet.style.transform = `translateY(${rubberBand}px)`;
+                return;
+            } else {
+                return;
+            }
+        }
+
+        if (isDragging) {
+            if (e.cancelable) e.preventDefault();
+            const sheetHeight = sheet.offsetHeight || 320;
+            if (deltaY > 0) {
+                currentDeltaY = deltaY;
+                sheet.style.transform = `translateY(${deltaY}px)`;
+                if (backdrop) {
+                    const opacity = Math.max(0, 1 - (deltaY / (sheetHeight * 0.95)));
+                    backdrop.style.opacity = String(opacity);
+                }
+            } else {
+                currentDeltaY = 0;
+                const rubberBand = Math.max(-12, deltaY * 0.12);
+                sheet.style.transform = `translateY(${rubberBand}px)`;
+                if (backdrop) backdrop.style.opacity = '1';
+            }
+        }
+    };
+
+    const onPointerUp = () => {
+        removeWindowListeners();
+
+        if (!isDragging) {
+            resetDragStyles();
+            return;
+        }
+
+        const sheetHeight = sheet.offsetHeight || 320;
+        const elapsed = Math.max(1, Date.now() - startTime);
+        const velocityY = currentDeltaY / elapsed;
+
+        sheet.classList.remove('is-dragging');
+
+        // Dismiss thresholds: distance >= 30% height or fast swipe down flick (velocity > 0.55 and deltaY >= 40)
+        const dismissDistance = Math.max(100, sheetHeight * 0.30);
+        const isIntentionalSwipe = (velocityY > 0.55 && currentDeltaY >= 40);
+        const shouldDismiss = (currentDeltaY >= dismissDistance || isIntentionalSwipe);
+
+        if (shouldDismiss) {
+            sheet.style.transition = 'transform 0.24s cubic-bezier(0.32, 1, 0.23, 1)';
+            if (backdrop) backdrop.style.transition = 'opacity 0.24s ease';
+            sheet.style.transform = 'translateY(100%)';
+            if (backdrop) backdrop.style.opacity = '0';
+            setTimeout(() => {
+                resetDragStyles();
+                if (typeof onCloseCallback === 'function') {
+                    onCloseCallback();
+                }
+            }, 240);
+        } else {
+            sheet.style.transition = 'transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1)';
+            if (backdrop) backdrop.style.transition = 'opacity 0.28s ease';
+            sheet.style.transform = 'translateY(0)';
+            if (backdrop) backdrop.style.opacity = '1';
+            setTimeout(() => {
+                resetDragStyles();
+            }, 280);
+        }
+
+        isDragging = false;
+    };
+
+    const onPointerCancel = () => {
+        resetDragStyles();
+    };
+
+    const onPointerDown = (e) => {
+        if (e.button !== undefined && e.button !== 0 && e.pointerType === 'mouse') return;
+        // Ignore interactive controls inside sheet
+        if (e.target.closest('button, a, input, [role="button"]')) return;
+
+        startX = e.clientX;
+        startY = e.clientY;
+        currentDeltaY = 0;
+        startTime = Date.now();
+
+        if (!isListeningWindow) {
+            isListeningWindow = true;
+            window.addEventListener('pointermove', onPointerMove, { passive: false });
+            window.addEventListener('pointerup', onPointerUp);
+            window.addEventListener('pointercancel', onPointerCancel);
+        }
+    };
+
+    sheet.addEventListener('pointerdown', onPointerDown);
+
+    return () => {
+        sheet.removeEventListener('pointerdown', onPointerDown);
+        removeWindowListeners();
+        resetDragStyles();
+    };
 };
 
 const bindUserLikedSongs = (uid) => {
@@ -979,6 +1168,25 @@ export async function initLikedSongsPage(previousPage = 'library-mobile.html') {
         listeners.push({ element: songItemCloseBtn, type: 'click', handler: closeSongOptions });
     }
 
+    // Setup drag-to-dismiss gestures for both options modals
+    if (cleanupGlobalDrag) {
+        cleanupGlobalDrag();
+        cleanupGlobalDrag = null;
+    }
+    const globalModal = document.getElementById('likedSongsOptionsModal');
+    if (globalModal) {
+        cleanupGlobalDrag = setupSheetDrag(globalModal, closeGlobalOptions);
+    }
+
+    if (cleanupSongDrag) {
+        cleanupSongDrag();
+        cleanupSongDrag = null;
+    }
+    const songModal = document.getElementById('likedSongItemOptionsModal');
+    if (songModal) {
+        cleanupSongDrag = setupSheetDrag(songModal, closeSongOptions);
+    }
+
     if (optPlayNext) {
         const handler = () => {
             if (selectedSongForOptions) {
@@ -1116,6 +1324,13 @@ export async function initLikedSongsPage(previousPage = 'library-mobile.html') {
             // Track item click to play / pause
             const songCard = e.target.closest('.liked-song-item, .liked-grid-card');
             if (songCard && songCard.dataset.songAudio) {
+                // In grid view, user must click the circular play button icon to play/pause (like Popular Right Now)
+                const isGridCard = songCard.classList.contains('liked-grid-card');
+                const isGridPlayBtn = Boolean(e.target.closest('.liked-grid-play-overlay'));
+                if (isGridCard && !isGridPlayBtn) {
+                    return;
+                }
+
                 const { songId, songAudio, songName, songArtist, songCover, songDuration } = songCard.dataset;
                 const currentSong = getCurrentLoadedSong();
                 const activeAudio = getGlobalActiveAudio();
@@ -1211,6 +1426,14 @@ export async function initLikedSongsPage(previousPage = 'library-mobile.html') {
  * Cleanup Liked Songs Page when unmounted
  */
 export function cleanupLikedSongsPage() {
+    if (cleanupGlobalDrag) {
+        cleanupGlobalDrag();
+        cleanupGlobalDrag = null;
+    }
+    if (cleanupSongDrag) {
+        cleanupSongDrag();
+        cleanupSongDrag = null;
+    }
     if (likedSongsUnsubscribe) {
         likedSongsUnsubscribe();
         likedSongsUnsubscribe = null;

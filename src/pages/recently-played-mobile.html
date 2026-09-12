@@ -1,0 +1,344 @@
+<!-- Injected into .app-container in home-mobile.html -->
+
+<body>
+    <div class="recently-played-page-wrapper">
+        <!-- Top Sticky Header -->
+        <header class="recently-played-header" id="recentHeader">
+            <button id="recentBackBtn" class="recently-played-back-btn" type="button" aria-label="Back to Library">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"
+                    stroke-linejoin="round" aria-hidden="true">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </button>
+
+            <!-- Center Status Floating Badge -->
+            <div class="recently-played-status-badge" id="recentStatusBadge">
+                <span class="recent-pulse-dot" aria-hidden="true"></span>
+                <span class="recent-status-label">History Timeline</span>
+            </div>
+
+            <!-- Global Options More Button -->
+            <button id="recentMoreBtn" class="recently-played-more-btn" type="button" aria-label="History options">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+                    <circle cx="12" cy="5" r="1.75" />
+                    <circle cx="12" cy="12" r="1.75" />
+                    <circle cx="12" cy="19" r="1.75" />
+                </svg>
+            </button>
+        </header>
+
+        <!-- Hero Content Section -->
+        <section class="recently-played-hero" id="recentHero">
+            <div class="recently-played-cover-box">
+                <img src="/public/images/Recent Image.webp" alt="Recently Played Cover" class="recently-played-cover-img"
+                    width="120" height="120"
+                    onerror="this.onerror=null; this.src='../../public/images/Recent Image.webp';">
+                <div class="recently-played-cover-glow" aria-hidden="true"></div>
+            </div>
+            <div class="recently-played-meta">
+                <div class="recently-played-category-tag">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.3"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>PLAYBACK TIMELINE</span>
+                </div>
+                <h1 class="recently-played-title">Recently Played</h1>
+                <div class="recently-played-stats-row">
+                    <span class="recently-played-stat-item" id="recentTrackCount">0 tracks</span>
+                    <span class="recently-played-stat-dot">•</span>
+                    <span class="recently-played-stat-item" id="recentTotalDuration">0 min</span>
+                    <span class="recently-played-stat-dot">•</span>
+                    <span class="recently-played-stat-item recent-stat-synced" id="recentSyncStatus">Cloud Synced</span>
+                </div>
+                <p class="recently-played-tagline">Pick up right where you left off. Revisit the tracks that defined your recent moments.</p>
+            </div>
+        </section>
+
+        <!-- Interactive History Insights Card -->
+        <section class="recently-played-insights-card" id="recentInsightsCard" aria-label="History Insights">
+            <div class="insights-card-header">
+                <div class="insights-card-title-group">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round" class="insights-icon" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span class="insights-card-label">History Insights</span>
+                </div>
+                <span class="insights-card-badge" id="recentVibeBadge">Last 30 Days</span>
+            </div>
+
+            <div class="insights-metrics-grid">
+                <div class="insights-metric-box">
+                    <span class="insights-metric-label">TOTAL TRACKS</span>
+                    <span class="insights-metric-val" id="recentStatTotalVal">0</span>
+                </div>
+                <div class="insights-metric-box">
+                    <span class="insights-metric-label">TOP ARTIST</span>
+                    <span class="insights-metric-val" id="recentStatTopArtistVal">—</span>
+                </div>
+                <div class="insights-metric-box">
+                    <span class="insights-metric-label">PLAYTIME</span>
+                    <span class="insights-metric-val" id="recentStatPlaytimeVal">0m</span>
+                </div>
+            </div>
+
+            <div class="insights-accent-bar" aria-hidden="true"></div>
+        </section>
+
+        <!-- Action Controls Bar (Play all, Shuffle, View Switcher) -->
+        <div class="recently-played-actions-bar">
+            <button id="recentPlayAllBtn" class="recently-played-play-all-btn" type="button"
+                aria-label="Play all recently played tracks">
+                <span class="btn-icon-wrapper" id="recentPlayIconWrapper">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                </span>
+                <span class="btn-text" id="recentPlayAllText">Play all</span>
+            </button>
+
+            <button id="recentShuffleBtn" class="recently-played-shuffle-btn" type="button"
+                aria-label="Shuffle play recently played tracks">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M0 0h24v24H0z" fill="none" />
+                    <path fill="currentColor"
+                        d="M2 16.25a.75.75 0 0 0 0 1.5zm8.748-2.163l-.643-.386zm2.504-4.174l.643.386zM22 7l.53.53a.75.75 0 0 0 0-1.06zm-2.53 1.47a.75.75 0 0 0 1.06 1.06zm1.06-4a.75.75 0 1 0-1.06 1.06zm-5.31 2.92l-.369-.653zM2 17.75h3.603v-1.5H2zm9.39-3.277l2.505-4.174l-1.286-.772l-2.504 4.174zm7.007-6.723H22v-1.5h-3.603zm3.073-1.28l-2 2l1.06 1.06l2-2zm1.06 0l-2-2l-1.06 1.06l2 2zm-8.635 3.829c.434-.724.734-1.22 1.006-1.589c.263-.355.468-.543.689-.668l-.739-1.305c-.467.264-.82.627-1.155 1.08c-.326.44-.668 1.011-1.087 1.71zm4.502-4.049c-.815 0-1.48 0-2.025.052c-.562.055-1.054.17-1.521.435l.739 1.305c.22-.125.487-.204.927-.247c.456-.044 1.036-.045 1.88-.045zM5.603 17.75c.815 0 1.48 0 2.025-.052c.562-.055 1.054-.17 1.521-.435l-.739-1.305c-.22.125-.487.204-.927.247c-.456.044-1.036.045-1.88.045zm4.502-4.049c-.435.724-.734 1.22-1.006 1.589c-.263.355-.468.543-.689.668l.74 1.305c.466-.264.819-.627 1.154-1.08c.326-.44.668-1.011 1.087-1.71zM2 6.25a.75.75 0 0 0 0 1.5zM22 17l.53.53a.75.75 0 0 0 0-1.06zm-1.47-2.53a.75.75 0 1 0-1.06 1.06zm-1.06 4a.75.75 0 1 0 1.06 1.06zm-3.345-1.525l.144-.736zm-1.682-2.33a.75.75 0 1 0-1.286.77zm.025 1.391l.558-.501zm-6.593-8.95l.143-.737zm1.682 2.33a.75.75 0 0 0 1.286-.772zm-.025-1.393l-.558.502zM2 7.75h4.668v-1.5H2zm15.332 10H22v-1.5h-4.668zm5.198-1.28l-2-2l-1.06 1.06l2 2zm-1.06 0l-2 2l1.06 1.06l2-2zm-4.138-.22c-.645 0-.867-.003-1.063-.041l-.287 1.472c.372.072.765.069 1.35.069zm-4.175-.864c.3.502.5.84.754 1.122l1.115-1.003c-.134-.149-.25-.337-.583-.89zm3.112.823a2.25 2.25 0 0 1-1.243-.704l-1.115 1.003a3.75 3.75 0 0 0 2.071 1.173zM6.668 7.75c.645 0 .867.003 1.063.041l.287-1.472c-.372-.072-.765-.069-1.35-.069zm4.175.864c-.3-.502-.5-.84-.754-1.122L8.974 8.495c.134.149.25.337.583.89zm-3.112-.823c.48.094.916.34 1.243.704l1.115-1.003a3.75 3.75 0 0 0-2.071-1.173z" />
+                </svg>
+                <span>Shuffle</span>
+            </button>
+
+            <!-- Layout View Switcher (List vs Grid - Library Style) -->
+            <div class="recently-played-view-toggle-group">
+                <button type="button" id="recentViewListBtn" class="recent-view-btn is-active"
+                    aria-label="List view">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg>
+                </button>
+                <button type="button" id="recentViewGridBtn" class="recent-view-btn" aria-label="Grid view">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search Box & Filter Chips Section -->
+        <div class="recently-played-filter-section">
+            <div class="recently-played-search-box">
+                <svg class="recently-played-search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none"
+                    stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                    aria-hidden="true">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="recentSongsSearchInput" class="recently-played-search-input"
+                    placeholder="Search in Recently Played..." autocomplete="off" spellcheck="false"
+                    aria-label="Search recently played tracks">
+                <button type="button" id="recentSongsSearchClearBtn" class="recently-played-search-clear-btn hidden"
+                    aria-label="Clear search input">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Horizontal Filter Chips -->
+            <div class="recently-played-chips-row" role="tablist" aria-label="Filter recently played categories">
+                <button type="button" class="recent-chip is-active" data-filter="all">All</button>
+                <button type="button" class="recent-chip" data-filter="tracks">Tracks</button>
+                <button type="button" class="recent-chip" data-filter="artists">Artists</button>
+                <button type="button" class="recent-chip" data-filter="albums">Albums</button>
+
+                <!-- Sort Dropdown / Cycle Trigger -->
+                <button type="button" id="recentSortTriggerBtn" class="recent-sort-btn"
+                    aria-label="Sort recently played tracks">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="4" y1="6" x2="20" y2="6"></line>
+                        <line x1="4" y1="12" x2="14" y2="12"></line>
+                        <line x1="4" y1="18" x2="8" y2="18"></line>
+                    </svg>
+                    <span id="recentSortLabel">Recent</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Recently Played Songs List / Grid Section -->
+        <section class="recently-played-list-section">
+            <div id="recentSongsContainer" class="recently-played-list view-list">
+                <!-- Skeletons rendered initially by JS or fallback -->
+                <div class="recent-song-skeleton skeleton">
+                    <div class="skeleton-art"></div>
+                    <div class="skeleton-info">
+                        <div class="skeleton-line-title"></div>
+                        <div class="skeleton-line-sub"></div>
+                    </div>
+                    <div class="skeleton-actions"></div>
+                </div>
+                <div class="recent-song-skeleton skeleton">
+                    <div class="skeleton-art"></div>
+                    <div class="skeleton-info">
+                        <div class="skeleton-line-title"></div>
+                        <div class="skeleton-line-sub"></div>
+                    </div>
+                    <div class="skeleton-actions"></div>
+                </div>
+                <div class="recent-song-skeleton skeleton">
+                    <div class="skeleton-art"></div>
+                    <div class="skeleton-info">
+                        <div class="skeleton-line-title"></div>
+                        <div class="skeleton-line-sub"></div>
+                    </div>
+                    <div class="skeleton-actions"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Global History Options Bottom Sheet Modal -->
+    <div id="recentGlobalOptionsModal" class="recently-played-options-modal hidden" inert>
+        <div class="recently-played-options-backdrop" id="recentGlobalBackdrop"></div>
+        <div class="recently-played-options-sheet" id="recentGlobalSheet">
+            <div class="recently-played-options-handle-wrapper">
+                <div class="recently-played-options-handle"></div>
+            </div>
+            <div class="recently-played-options-header">
+                <img src="/public/images/Recent Image.webp" alt="Recently Played" class="recently-played-options-photo"
+                    width="48" height="48"
+                    onerror="this.onerror=null; this.src='../../public/images/Recent Image.webp';">
+                <div class="recently-played-options-info">
+                    <h3 class="recently-played-options-name">Playback History</h3>
+                    <p class="recently-played-options-sub" id="recentGlobalOptionsSub">Manage playback timeline & sorting</p>
+                </div>
+            </div>
+            <div class="recently-played-options-list">
+                <button type="button" class="recently-played-option-item" id="optRecentSortRecent">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Sort by Most Recent</span>
+                </button>
+                <button type="button" class="recently-played-option-item" id="optRecentSortAlpha">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19h6"></path>
+                        <path d="M4 5h6"></path>
+                        <path d="M14 5l6 14"></path>
+                        <path d="M16 14h4"></path>
+                    </svg>
+                    <span>Sort by Title (A - Z)</span>
+                </button>
+                <button type="button" class="recently-played-option-item" id="optRecentSortArtist">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Sort by Artist (A - Z)</span>
+                </button>
+                <button type="button" class="recently-played-option-item" id="optRecentSortDuration">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Sort by Duration (Longest first)</span>
+                </button>
+                <button type="button" class="recently-played-option-item item-danger" id="optClearRecentHistory">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    <span>Clear Playback History</span>
+                </button>
+            </div>
+            <button type="button" class="recently-played-options-close-btn" id="recentGlobalCloseBtn">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Per-Song Options Bottom Sheet Modal -->
+    <div id="recentSongOptionsModal" class="recently-played-options-modal hidden" inert>
+        <div class="recently-played-options-backdrop" id="recentSongBackdrop"></div>
+        <div class="recently-played-options-sheet" id="recentSongSheet">
+            <div class="recently-played-options-handle-wrapper">
+                <div class="recently-played-options-handle"></div>
+            </div>
+            <div class="recently-played-options-header">
+                <img id="recentSongOptionsCover" src="/public/images/Recent Image.webp" alt="Track Cover"
+                    class="recently-played-options-photo" width="48" height="48">
+                <div class="recently-played-options-info">
+                    <h3 class="recently-played-options-name" id="recentSongOptionsTitle">Track Title</h3>
+                    <p class="recently-played-options-sub" id="recentSongOptionsArtist">Artist Name</p>
+                </div>
+            </div>
+            <div class="recently-played-options-list">
+                <button type="button" class="recently-played-option-item" id="optRecentSongPlayNext">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                        <line x1="19" y1="5" x2="19" y2="19"></line>
+                    </svg>
+                    <span>Play Next in Queue</span>
+                </button>
+                <button type="button" class="recently-played-option-item" id="optRecentSongToggleLike">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" id="recentSongLikeIcon">
+                        <path
+                            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                        </path>
+                    </svg>
+                    <span id="recentSongLikeText">Save to Liked Songs</span>
+                </button>
+                <button type="button" class="recently-played-option-item" id="optRecentSongDownload">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Save for Offline Playback</span>
+                </button>
+                <button type="button" class="recently-played-option-item" id="optRecentSongShare">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="19" r="3"></circle>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                    <span>Share Track</span>
+                </button>
+                <button type="button" class="recently-played-option-item item-danger" id="optRecentSongRemove">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    <span>Remove from History</span>
+                </button>
+            </div>
+            <button type="button" class="recently-played-options-close-btn" id="recentSongCloseBtn">Cancel</button>
+        </div>
+    </div>
+</body>

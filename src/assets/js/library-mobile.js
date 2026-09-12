@@ -200,9 +200,18 @@ export async function initLibraryPage(initialTab = 'overview') {
     window.addEventListener('downloads-updated', handleDownloadsUpdated);
     listeners.push({ element: window, type: 'downloads-updated', handler: handleDownloadsUpdated });
 
+    const handleRecentlyPlayedUpdated = () => {
+        updateLocalStats();
+    };
+    window.addEventListener('recently-played-updated', handleRecentlyPlayedUpdated);
+    listeners.push({ element: window, type: 'recently-played-updated', handler: handleRecentlyPlayedUpdated });
+
     const handleStorageChange = (e) => {
         if (!e.key || e.key === 'downloaded_songs' || e.key === 'spotiwind_downloads') {
             handleDownloadsUpdated();
+        }
+        if (!e.key || e.key === 'recently_played_songs' || e.key === 'recentlyPlayed') {
+            handleRecentlyPlayedUpdated();
         }
     };
     window.addEventListener('storage', handleStorageChange);
@@ -301,7 +310,16 @@ function setupOverviewCards() {
             } else if (itemType === 'favorites') {
                 switchToLibraryTab('playlists');
             } else if (itemType === 'recently-played') {
-                switchToLibraryTab('overview');
+                if (typeof window.loadPageContent === 'function') {
+                    window.loadPageContent('recently-played-mobile.html', {
+                        pushState: true,
+                        route: '/recently-played',
+                        title: 'Recently Played | Spotiwind',
+                        state: { route: 'recently-played' }
+                    });
+                } else {
+                    switchToLibraryTab('overview');
+                }
             }
         };
         card.addEventListener('click', handler);

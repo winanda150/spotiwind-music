@@ -735,11 +735,20 @@ const bindAccountInteractions = () => {
     if (seeAllRecentBtn) {
         seeAllRecentBtnHandler = (e) => {
             e.preventDefault();
-            const libraryNav = document.querySelector('.mobile-bottom-nav .nav-item[data-target="library-mobile.html"]');
-            if (libraryNav) {
-                libraryNav.click();
-            } else if (typeof window.navigateToLibraryPage === 'function') {
-                window.navigateToLibraryPage('overview');
+            if (typeof window.loadPageContent === 'function') {
+                window.loadPageContent('recently-played-mobile.html', {
+                    pushState: true,
+                    route: '/recently-played',
+                    title: 'Recently Played | Spotiwind',
+                    state: { route: 'recently-played' }
+                });
+            } else {
+                const libraryNav = document.querySelector('.mobile-bottom-nav .nav-item[data-target="library-mobile.html"]');
+                if (libraryNav) {
+                    libraryNav.click();
+                } else if (typeof window.navigateToLibraryPage === 'function') {
+                    window.navigateToLibraryPage('overview');
+                }
             }
         };
         seeAllRecentBtn.addEventListener('click', seeAllRecentBtnHandler);

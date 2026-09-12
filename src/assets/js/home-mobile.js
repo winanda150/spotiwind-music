@@ -223,6 +223,12 @@ const isSameSongForContext = (currentSong, targetSong, context = null, contextMi
     const sameSong = areSameSongs(currentSong, targetSong);
     if (!sameSong) return false;
 
+    // Scoped playback contexts (made-for-you, downloads, liked-songs, recently-played, artist)
+    // If context is explicitly specified and differs from currentPlaybackContext, treat as different context
+    if (context && currentPlaybackContext && context !== currentPlaybackContext) {
+        return false;
+    }
+
     // Only Made for You mixes require scoping by mix ID when switching between different mixes
     if (context === 'made-for-you') {
         const baselineMixId = previousMixId ?? activeMixId;
@@ -240,8 +246,8 @@ const getSongElements = (song) => {
     if (!song) return [];
     const elements = Array.from(document.querySelectorAll('[data-id], [data-song-id], .library-song-item, .popular-search-card, .dropdown-item, .song-card, .artist-song-list-item, .recent-track-row'));
     return elements.filter(element => {
-        // Exclude mix cards, mix track rows, liked song items, and download items because they are strictly scoped by their playback context
-        if (element.classList.contains('mix-card') || element.classList.contains('mix-track-row') || element.classList.contains('liked-song-item') || element.classList.contains('liked-grid-card') || element.classList.contains('download-song-item') || element.classList.contains('download-grid-card')) {
+        // Exclude mix cards, mix track rows, liked song items, download items, and recently played items because they are strictly scoped by their playback context
+        if (element.classList.contains('mix-card') || element.classList.contains('mix-track-row') || element.classList.contains('liked-song-item') || element.classList.contains('liked-grid-card') || element.classList.contains('download-song-item') || element.classList.contains('download-grid-card') || element.classList.contains('recent-song-item') || element.classList.contains('recent-grid-card')) {
             return false;
         }
         const id = element.dataset.id || element.dataset.songId || element.dataset.popularId;
@@ -269,7 +275,7 @@ const syncActiveSongUI = () => {
         if (el.classList.contains('play-overlay')) el.innerHTML = TRACK_PLAY_ICON_16;
     });
 
-    document.querySelectorAll('.library-song-play-icon, .popular-search-play-icon, .artist-song-play-icon, .mix-track-play-icon, .recent-track-play-icon, .your-track-play-overlay, .your-download-play-overlay, .liked-song-play-overlay, .liked-grid-play-overlay').forEach(el => {
+    document.querySelectorAll('.library-song-play-icon, .popular-search-play-icon, .artist-song-play-icon, .mix-track-play-icon, .recent-track-play-icon, .your-track-play-overlay, .your-download-play-overlay, .liked-song-play-overlay, .liked-grid-play-overlay, .recent-song-play-overlay, .recent-grid-play-overlay, .download-song-play-overlay, .download-grid-play-overlay').forEach(el => {
         el.innerHTML = TRACK_PLAY_ICON_16;
         el.style.color = '';
     });
@@ -281,6 +287,32 @@ const syncActiveSongUI = () => {
     }
     if (likedPlayAllText) {
         likedPlayAllText.textContent = 'Play all';
+    }
+
+    const recentPlayIconWrapper = document.getElementById('recentPlayIconWrapper');
+    const recentPlayAllText = document.getElementById('recentPlayAllText');
+    const recentPlayAllBtn = document.getElementById('recentPlayAllBtn');
+    if (recentPlayIconWrapper) {
+        recentPlayIconWrapper.innerHTML = PLAY_ICON;
+    }
+    if (recentPlayAllText) {
+        recentPlayAllText.textContent = 'Play all';
+    }
+    if (recentPlayAllBtn) {
+        recentPlayAllBtn.classList.remove('is-active-playing');
+    }
+
+    const downloadsPlayIconWrapper = document.getElementById('downloadsPlayIconWrapper');
+    const downloadsPlayAllText = document.getElementById('downloadsPlayAllText');
+    const downloadsPlayAllBtn = document.getElementById('downloadsPlayAllBtn');
+    if (downloadsPlayIconWrapper) {
+        downloadsPlayIconWrapper.innerHTML = PLAY_ICON;
+    }
+    if (downloadsPlayAllText) {
+        downloadsPlayAllText.textContent = 'Play all';
+    }
+    if (downloadsPlayAllBtn) {
+        downloadsPlayAllBtn.classList.remove('is-active-playing');
     }
 
     const mixDetailPlayAllBtn = document.getElementById('mixDetailPlayAllBtn');
@@ -392,10 +424,10 @@ const syncActiveSongUI = () => {
                     if (isPaused) item.classList.add('is-paused');
                     const overlay = item.querySelector('.liked-song-play-overlay, .liked-grid-play-overlay');
                     if (overlay) {
-                        overlay.style.color = '#22c55e';
+                        overlay.style.color = '';
                         overlay.innerHTML = isPlaying
-                            ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="#22c55e" style="color:#22c55e;fill:#22c55e;"><rect x="6" y="4" width="4" height="16" fill="#22c55e"></rect><rect x="14" y="4" width="4" height="16" fill="#22c55e"></rect></svg>`
-                            : `<svg viewBox="0 0 24 24" width="16" height="16" fill="#22c55e" style="color:#22c55e;fill:#22c55e;"><polygon points="6 4 20 12 6 20 6 4" fill="#22c55e"></polygon></svg>`;
+                            ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`
+                            : `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
                     }
                 } else {
                     item.classList.remove('is-active-song', 'is-paused');
@@ -411,6 +443,84 @@ const syncActiveSongUI = () => {
             }
             if (likedPlayAllText) {
                 likedPlayAllText.textContent = (isPlaying && isLikedContext) ? 'Pause' : 'Play all';
+            }
+
+            // Sync active state for Recently Played Page (List and Grid view)
+            const isRecentContext = (currentPlaybackContext === 'recently-played' || window.__spotiwindPlaybackContext === 'recently-played' || window.__spotiwindContext === 'recently-played');
+            const recentPlayIconWrapper = document.getElementById('recentPlayIconWrapper');
+            const recentPlayAllText = document.getElementById('recentPlayAllText');
+            const recentPlayAllBtn = document.getElementById('recentPlayAllBtn');
+
+            document.querySelectorAll('.recent-song-item, .recent-grid-card').forEach(item => {
+                const songId = item.dataset.songId;
+                const songAudio = item.dataset.songAudio;
+                const isSameSong = isRecentContext && (songId === String(currentSongData.id) || (songAudio && currentSongData.audio === songAudio) || areSameSongs(currentSongData, { id: songId, audio: songAudio }));
+                if (isSameSong) {
+                    item.classList.add('is-active-song');
+                    if (isPaused) item.classList.add('is-paused');
+                    const overlay = item.querySelector('.recent-song-play-overlay, .recent-grid-play-overlay');
+                    if (overlay) {
+                        overlay.style.color = '';
+                        overlay.innerHTML = isPlaying
+                            ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`
+                            : `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
+                    }
+                } else {
+                    item.classList.remove('is-active-song', 'is-paused');
+                    const overlay = item.querySelector('.recent-song-play-overlay, .recent-grid-play-overlay');
+                    if (overlay) {
+                        overlay.style.color = '';
+                        overlay.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
+                    }
+                }
+            });
+            if (recentPlayIconWrapper) {
+                recentPlayIconWrapper.innerHTML = (isPlaying && isRecentContext) ? PAUSE_ICON : PLAY_ICON;
+            }
+            if (recentPlayAllText) {
+                recentPlayAllText.textContent = (isPlaying && isRecentContext) ? 'Pause' : 'Play all';
+            }
+            if (recentPlayAllBtn) {
+                recentPlayAllBtn.classList.toggle('is-active-playing', isPlaying && isRecentContext);
+            }
+
+            // Sync active state for Downloads Page (List and Grid view)
+            const isDownloadsContext = (currentPlaybackContext === 'downloads' || window.__spotiwindPlaybackContext === 'downloads' || window.__spotiwindContext === 'downloads');
+            const downloadsPlayIconWrapper = document.getElementById('downloadsPlayIconWrapper');
+            const downloadsPlayAllText = document.getElementById('downloadsPlayAllText');
+            const downloadsPlayAllBtn = document.getElementById('downloadsPlayAllBtn');
+
+            document.querySelectorAll('.download-song-item, .download-grid-card').forEach(item => {
+                const songId = item.dataset.songId;
+                const songAudio = item.dataset.songAudio;
+                const isSameSong = isDownloadsContext && (songId === String(currentSongData.id) || (songAudio && currentSongData.audio === songAudio) || areSameSongs(currentSongData, { id: songId, audio: songAudio }));
+                if (isSameSong) {
+                    item.classList.add('is-active-song');
+                    if (isPaused) item.classList.add('is-paused');
+                    const overlay = item.querySelector('.download-song-play-overlay, .download-grid-play-overlay');
+                    if (overlay) {
+                        overlay.style.color = '';
+                        overlay.innerHTML = isPlaying
+                            ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`
+                            : `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
+                    }
+                } else {
+                    item.classList.remove('is-active-song', 'is-paused');
+                    const overlay = item.querySelector('.download-song-play-overlay, .download-grid-play-overlay');
+                    if (overlay) {
+                        overlay.style.color = '';
+                        overlay.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
+                    }
+                }
+            });
+            if (downloadsPlayIconWrapper) {
+                downloadsPlayIconWrapper.innerHTML = (isPlaying && isDownloadsContext) ? PAUSE_ICON : PLAY_ICON;
+            }
+            if (downloadsPlayAllText) {
+                downloadsPlayAllText.textContent = (isPlaying && isDownloadsContext) ? 'Pause' : 'Play all';
+            }
+            if (downloadsPlayAllBtn) {
+                downloadsPlayAllBtn.classList.toggle('is-active-playing', isPlaying && isDownloadsContext);
             }
         }
     }
@@ -1115,11 +1225,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const seeAllRecentBtn = e.target.closest('#seeAllRecentHomeBtn');
         if (seeAllRecentBtn) {
             e.preventDefault();
-            const libraryNav = document.querySelector('.mobile-bottom-nav .nav-item[data-target="library-mobile.html"]');
-            if (libraryNav) {
-                libraryNav.click();
-            } else if (typeof window.navigateToLibraryPage === 'function') {
-                window.navigateToLibraryPage('overview');
+            if (typeof window.loadPageContent === 'function') {
+                window.loadPageContent('recently-played-mobile.html', {
+                    pushState: true,
+                    route: '/recently-played',
+                    title: 'Recently Played | Spotiwind',
+                    state: { route: 'recently-played' }
+                });
+            } else {
+                const libraryNav = document.querySelector('.mobile-bottom-nav .nav-item[data-target="library-mobile.html"]');
+                if (libraryNav) {
+                    libraryNav.click();
+                } else if (typeof window.navigateToLibraryPage === 'function') {
+                    window.navigateToLibraryPage('overview');
+                }
             }
             return;
         }
@@ -1188,7 +1307,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (appContainer && appContainer.scrollTop > 0) {
                     appContainer.scrollTo({ top: 0, behavior: 'smooth' });
                 }
-                const pageWrapper = document.querySelector('.liked-songs-page-wrapper, .downloads-page-wrapper');
+                const pageWrapper = document.querySelector('.liked-songs-page-wrapper, .downloads-page-wrapper, .recently-played-page-wrapper');
                 if (pageWrapper && pageWrapper.scrollTop > 0) {
                     pageWrapper.scrollTo({ top: 0, behavior: 'smooth' });
                 }
@@ -1433,6 +1552,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     baseQueue = [...artistPageCurrentSongs];
                 }
             } else if (context === 'liked-songs' || context === 'liked') {
+                if (Array.isArray(customPlaylist) && customPlaylist.length > 0) {
+                    baseQueue = [...customPlaylist];
+                }
+            } else if (context === 'downloads' || context === 'download') {
                 if (Array.isArray(customPlaylist) && customPlaylist.length > 0) {
                     baseQueue = [...customPlaylist];
                 }
@@ -2237,6 +2360,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const isCurrentlyOnRecentPage = Boolean(
+                document.querySelector('.recently-played-page-wrapper, #recentHeader, #recentHero, #recentInsightsCard') ||
+                (typeof window.getCurrentPageUrl === 'function' && window.getCurrentPageUrl()?.includes('recently-played')) ||
+                window.location.pathname.includes('/recently-played')
+            );
+
+            // Smooth scroll to top when tapping active tab while on Recently Played page
+            if (isCurrentlyOnRecentPage && item.classList.contains('active')) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+                document.body.scrollTo({ top: 0, behavior: 'smooth' });
+                const appContainer = document.querySelector('.app-container');
+                if (appContainer && appContainer.scrollTop > 0) {
+                    appContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                const pageWrapper = document.querySelector('.recently-played-page-wrapper');
+                if (pageWrapper && pageWrapper.scrollTop > 0) {
+                    pageWrapper.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                setPageScrollPosition('recently-played-mobile.html', 0);
+                return;
+            }
+
             // Check if we are already viewing the primary content of that tab
             const isAlreadyOnHome = (targetPage === 'home-mobile.html' || targetPage === '/' || targetPage === 'mobile.html') && isGenuineHomeView();
             const isAlreadyOnSearch = targetPage.includes('search') && document.querySelector('.app-container #searchInput');
@@ -2658,6 +2804,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 route: '/downloads',
                 title: 'Downloads | Spotiwind',
                 state: { route: 'downloads' }
+            });
+        } else if (cleanPath === '/recently-played' || cleanPath.startsWith('/recently-played')) {
+            updateSidebarActiveState('library-mobile.html');
+            updateBottomNavActive('library-mobile.html');
+            await loadPageContent('recently-played-mobile.html', {
+                pushState: shouldPushState,
+                route: '/recently-played',
+                title: 'Recently Played | Spotiwind',
+                state: { route: 'recently-played' }
             });
         } else if (cleanPath === '/windflow' || cleanPath === '/radio') {
             updateSidebarActiveState('windflow-mobile.html');

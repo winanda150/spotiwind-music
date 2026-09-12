@@ -1,20 +1,20 @@
 /* ==========================================================================
-   Spotiwind — Dedicated Downloads (Offline Music) Page Mobile Styles
-   Theme: Iconic Spotiwind Signature (Midnight Navy #0f172a, Hot Pink #F12E77,
-          Vibrant Magenta #B91EC9, and Electric Violet #7D19F5)
+   Spotiwind — Dedicated Recently Played Page Mobile Styles (Modern & Clean)
+   Harmonized with Liked Songs & Downloads design systems
    ========================================================================== */
 
-.downloads-page-wrapper {
+.recently-played-page-wrapper {
     background: #0f172a;
+    padding-bottom: 0.4rem;
     box-sizing: border-box;
     position: relative;
     overflow-x: hidden;
 }
 
 /* ==========================================================================
-   Top Sticky Header
+   Top Header
    ========================================================================== */
-.downloads-header {
+.recently-played-header {
     position: relative;
     width: 100%;
     display: flex;
@@ -23,12 +23,14 @@
     padding: calc(env(safe-area-inset-top, 0px) + 0.65rem) var(--mobile-horizontal-padding, 1rem);
     background: transparent;
     border-bottom: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     box-sizing: border-box;
     z-index: 10;
 }
 
-.downloads-back-btn,
-.downloads-more-btn {
+.recently-played-back-btn,
+.recently-played-more-btn {
     background: transparent;
     border: none;
     color: var(--text-main, #ffffff);
@@ -39,34 +41,34 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: transform 0.15s ease, color 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
+    transition: transform 0.15s ease, color 0.2s ease, opacity 0.2s ease;
     flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
     padding: 0;
 }
 
-.downloads-back-btn svg,
-.downloads-more-btn svg {
+.recently-played-back-btn svg,
+.recently-played-more-btn svg {
     width: 24px;
     height: 24px;
     transition: transform 0.2s ease;
 }
 
-.downloads-back-btn:hover,
-.downloads-more-btn:hover {
+.recently-played-back-btn:hover,
+.recently-played-more-btn:hover {
     color: #ffffff;
     opacity: 0.85;
 }
 
-.downloads-back-btn:active,
-.downloads-more-btn:active {
+.recently-played-back-btn:active,
+.recently-played-more-btn:active {
     transform: scale(0.88);
     opacity: 0.7;
 }
 
-/* Offline Ready Pulse Badge */
-.downloads-offline-badge {
+/* Center Status Floating Badge */
+.recently-played-status-badge {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
@@ -82,16 +84,16 @@
     user-select: none;
 }
 
-.downloads-pulse-dot {
+.recent-pulse-dot {
     width: 7px;
     height: 7px;
     border-radius: 50%;
     background: #22c55e;
     box-shadow: 0 0 8px #22c55e;
-    animation: downloadsPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation: recentPulseDot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-@keyframes downloadsPulse {
+@keyframes recentPulseDot {
 
     0%,
     100% {
@@ -105,10 +107,18 @@
     }
 }
 
+.recent-status-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #e2e8f0;
+    text-transform: uppercase;
+}
+
 /* ==========================================================================
    Hero Content Section
    ========================================================================== */
-.downloads-hero {
+.recently-played-hero {
     display: flex;
     align-items: center;
     gap: 1.15rem;
@@ -117,35 +127,39 @@
     box-sizing: border-box;
 }
 
-.downloads-cover-box {
-    width: 124px;
-    height: 124px;
+.recently-played-cover-box {
+    width: 120px;
+    height: 120px;
     flex-shrink: 0;
-    border-radius: 1.15rem;
-    overflow: hidden;
+    border-radius: 1.25rem;
     position: relative;
-    box-shadow: 0 14px 32px -8px rgba(6, 182, 212, 0.45),
-        0 0 0 1px rgba(255, 255, 255, 0.15);
-    background: linear-gradient(135deg, rgba(6, 182, 212, 0.3), rgba(14, 165, 233, 0.3));
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 12px 30px -6px rgba(174, 129, 255, 0.35),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    background: #1D1439;
 }
 
-.downloads-cover-img {
+.recently-played-cover-img {
     width: 100%;
     height: 100%;
     aspect-ratio: 1 / 1;
     object-fit: cover;
     display: block;
+    border-radius: 1.25rem;
+    position: relative;
+    z-index: 1;
 }
 
-.downloads-cover-glow {
+.recently-played-cover-glow {
     position: absolute;
-    inset: 0;
+    inset: -10px;
+    border-radius: 1.5rem;
+    background: radial-gradient(circle, rgba(174, 129, 255, 0.3), rgba(185, 30, 201, 0.15), transparent 70%);
+    filter: blur(14px);
+    z-index: 0;
     pointer-events: none;
-    background: radial-gradient(circle at top right, rgba(6, 182, 212, 0.35), transparent 70%);
 }
 
-.downloads-meta {
+.recently-played-meta {
     flex: 1;
     min-width: 0;
     display: flex;
@@ -153,185 +167,178 @@
     justify-content: center;
 }
 
-.downloads-category-tag {
+.recently-played-category-tag {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
+    color: #AE81FF;
     font-size: 0.6875rem;
     font-weight: 800;
     letter-spacing: 0.08em;
-    margin-bottom: 0.3rem;
-    color: #66D9EF;
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
 }
 
-.downloads-title {
-    font-size: 1.65rem;
+.recently-played-category-tag svg {
+    flex-shrink: 0;
+}
+
+.recently-played-title {
+    font-size: 1.7rem;
     font-weight: 800;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.035em;
     color: #ffffff;
     margin: 0 0 0.35rem;
     line-height: 1.15;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
 }
 
-.downloads-stats-row {
+.recently-played-stats-row {
     display: flex;
     align-items: center;
     gap: 0.45rem;
-    margin-bottom: 0.45rem;
     font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--text-muted, #94a3b8);
-}
-
-.downloads-stat-item {
     color: #cbd5e1;
+    margin-bottom: 0.4rem;
+    flex-wrap: wrap;
 }
 
-.downloads-stat-dot {
-    color: #64748b;
-    font-size: 0.75rem;
+.recently-played-stat-dot {
+    opacity: 0.5;
 }
 
-.downloads-tagline {
-    font-size: 0.8rem;
-    line-height: 1.38;
-    color: var(--text-muted, #94a3b8);
+.recent-stat-synced {
+    color: #34d399;
+    font-weight: 700;
+}
+
+.recently-played-tagline {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: #94a3b8;
     margin: 0;
     font-weight: 400;
     display: -webkit-box;
-    line-clamp: 2;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
 /* ==========================================================================
-   Storage Usage Meter Card
+   Interactive History Insights Card
    ========================================================================== */
-.downloads-storage-card {
+.recently-played-insights-card {
     margin: 0.4rem var(--mobile-horizontal-padding, 1rem) 0.85rem;
-    padding: 0.9rem 1rem;
-    border-radius: 1rem;
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.65), rgba(15, 23, 42, 0.85));
-    border: 1px solid rgba(102, 217, 239, 0.2);
-    box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(174, 129, 255, 0.2);
+    border-radius: 1.15rem;
+    padding: 0.95rem 1.15rem 0.85rem;
     box-sizing: border-box;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    position: relative;
+    overflow: hidden;
 }
 
-.storage-card-header {
+.insights-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.65rem;
+    margin-bottom: 0.85rem;
 }
 
-.storage-card-title-group {
+.insights-card-title-group {
     display: flex;
     align-items: center;
-    gap: 0.45rem;
+    gap: 0.5rem;
 }
 
-.storage-icon {
-    color: #66D9EF;
+.insights-icon {
+    color: #AE81FF;
+    flex-shrink: 0;
 }
 
-.storage-card-label {
-    font-size: 0.8125rem;
+.insights-card-label {
+    font-size: 0.875rem;
     font-weight: 700;
-    color: #f1f5f9;
-    letter-spacing: 0.01em;
+    color: #ffffff;
+    letter-spacing: -0.01em;
 }
 
-.storage-usage-text {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #66D9EF;
-}
-
-.storage-progress-bar-wrapper {
-    margin-bottom: 0.65rem;
-}
-
-.storage-progress-bar {
-    width: 100%;
-    height: 7px;
+.insights-card-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
     border-radius: 9999px;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(174, 129, 255, 0.15);
+    color: #d8b4fe;
+    border: 1px solid rgba(174, 129, 255, 0.28);
+    letter-spacing: 0.02em;
+}
+
+.insights-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.65rem;
+    margin-bottom: 0.75rem;
+}
+
+.insights-metric-box {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 0.85rem;
+    padding: 0.65rem 0.6rem;
     display: flex;
-    overflow: hidden;
-    position: relative;
-}
-
-.storage-fill-spotiwind {
-    height: 100%;
-    background: linear-gradient(90deg, #06b6d4, #66D9EF);
-    box-shadow: 0 0 12px rgba(102, 217, 239, 0.5);
-    border-radius: 9999px;
-    transition: width 0.4s ease;
-    min-width: 4px;
-}
-
-.storage-fill-other {
-    height: 100%;
-    background: rgba(148, 163, 184, 0.25);
-    transition: width 0.4s ease;
-}
-
-.storage-legend-row {
-    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 1.25rem;
+    justify-content: center;
+    text-align: center;
+    min-width: 0;
 }
 
-.storage-legend-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.75rem;
-}
-
-.legend-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-}
-
-.dot-spotiwind {
-    background: linear-gradient(135deg, #06b6d4, #66D9EF);
-    box-shadow: 0 0 6px rgba(102, 217, 239, 0.5);
-}
-
-.dot-free {
-    background: #475569;
-}
-
-.legend-label {
+.insights-metric-label {
+    font-size: 0.625rem;
+    font-weight: 800;
     color: #94a3b8;
-    font-weight: 500;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
 }
 
-.legend-val {
-    color: #e2e8f0;
+.insights-metric-val {
+    font-size: 0.875rem;
     font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.insights-accent-bar {
+    width: 100%;
+    height: 3px;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, #AE81FF 0%, #B91EC9 50%, #7D19F5 100%);
+    opacity: 0.85;
 }
 
 /* ==========================================================================
    Action Controls Bar (Play all, Shuffle, View Switcher)
    ========================================================================== */
-.downloads-actions-bar {
+.recently-played-actions-bar {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
-    padding: 0.35rem var(--mobile-horizontal-padding, 1rem) 0.65rem;
+    gap: 0.75rem;
+    padding: 0.4rem var(--mobile-horizontal-padding, 1rem) 0.65rem;
     box-sizing: border-box;
 }
 
-.downloads-play-all-btn {
+.recently-played-play-all-btn {
     flex: 1;
-    height: 46px;
+    height: 48px;
     border-radius: 9999px;
     background: var(--primary-gradient, linear-gradient(135deg, #F12E77, #B91EC9, #7D19F5));
     border: none;
@@ -342,67 +349,67 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.55rem;
+    gap: 0.6rem;
     cursor: pointer;
-    box-shadow: 0 6px 20px -3px rgba(241, 46, 119, 0.45);
+    box-shadow: 0 6px 20px -3px rgba(185, 30, 201, 0.45);
     transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, filter 0.2s ease;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
 }
 
-.downloads-play-all-btn:hover {
-    filter: brightness(1.08);
-    box-shadow: 0 8px 25px -2px rgba(241, 46, 119, 0.55);
+.recently-played-play-all-btn:hover {
+    filter: brightness(1.06);
+    box-shadow: 0 8px 24px -2px rgba(185, 30, 201, 0.55);
 }
 
-.downloads-play-all-btn:active {
+.recently-played-play-all-btn:active {
     transform: scale(0.96);
 }
 
-.downloads-play-all-btn .btn-icon-wrapper {
+.recently-played-play-all-btn .btn-icon-wrapper {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.downloads-shuffle-btn {
-    height: 46px;
-    padding: 0 1.15rem;
+.recently-played-shuffle-btn {
+    height: 48px;
+    padding: 0 1.25rem;
     border-radius: 9999px;
     background: rgba(255, 255, 255, 0.07);
     border: 1px solid rgba(255, 255, 255, 0.12);
     color: var(--text-main, #ffffff);
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.45rem;
+    gap: 0.5rem;
     cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, color 0.2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, color 0.2s ease, box-shadow 0.2s ease;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
     flex-shrink: 0;
 }
 
-.downloads-shuffle-btn:hover {
+.recently-played-shuffle-btn:hover {
     background: rgba(255, 255, 255, 0.12);
     border-color: rgba(255, 255, 255, 0.2);
 }
 
-.downloads-shuffle-btn:active {
+.recently-played-shuffle-btn:active {
     transform: scale(0.96);
 }
 
-.downloads-shuffle-btn.is-active {
+.recently-played-shuffle-btn.is-active {
     background: rgba(185, 30, 201, 0.18);
     border-color: var(--accent-color, #B91EC9);
     color: var(--accent-color, #B91EC9);
     box-shadow: 0 0 15px rgba(185, 30, 201, 0.35);
 }
 
-/* View Switcher Toggle Group (Library Style) */
-.downloads-view-toggle-group {
+/* Layout Switcher (List vs Grid - Library Style) */
+.recently-played-view-toggle-group {
     display: flex;
     align-items: center;
     background: rgba(255, 255, 255, 0.04);
@@ -413,7 +420,7 @@
     flex-shrink: 0;
 }
 
-.downloads-view-btn {
+.recent-view-btn {
     background: transparent;
     border: none;
     color: var(--text-muted, #94a3b8);
@@ -429,61 +436,60 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-.downloads-view-btn svg {
+.recent-view-btn svg {
     width: 15px;
     height: 15px;
     display: block;
     transition: transform 0.15s ease, stroke 0.15s ease;
 }
 
-.downloads-view-btn:hover {
+.recent-view-btn:hover {
     color: var(--text-main, #ffffff);
 }
 
-.downloads-view-btn:active svg {
+.recent-view-btn:active svg {
     transform: scale(0.92);
 }
 
-.downloads-view-btn.is-active {
+.recent-view-btn.is-active {
     background: rgba(255, 255, 255, 0.12);
     color: #ffffff;
-    box-shadow: none;
 }
 
 /* ==========================================================================
-   Search & Filter Chips Section
+   Search Box & Filter Chips Section
    ========================================================================== */
-.downloads-filter-section {
+.recently-played-filter-section {
     padding: 0.35rem var(--mobile-horizontal-padding, 1rem) 0.65rem;
     box-sizing: border-box;
 }
 
-.downloads-search-box {
+.recently-played-search-box {
     position: relative;
     display: flex;
     align-items: center;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.09);
-    border-radius: 0.85rem;
-    padding: 0 0.85rem;
+    border-radius: 0.95rem;
+    padding: 0 0.95rem;
     height: 44px;
     transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
     margin-bottom: 0.65rem;
 }
 
-.downloads-search-box:focus-within {
+.recently-played-search-box:focus-within {
     background: rgba(255, 255, 255, 0.08);
-    border-color: var(--accent-color, #B91EC9);
-    box-shadow: 0 0 16px rgba(185, 30, 201, 0.25);
+    border-color: #AE81FF;
+    box-shadow: 0 0 16px rgba(174, 129, 255, 0.25);
 }
 
-.downloads-search-icon {
-    color: var(--text-muted, #94a3b8);
+.recently-played-search-icon {
+    color: #94a3b8;
     flex-shrink: 0;
     margin-right: 0.65rem;
 }
 
-.downloads-search-input {
+.recently-played-search-input {
     flex: 1;
     min-width: 0;
     background: transparent;
@@ -495,11 +501,11 @@
     font-family: inherit;
 }
 
-.downloads-search-input::placeholder {
+.recently-played-search-input::placeholder {
     color: rgba(255, 255, 255, 0.4);
 }
 
-.downloads-search-clear-btn {
+.recently-played-search-clear-btn {
     background: rgba(255, 255, 255, 0.1);
     border: none;
     color: #ffffff;
@@ -516,16 +522,16 @@
     flex-shrink: 0;
 }
 
-.downloads-search-clear-btn:hover {
+.recently-played-search-clear-btn:hover {
     background: rgba(255, 255, 255, 0.2);
 }
 
-.downloads-search-clear-btn.hidden {
+.recently-played-search-clear-btn.hidden {
     display: none !important;
 }
 
 /* Horizontal Filter Chips Row (Library Tab Style) */
-.downloads-chips-row {
+.recently-played-chips-row {
     display: flex;
     align-items: center;
     gap: 0.4rem;
@@ -535,11 +541,11 @@
     -ms-overflow-style: none;
 }
 
-.downloads-chips-row::-webkit-scrollbar {
+.recently-played-chips-row::-webkit-scrollbar {
     display: none;
 }
 
-.downloads-chip {
+.recent-chip {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-muted, #94a3b8);
@@ -556,20 +562,24 @@
     flex-shrink: 0;
 }
 
-.downloads-chip:hover {
+.recent-chip:hover {
     color: var(--text-main, #ffffff);
     background: rgba(255, 255, 255, 0.09);
 }
 
-.downloads-chip.is-active {
+.recent-chip.is-active {
     background: #ffffff;
     color: #0f172a;
     border-color: #ffffff;
     box-shadow: none;
 }
 
+.recent-chip:active {
+    transform: scale(0.94);
+}
+
 /* Sort Button (Library Style) */
-.downloads-sort-btn {
+.recent-sort-btn {
     margin-left: auto;
     display: inline-flex;
     align-items: center;
@@ -588,86 +598,77 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-.downloads-sort-btn:hover {
+.recent-sort-btn:hover {
     color: var(--text-main, #ffffff);
     background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.18);
 }
 
-.downloads-sort-btn:active {
-    transform: scale(0.96);
-}
-
-.downloads-sort-btn svg {
-    flex-shrink: 0;
-    color: var(--text-muted, #94a3b8);
-    transition: color 0.2s ease;
-}
-
-.downloads-sort-btn:hover svg {
-    color: var(--text-main, #ffffff);
-}
-
-.downloads-sort-label {
-    font-weight: 600;
-    color: var(--text-main, #ffffff);
+.recent-sort-btn:active {
+    transform: scale(0.94);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 /* ==========================================================================
-   Downloaded Tracks List Section (List View)
+   Recently Played Data List / Grid Section
    ========================================================================== */
-.downloads-list-section {
-    padding: 0.35rem var(--mobile-horizontal-padding, 1rem) 1.25rem;
+.recently-played-list-section {
+    padding: 0 var(--mobile-horizontal-padding, 1rem) 1.25rem;
     box-sizing: border-box;
 }
 
-.downloads-list {
+/* List View */
+.recently-played-list.view-list {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-/* Item List Card */
-.download-song-item {
+.recent-song-item {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.85rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 1rem;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 0.85rem;
-    padding: 0.55rem 0.35rem 0.55rem 0.65rem;
-    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
     cursor: pointer;
+    transition: background 0.18s ease, transform 0.15s ease, border-color 0.18s ease;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
     position: relative;
 }
 
-.download-song-item:hover {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: var(--accent-color);
+.recent-song-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
 }
 
-.download-song-item:active {
-    transform: scale(0.99);
+.recent-song-item:active {
+    transform: scale(0.985);
 }
 
-.download-song-item.is-active-song {
+.recent-song-item.is-active-song {
     background: rgba(185, 30, 201, 0.15) !important;
     border-color: var(--accent-color, #B91EC9) !important;
     box-shadow: 0 0 16px rgba(185, 30, 201, 0.25);
 }
 
-.download-song-art-wrapper {
-    position: relative;
-    width: 48px;
-    height: 48px;
-    border-radius: 0.6rem;
-    overflow: hidden;
-    flex-shrink: 0;
-    background: rgba(255, 255, 255, 0.08);
+.recent-song-item.is-active-song .recent-song-title {
+    color: #22c55e !important;
 }
 
-.download-song-cover {
+.recent-song-art-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    background: #1e293b;
+}
+
+.recent-song-cover {
     width: 100%;
     height: 100%;
     aspect-ratio: 1 / 1;
@@ -675,91 +676,76 @@
     display: block;
 }
 
-.download-song-play-overlay {
+.recent-song-play-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
+    background: rgba(0, 0, 0, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    transition: opacity 0.2s ease;
     color: #ffffff;
+    opacity: 0;
+    transition: opacity 0.15s ease;
 }
 
-.download-song-item:hover .download-song-play-overlay {
+.recent-song-play-overlay svg,
+.recent-grid-play-overlay svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+.recent-song-item:hover .recent-song-play-overlay {
     opacity: 1;
     color: var(--text-main, #ffffff);
 }
 
-.download-song-item.is-active-song .download-song-play-overlay {
-    opacity: 1 !important;
-    color: var(--text-main, #ffffff);
+.recent-song-item.is-active-song .recent-song-play-overlay {
+    opacity: 1;
+    color: #ffffff;
 }
 
-.download-song-info {
+.recent-song-info {
     flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
+    justify-content: center;
 }
 
-.download-song-title {
-    font-size: 0.885rem;
-    font-weight: 700;
-    color: #f1f5f9;
+.recent-song-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #ffffff;
     margin: 0 0 0.2rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.download-song-item.is-active-song .download-song-title {
-    color: #22c55e !important;
-}
-
-.download-song-artist {
-    font-size: 0.775rem;
-    color: var(--text-muted, #94a3b8);
+.recent-song-artist {
+    font-size: 0.8125rem;
+    color: #94a3b8;
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* Actions Column: File Size & Offline Badge & More Btn */
-.download-song-actions {
+.recent-song-actions {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     flex-shrink: 0;
 }
 
-.download-song-size {
-    font-size: 0.7125rem;
-    font-weight: 600;
+.recent-song-time-badge {
+    font-size: 0.725rem;
     color: #64748b;
-    letter-spacing: 0.01em;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
-.download-offline-badge-icon {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: rgba(34, 197, 94, 0.15);
-    border: 1px solid rgba(34, 197, 94, 0.35);
-    color: #22c55e;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.download-offline-badge-icon svg {
-    width: 12px;
-    height: 12px;
-}
-
-.download-song-more-btn {
+.recent-song-like-btn {
     background: transparent;
     border: none;
     color: var(--text-muted, #94a3b8);
@@ -770,66 +756,103 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: color 0.15s ease, background 0.15s ease;
+    transition: all 0.15s ease;
     padding: 0;
     -webkit-tap-highlight-color: transparent;
 }
 
-.download-song-more-btn:hover {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.1);
+.recent-song-like-btn.is-liked {
+    color: #22c55e !important;
 }
 
-.download-song-more-btn:active {
-    transform: scale(0.85);
+.recent-song-like-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.recent-song-like-btn:active {
+    transform: scale(0.88);
+}
+
+.recent-song-more-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted, #94a3b8);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.recent-song-more-btn:hover {
+    color: var(--text-main, #ffffff);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.recent-song-more-btn:active {
+    transform: scale(0.9);
 }
 
 /* ==========================================================================
-   Grid View Layout
+   Grid View Layout (2 Columns - Matching Liked Songs & Downloads)
    ========================================================================== */
-.downloads-list.view-grid {
+.recently-played-list.view-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
+    gap: 0.85rem;
 }
 
-.download-grid-card {
+.recent-grid-card {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 1.15rem;
     padding: 0.75rem;
     display: flex;
     flex-direction: column;
-    position: relative;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-    user-select: none;
     cursor: pointer;
+    transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+    user-select: none;
     -webkit-tap-highlight-color: transparent;
+    position: relative;
     overflow: hidden;
 }
 
-.download-grid-card:hover {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: var(--accent-color);
+.recent-grid-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
 }
 
-.download-grid-card.is-active-song {
+.recent-grid-card:active {
+    transform: scale(0.97);
+}
+
+.recent-grid-card.is-active-song {
     background: rgba(185, 30, 201, 0.15) !important;
     border-color: var(--accent-color, #B91EC9) !important;
     box-shadow: 0 0 16px rgba(185, 30, 201, 0.25);
 }
 
-.download-grid-art-box {
+.recent-grid-card.is-active-song .recent-grid-title {
+    color: #22c55e !important;
+}
+
+.recent-grid-art-box {
     width: 100%;
     aspect-ratio: 1 / 1;
     border-radius: 0.85rem;
     overflow: hidden;
     position: relative;
-    background: rgba(255, 255, 255, 0.05);
+    background: #1e293b;
     margin-bottom: 0.65rem;
 }
 
-.download-grid-cover {
+.recent-grid-cover {
     width: 100%;
     height: 100%;
     aspect-ratio: 1 / 1;
@@ -837,198 +860,186 @@
     display: block;
 }
 
-.download-grid-play-overlay {
+.recent-grid-play-overlay {
     position: absolute;
-    bottom: 8px;
-    right: 8px;
-    width: 36px;
-    height: 36px;
-    background-color: #ffffff;
-    border-radius: 50%;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #000000;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, box-shadow 0.25s ease;
-    border: none;
-    cursor: pointer;
-    z-index: 2;
+    color: #ffffff;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.recent-grid-card:hover .recent-grid-play-overlay {
     opacity: 1;
 }
 
-.download-grid-play-overlay:active {
-    transform: scale(0.92);
+.recent-grid-card.is-active-song .recent-grid-play-overlay {
+    opacity: 1;
+    color: #ffffff;
 }
 
-.download-grid-play-overlay svg {
-    width: 16px !important;
-    height: 16px !important;
-}
-
-.download-grid-card.is-active-song .download-grid-play-overlay {
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45), 0 0 12px rgba(185, 30, 201, 0.4);
-}
-
-.download-grid-info {
+.recent-grid-info {
     flex: 1;
     min-width: 0;
     margin-bottom: 0.5rem;
 }
 
-.download-grid-title {
+.recent-grid-title {
     font-size: 0.875rem;
-    font-weight: 700;
-    color: #f8fafc;
+    font-weight: 600;
+    color: #ffffff;
     margin: 0 0 0.2rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.download-grid-card.is-active-song .download-grid-title {
-    color: #22c55e !important;
-}
-
-.download-grid-artist {
-    font-size: 0.75rem;
-    color: var(--text-muted, #94a3b8);
+.recent-grid-artist {
+    font-size: 0.775rem;
+    color: #94a3b8;
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.download-grid-footer {
+.recent-grid-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-top: 0.25rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    margin-top: auto;
+    padding-top: 0.35rem;
 }
 
-.download-grid-badge {
-    display: inline-flex;
+.recent-grid-time {
+    font-size: 0.725rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.recent-grid-actions {
+    display: flex;
     align-items: center;
     gap: 0.25rem;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    color: var(--text-muted);
-}
-
-.download-grid-badge svg {
-    color: #22c55e;
-    stroke: #22c55e;
-    flex-shrink: 0;
-}
-
-.download-grid-more-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-muted, #94a3b8);
-    padding: 0;
-    cursor: pointer;
 }
 
 /* ==========================================================================
-   Loading Skeletons
+   Skeleton Loading State
    ========================================================================== */
-.download-song-skeleton {
+.recent-song-skeleton.skeleton {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.65rem 0.85rem;
+    gap: 0.85rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 1rem;
     background: rgba(255, 255, 255, 0.02);
-    border-radius: 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
-.skeleton-art {
+.recent-song-skeleton .skeleton-art {
     width: 48px;
     height: 48px;
-    border-radius: 0.6rem;
-    background: rgba(255, 255, 255, 0.06);
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.07);
     flex-shrink: 0;
+    animation: recentSkeletonPulse 1.5s infinite ease-in-out;
 }
 
-.skeleton-info {
+.recent-song-skeleton .skeleton-info {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.45rem;
 }
 
-.skeleton-line-title {
-    width: 55%;
+.recent-song-skeleton .skeleton-line-title {
+    width: 60%;
     height: 12px;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.07);
+    animation: recentSkeletonPulse 1.5s infinite ease-in-out;
 }
 
-.skeleton-line-sub {
-    width: 35%;
+.recent-song-skeleton .skeleton-line-sub {
+    width: 40%;
     height: 10px;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.04);
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    animation: recentSkeletonPulse 1.5s infinite ease-in-out;
 }
 
-.skeleton-actions {
-    width: 24px;
-    height: 24px;
+.recent-song-skeleton .skeleton-actions {
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.05);
+    flex-shrink: 0;
+    animation: recentSkeletonPulse 1.5s infinite ease-in-out;
+}
+
+@keyframes recentSkeletonPulse {
+
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
 }
 
 /* ==========================================================================
    Empty State
    ========================================================================== */
-.downloads-empty-state {
+.recently-played-empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 3rem 1.5rem 2.5rem;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px dashed rgba(255, 255, 255, 0.08);
-    border-radius: 1.25rem;
-    margin: 1rem 0;
+    padding: 3.5rem 1.5rem 2.5rem;
+    box-sizing: border-box;
 }
 
-.downloads-empty-icon-box {
+.recently-played-empty-state.hidden {
+    display: none !important;
+}
+
+.recently-played-empty-icon-box {
     width: 68px;
     height: 68px;
     border-radius: 50%;
-    background: rgba(185, 30, 201, 0.15);
-    border: 1px solid rgba(185, 30, 201, 0.35);
-    color: #f472b6;
+    background: rgba(174, 129, 255, 0.15);
+    border: 1px solid rgba(174, 129, 255, 0.35);
     display: flex;
     align-items: center;
     justify-content: center;
+    color: #AE81FF;
     margin-bottom: 1.15rem;
-    box-shadow: 0 0 24px rgba(185, 30, 201, 0.25);
+    box-shadow: 0 0 24px rgba(174, 129, 255, 0.25);
 }
 
-.downloads-empty-title {
+.recently-played-empty-title {
     font-size: 1.15rem;
     font-weight: 700;
     color: #ffffff;
-    margin: 0 0 0.45rem;
+    margin: 0 0 0.4rem;
 }
 
-.downloads-empty-desc {
-    font-size: 0.8125rem;
-    color: var(--text-muted, #94a3b8);
+.recently-played-empty-desc {
+    font-size: 0.875rem;
+    color: #94a3b8;
     line-height: 1.5;
     max-width: 280px;
     margin: 0 0 1.25rem;
 }
 
-.downloads-empty-btn {
-    padding: 0.7rem 1.4rem;
+.recently-played-empty-btn {
+    padding: 0.65rem 1.5rem;
     border-radius: 9999px;
     background: var(--primary-gradient, linear-gradient(135deg, #F12E77, #B91EC9, #7D19F5));
     border: none;
@@ -1036,90 +1047,69 @@
     font-size: 0.875rem;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(241, 46, 119, 0.45);
-    transition: transform 0.18s ease, filter 0.18s ease;
+    transition: transform 0.15s ease, filter 0.2s ease;
+    box-shadow: 0 4px 16px rgba(185, 30, 201, 0.35);
+    text-decoration: none;
+    display: inline-block;
 }
 
-.downloads-empty-btn:active {
-    transform: scale(0.96);
+.recently-played-empty-btn:active {
+    transform: scale(0.95);
 }
 
 /* ==========================================================================
-   TikTok & Spotify Concept Infinite Scroll Loader
+   Infinite Scroll Loader
    ========================================================================== */
-.downloads-infinite-loader {
-    width: 100%;
+.recently-played-infinite-loader {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.55rem;
-    padding: 1.25rem 1rem 2.5rem;
-    margin: 0.5rem 0 1rem;
-    color: var(--text-muted, #94a3b8);
-    font-size: 0.8rem;
-    font-weight: 500;
-    user-select: none;
-    cursor: pointer;
-    opacity: 0.85;
-    transition: opacity 0.25s ease, transform 0.2s ease;
+    gap: 0.65rem;
+    padding: 1.25rem 0;
+    width: 100%;
 }
 
-.downloads-infinite-loader:active {
-    opacity: 1;
-    transform: scale(0.98);
-}
-
-.downloads-infinite-spinner {
+.recently-played-infinite-spinner {
     width: 18px;
     height: 18px;
-    border: 2px solid rgba(255, 255, 255, 0.14);
-    border-top-color: #F12E77;
-    border-right-color: #B91EC9;
+    border: 2px solid rgba(174, 129, 255, 0.25);
+    border-top-color: #AE81FF;
     border-radius: 50%;
-    animation: downloadsInfiniteSpin 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-    flex-shrink: 0;
+    animation: recentSpinner 0.75s infinite linear;
 }
 
-.downloads-infinite-text {
-    font-size: 0.78rem;
-    color: #cbd5e1;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-}
-
-@keyframes downloadsInfiniteSpin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
+@keyframes recentSpinner {
+    to {
         transform: rotate(360deg);
     }
 }
 
+.recently-played-infinite-text {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
 /* ==========================================================================
-   More Options Bottom Sheet Modals
+   Bottom Sheet Modals (Matching Liked Songs & Downloads)
    ========================================================================== */
-.downloads-options-modal {
+.recently-played-options-modal {
     position: fixed;
     inset: 0;
-    z-index: 12000;
+    z-index: 100;
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    visibility: visible;
-    opacity: 1;
     transition: opacity 0.25s ease, visibility 0.25s ease;
 }
 
-.downloads-options-modal.hidden {
+.recently-played-options-modal.hidden {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
 }
 
-.downloads-options-backdrop {
+.recently-played-options-backdrop {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.7);
@@ -1127,144 +1117,143 @@
     -webkit-backdrop-filter: blur(4px);
 }
 
-.downloads-options-sheet {
+.recently-played-options-sheet {
     position: relative;
+    z-index: 1;
     width: 100%;
-    max-width: 500px;
-    background: #182234;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-top-left-radius: 1.5rem;
-    border-top-right-radius: 1.5rem;
-    padding: 0.75rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    max-width: 520px;
+    background: #0f172a;
+    border-top: 1px solid rgba(174, 129, 255, 0.3);
+    border-radius: 1.5rem 1.5rem 0 0;
+    padding: 0.75rem 1.25rem calc(env(safe-area-inset-bottom, 0px) + 1.25rem);
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
     box-sizing: border-box;
     transform: translateY(0);
     transition: transform 0.28s cubic-bezier(0.33, 1, 0.68, 1);
-    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
-    touch-action: pan-y;
-    user-select: none;
-    -webkit-user-select: none;
 }
 
-.downloads-options-sheet.is-dragging {
-    transition: none !important;
-    will-change: transform;
-}
-
-.downloads-options-modal.hidden .downloads-options-sheet {
+.recently-played-options-modal.hidden .recently-played-options-sheet {
     transform: translateY(100%);
 }
 
-.downloads-options-handle-wrapper {
+.recently-played-options-handle-wrapper {
     display: flex;
     justify-content: center;
-    padding-bottom: 0.85rem;
-    cursor: grab;
-    touch-action: none;
+    padding: 0.35rem 0 0.85rem;
 }
 
-.downloads-options-sheet.is-dragging .downloads-options-handle-wrapper {
-    cursor: grabbing;
-}
-
-.downloads-options-handle {
+.recently-played-options-handle {
     width: 40px;
     height: 4px;
-    border-radius: 2px;
+    border-radius: 9999px;
     background: rgba(255, 255, 255, 0.25);
-    transition: background 0.2s ease;
 }
 
-.downloads-options-handle-wrapper:hover .downloads-options-handle,
-.downloads-options-sheet.is-dragging .downloads-options-handle {
-    background: rgba(255, 255, 255, 0.5);
-}
-
-.downloads-options-header {
+.recently-played-options-header {
     display: flex;
     align-items: center;
     gap: 0.85rem;
-    padding-bottom: 1rem;
+    padding-bottom: 0.85rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     margin-bottom: 0.75rem;
 }
 
-.downloads-options-photo {
+.recently-played-options-photo {
     width: 48px;
     height: 48px;
     aspect-ratio: 1 / 1;
-    border-radius: 0.65rem;
+    border-radius: 0.75rem;
     object-fit: cover;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.downloads-options-info h3 {
-    margin: 0 0 0.2rem;
-    font-size: 1rem;
+.recently-played-options-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.recently-played-options-name {
+    font-size: 0.95rem;
     font-weight: 700;
     color: #ffffff;
+    margin: 0 0 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.downloads-options-sub {
-    margin: 0;
+.recently-played-options-sub {
     font-size: 0.8rem;
-    color: var(--text-muted, #94a3b8);
+    color: #94a3b8;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.downloads-options-list {
+.recently-played-options-list {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
-    margin-bottom: 1rem;
+    gap: 0.4rem;
+    margin-bottom: 0.85rem;
 }
 
-.downloads-option-item {
+.recently-played-option-item {
     display: flex;
     align-items: center;
     gap: 0.85rem;
-    background: transparent;
-    border: none;
-    border-radius: 0.65rem;
-    padding: 0.85rem 0.75rem;
+    padding: 0.75rem 0.85rem;
+    border-radius: 0.85rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     color: #ffffff;
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s ease;
-    text-align: left;
+    transition: background 0.15s ease, transform 0.1s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
     width: 100%;
+    box-sizing: border-box;
 }
 
-.downloads-option-item:hover,
-.downloads-option-item:active {
-    background: rgba(255, 255, 255, 0.08);
+.recently-played-option-item:hover {
+    background: rgba(255, 255, 255, 0.07);
 }
 
-.downloads-option-item svg {
-    color: var(--text-muted, #94a3b8);
+.recently-played-option-item:active {
+    transform: scale(0.98);
+}
+
+.recently-played-option-item svg {
+    color: rgba(255, 255, 255, 0.75);
     flex-shrink: 0;
 }
 
-.downloads-option-item.item-danger {
+.recently-played-option-item.item-danger {
     color: #f87171;
 }
 
-.downloads-option-item.item-danger svg {
+.recently-played-option-item.item-danger svg {
     color: #f87171;
 }
 
-.downloads-options-close-btn {
+.recently-played-options-close-btn {
     width: 100%;
-    padding: 0.85rem;
-    border-radius: 0.75rem;
+    height: 44px;
+    border-radius: 0.85rem;
     background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.09);
     color: #ffffff;
-    font-size: 0.9375rem;
-    font-weight: 700;
+    font-size: 0.875rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease, transform 0.12s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.downloads-options-close-btn:active {
-    background: rgba(255, 255, 255, 0.12);
+.recently-played-options-close-btn:active {
+    transform: scale(0.97);
+    background: rgba(255, 255, 255, 0.1);
 }

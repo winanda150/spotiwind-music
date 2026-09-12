@@ -66,5 +66,5 @@ export const isFavoriteSong = async (songId) => {
     if (!uid || !songId) return false;
 
     const favorites = await getFavoriteSongs(uid);
-    return favorites.some((item) => String(item.id ?? item.songId) === String(songId));
+    return Array.isArray(favorites) ? favorites.some((item) => String(item.id ?? item.songId) === String(songId)) : false;
 };

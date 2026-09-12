@@ -43,13 +43,32 @@ function formatDuration(seconds) {
 }
 
 function formatBytes(bytes) {
-    if (!bytes || isNaN(bytes) || bytes <= 0) return '0 MB';
-    const mb = bytes / (1024 * 1024);
+    if (!bytes || isNaN(bytes)) return '0 MB';
+    let num = Number(bytes);
+    if (num <= 0) return '0 MB';
+    if (num < 1024) {
+        return `${num.toFixed(1)} MB`;
+    }
+    const mb = num / (1024 * 1024);
     if (mb >= 1024) {
         return `${(mb / 1024).toFixed(1)} GB`;
     }
     return `${mb.toFixed(1)} MB`;
 }
+
+const getSongEffectiveSizeBytes = (song) => {
+    if (!song) return 4.5 * 1024 * 1024;
+    let size = Number(song.size);
+    if (!isNaN(size) && size > 0) {
+        if (size < 1024) size = size * 1024 * 1024; // Convert MB to bytes if stored in MB
+        return size;
+    }
+    const dur = Number(song.duration) || 0;
+    if (dur > 0) {
+        return Math.round(dur * (128 * 1024 / 8));
+    }
+    return 4.5 * 1024 * 1024;
+};
 
 const getSavedDownloads = () => {
     try {
@@ -118,11 +137,17 @@ const syncSongItemsActiveState = () => {
         const isSame = isSessionActive && currentSong && (String(currentSong.id) === String(songId) || (typeof window.areSameSongs === 'function' && window.areSameSongs(currentSong, { id: songId, audio: songAudio })));
 
         item.classList.toggle('is-active-song', Boolean(isSame));
+        item.classList.toggle('is-paused', Boolean(isSame && !isPlaying));
 
         const overlay = item.querySelector('.download-song-play-overlay, .download-grid-play-overlay');
         if (overlay) {
-            if (isSame && isPlaying) {
-                overlay.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
+            overlay.style.color = '';
+            if (isSame) {
+                if (isPlaying) {
+                    overlay.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
+                } else {
+                    overlay.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
+                }
             } else {
                 overlay.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
             }
@@ -133,6 +158,7 @@ const syncSongItemsActiveState = () => {
 const syncPlayPauseButtonUI = () => {
     const playIconWrapper = document.getElementById('downloadsPlayIconWrapper');
     const playText = document.getElementById('downloadsPlayAllText');
+    const playAllBtn = document.getElementById('downloadsPlayAllBtn');
     const isPlaying = isDownloadsCurrentlyPlaying();
 
     if (playIconWrapper) {
@@ -140,6 +166,9 @@ const syncPlayPauseButtonUI = () => {
     }
     if (playText) {
         playText.textContent = isPlaying ? 'Pause' : 'Play all';
+    }
+    if (playAllBtn) {
+        playAllBtn.classList.toggle('is-active-playing', isPlaying);
     }
 
     const shuffleBtn = document.getElementById('downloadsShuffleBtn');
@@ -167,13 +196,7 @@ async function updateStorageUsageBar() {
 
     // Calculate total downloaded bytes accurately
     const totalBytes = currentDownloads.reduce((acc, song) => {
-        let size = Number(song.size);
-        if (!isNaN(size) && size > 0) {
-            if (size < 1024) size = size * 1024 * 1024; // Convert MB to bytes if stored in MB
-            return acc + size;
-        }
-        const dur = Number(song.duration) || 0;
-        return acc + (dur > 0 ? Math.round(dur * (128 * 1024 / 8)) : 4.5 * 1024 * 1024);
+        return acc + getSongEffectiveSizeBytes(song);
     }, 0);
 
     const formattedDownloaded = formatBytes(totalBytes);
@@ -317,7 +340,8 @@ function renderDownloadsList() {
             const songCover = escapeHTML(song.cover || song.coverUrl || song.image || '/public/branding/Spotiwind.webp');
             const songAudio = escapeHTML(song.audio || song.audioUrl || '');
             const songId = escapeHTML(String(song.id));
-            const sizeFormatted = formatBytes(song.size || (Number(song.duration) * (128 * 1024 / 8)));
+            const effectiveBytes = getSongEffectiveSizeBytes(song);
+            const sizeFormatted = formatBytes(effectiveBytes);
 
             return `
                 <div class="download-grid-card"
@@ -327,15 +351,15 @@ function renderDownloadsList() {
                     data-song-artist="${songArtist}"
                     data-song-cover="${songCover}"
                     data-song-duration="${Number(song.duration) || 0}"
-                    data-song-size="${Number(song.size) || 0}">
+                    data-song-size="${effectiveBytes}">
                     <div class="download-grid-art-box">
                         <img src="${songCover}" alt="${songName}" class="download-grid-cover" width="160" height="160" loading="lazy"
                             onerror="this.onerror=null; this.src='/public/branding/Spotiwind.webp';">
-                        <div class="download-grid-play-overlay">
+                        <button class="download-grid-play-overlay" type="button" aria-label="Play ${songName}">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                                 <polygon points="6 4 20 12 6 20 6 4"></polygon>
                             </svg>
-                        </div>
+                        </button>
                     </div>
                     <div class="download-grid-info">
                         <h4 class="download-grid-title">${songName}</h4>
@@ -367,7 +391,8 @@ function renderDownloadsList() {
             const songCover = escapeHTML(song.cover || song.coverUrl || song.image || '/public/branding/Spotiwind.webp');
             const songAudio = escapeHTML(song.audio || song.audioUrl || '');
             const songId = escapeHTML(String(song.id));
-            const sizeFormatted = formatBytes(song.size || (Number(song.duration) * (128 * 1024 / 8)));
+            const effectiveBytes = getSongEffectiveSizeBytes(song);
+            const sizeFormatted = formatBytes(effectiveBytes);
             const durationFormatted = formatDuration(song.duration);
 
             return `
@@ -378,7 +403,7 @@ function renderDownloadsList() {
                     data-song-artist="${songArtist}"
                     data-song-cover="${songCover}"
                     data-song-duration="${Number(song.duration) || 0}"
-                    data-song-size="${Number(song.size) || 0}">
+                    data-song-size="${effectiveBytes}">
                     <div class="download-song-art-wrapper">
                         <img src="${songCover}" alt="${songName}" class="download-song-cover" width="48" height="48" loading="lazy"
                             onerror="this.onerror=null; this.src='/public/branding/Spotiwind.webp';">
@@ -604,9 +629,34 @@ const handleShuffleClick = () => {
 /**
  * Modals and Sheets Management
  */
+let cleanupGlobalDrag = null;
+let cleanupSongDrag = null;
+
+const resetSheetStyles = (modal) => {
+    if (!modal) return;
+    const sheet = modal.querySelector('.downloads-options-sheet');
+    const backdrop = modal.querySelector('.downloads-options-backdrop');
+    if (sheet) {
+        sheet.classList.remove('is-dragging');
+        sheet.style.transform = '';
+        sheet.style.transition = '';
+    }
+    if (backdrop) {
+        backdrop.style.opacity = '';
+        backdrop.style.transition = '';
+    }
+};
+
 const openGlobalOptions = () => {
     const modal = document.getElementById('downloadsGlobalOptionsModal');
+    const subEl = document.getElementById('downloadsGlobalOptionsSub');
+    if (subEl) {
+        const count = currentDownloads.length;
+        const totalBytes = currentDownloads.reduce((acc, s) => acc + getSongEffectiveSizeBytes(s), 0);
+        subEl.textContent = `${count} ${count === 1 ? 'track' : 'tracks'} • ${formatBytes(totalBytes)} used`;
+    }
     if (modal) {
+        resetSheetStyles(modal);
         modal.classList.remove('hidden');
         modal.removeAttribute('inert');
     }
@@ -617,6 +667,7 @@ const closeGlobalOptions = () => {
     if (modal) {
         modal.classList.add('hidden');
         modal.setAttribute('inert', '');
+        resetSheetStyles(modal);
     }
 };
 
@@ -630,11 +681,14 @@ const openSongOptions = (song) => {
     if (coverEl) coverEl.src = song.cover || '/public/branding/Spotiwind.webp';
     if (titleEl) titleEl.textContent = song.name || song.title || 'Track';
     if (artistEl) {
-        const sizeFormatted = formatBytes(song.size);
+        const fullSong = (song && song.id) ? (currentDownloads.find(s => String(s.id) === String(song.id)) || song) : song;
+        const effectiveBytes = getSongEffectiveSizeBytes(fullSong);
+        const sizeFormatted = formatBytes(effectiveBytes);
         artistEl.textContent = `${song.artist || 'Unknown Artist'} • ${sizeFormatted}`;
     }
 
     if (modal) {
+        resetSheetStyles(modal);
         modal.classList.remove('hidden');
         modal.removeAttribute('inert');
     }
@@ -646,7 +700,175 @@ const closeSongOptions = () => {
     if (modal) {
         modal.classList.add('hidden');
         modal.setAttribute('inert', '');
+        resetSheetStyles(modal);
     }
+};
+
+/**
+ * Setup swipe-down (drag to dismiss) gesture for downloads bottom sheet modals
+ */
+const setupSheetDrag = (modalEl, onCloseCallback) => {
+    if (!modalEl) return () => {};
+
+    const sheet = modalEl.querySelector('.downloads-options-sheet');
+    const backdrop = modalEl.querySelector('.downloads-options-backdrop');
+    if (!sheet) return () => {};
+
+    let startX = 0;
+    let startY = 0;
+    let currentDeltaY = 0;
+    let isDragging = false;
+    let startTime = 0;
+    let isListeningWindow = false;
+
+    const resetDragStyles = () => {
+        isDragging = false;
+        sheet.classList.remove('is-dragging');
+        sheet.style.transform = '';
+        sheet.style.transition = '';
+        if (backdrop) {
+            backdrop.style.opacity = '';
+            backdrop.style.transition = '';
+        }
+        removeWindowListeners();
+    };
+
+    const removeWindowListeners = () => {
+        if (!isListeningWindow) return;
+        isListeningWindow = false;
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerCancel);
+    };
+
+    const onPointerMove = (e) => {
+        if (e.pointerType === 'mouse' && e.buttons === 0) {
+            onPointerUp(e);
+            return;
+        }
+
+        const deltaX = e.clientX - startX;
+        const deltaY = e.clientY - startY;
+
+        if (!isDragging) {
+            // Ignore gesture if predominantly horizontal
+            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 8) {
+                return;
+            }
+
+            const handle = sheet.querySelector('.downloads-options-handle-wrapper');
+            const header = sheet.querySelector('.downloads-options-header');
+            const isHandleOrHeader = Boolean(
+                (handle && handle.contains(e.target)) ||
+                (header && header.contains(e.target))
+            );
+            const dragStartThreshold = isHandleOrHeader ? 10 : 20;
+
+            if (deltaY > dragStartThreshold) {
+                isDragging = true;
+                sheet.classList.add('is-dragging');
+                sheet.style.transition = 'none';
+                if (backdrop) backdrop.style.transition = 'none';
+            } else if (deltaY < -10) {
+                const rubberBand = Math.max(-12, deltaY * 0.12);
+                sheet.style.transform = `translateY(${rubberBand}px)`;
+                return;
+            } else {
+                return;
+            }
+        }
+
+        if (isDragging) {
+            if (e.cancelable) e.preventDefault();
+            const sheetHeight = sheet.offsetHeight || 320;
+            if (deltaY > 0) {
+                currentDeltaY = deltaY;
+                sheet.style.transform = `translateY(${deltaY}px)`;
+                if (backdrop) {
+                    const opacity = Math.max(0, 1 - (deltaY / (sheetHeight * 0.95)));
+                    backdrop.style.opacity = String(opacity);
+                }
+            } else {
+                currentDeltaY = 0;
+                const rubberBand = Math.max(-12, deltaY * 0.12);
+                sheet.style.transform = `translateY(${rubberBand}px)`;
+                if (backdrop) backdrop.style.opacity = '1';
+            }
+        }
+    };
+
+    const onPointerUp = () => {
+        removeWindowListeners();
+
+        if (!isDragging) {
+            resetDragStyles();
+            return;
+        }
+
+        const sheetHeight = sheet.offsetHeight || 320;
+        const elapsed = Math.max(1, Date.now() - startTime);
+        const velocityY = currentDeltaY / elapsed;
+
+        sheet.classList.remove('is-dragging');
+
+        // Dismiss thresholds: distance >= 30% height or fast swipe down flick (velocity > 0.55 and deltaY >= 40)
+        const dismissDistance = Math.max(100, sheetHeight * 0.30);
+        const isIntentionalSwipe = (velocityY > 0.55 && currentDeltaY >= 40);
+        const shouldDismiss = (currentDeltaY >= dismissDistance || isIntentionalSwipe);
+
+        if (shouldDismiss) {
+            sheet.style.transition = 'transform 0.24s cubic-bezier(0.32, 1, 0.23, 1)';
+            if (backdrop) backdrop.style.transition = 'opacity 0.24s ease';
+            sheet.style.transform = 'translateY(100%)';
+            if (backdrop) backdrop.style.opacity = '0';
+            setTimeout(() => {
+                resetDragStyles();
+                if (typeof onCloseCallback === 'function') {
+                    onCloseCallback();
+                }
+            }, 240);
+        } else {
+            sheet.style.transition = 'transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1)';
+            if (backdrop) backdrop.style.transition = 'opacity 0.28s ease';
+            sheet.style.transform = 'translateY(0)';
+            if (backdrop) backdrop.style.opacity = '1';
+            setTimeout(() => {
+                resetDragStyles();
+            }, 280);
+        }
+
+        isDragging = false;
+    };
+
+    const onPointerCancel = () => {
+        resetDragStyles();
+    };
+
+    const onPointerDown = (e) => {
+        if (e.button !== undefined && e.button !== 0 && e.pointerType === 'mouse') return;
+        // Ignore interactive controls inside sheet
+        if (e.target.closest('button, a, input, [role="button"]')) return;
+
+        startX = e.clientX;
+        startY = e.clientY;
+        currentDeltaY = 0;
+        startTime = Date.now();
+
+        if (!isListeningWindow) {
+            isListeningWindow = true;
+            window.addEventListener('pointermove', onPointerMove, { passive: false });
+            window.addEventListener('pointerup', onPointerUp);
+            window.addEventListener('pointercancel', onPointerCancel);
+        }
+    };
+
+    sheet.addEventListener('pointerdown', onPointerDown);
+
+    return () => {
+        sheet.removeEventListener('pointerdown', onPointerDown);
+        removeWindowListeners();
+        resetDragStyles();
+    };
 };
 
 /**
@@ -927,6 +1149,25 @@ export async function initDownloadsPage(previousPage = 'library-mobile.html') {
         listeners.push({ element: songCloseBtn, type: 'click', handler: closeSongOptions });
     }
 
+    // Setup drag-to-dismiss gestures for both options modals
+    if (cleanupGlobalDrag) {
+        cleanupGlobalDrag();
+        cleanupGlobalDrag = null;
+    }
+    const globalModal = document.getElementById('downloadsGlobalOptionsModal');
+    if (globalModal) {
+        cleanupGlobalDrag = setupSheetDrag(globalModal, closeGlobalOptions);
+    }
+
+    if (cleanupSongDrag) {
+        cleanupSongDrag();
+        cleanupSongDrag = null;
+    }
+    const songModal = document.getElementById('downloadsSongOptionsModal');
+    if (songModal) {
+        cleanupSongDrag = setupSheetDrag(songModal, closeSongOptions);
+    }
+
     const optSongPlayNext = document.getElementById('optSongPlayNext');
     if (optSongPlayNext) {
         const handler = () => {
@@ -1004,8 +1245,10 @@ export async function initDownloadsPage(previousPage = 'library-mobile.html') {
                 e.stopPropagation();
                 const songCard = moreSongBtn.closest('.download-song-item, .download-grid-card');
                 if (songCard) {
-                    const song = {
-                        id: songCard.dataset.songId,
+                    const songId = songCard.dataset.songId;
+                    const existingSong = currentDownloads.find(s => String(s.id) === String(songId));
+                    const song = existingSong || {
+                        id: songId,
                         name: songCard.dataset.songName,
                         artist: songCard.dataset.songArtist,
                         cover: songCard.dataset.songCover,
@@ -1021,11 +1264,18 @@ export async function initDownloadsPage(previousPage = 'library-mobile.html') {
             // Track item play click
             const songCard = e.target.closest('.download-song-item, .download-grid-card');
             if (songCard && songCard.dataset.songAudio) {
+                // In grid view, user must click the circular play button icon to play/pause (like Liked Songs)
+                const isGridCard = songCard.classList.contains('download-grid-card');
+                const isGridPlayBtn = Boolean(e.target.closest('.download-grid-play-overlay'));
+                if (isGridCard && !isGridPlayBtn) {
+                    return;
+                }
+
                 const songId = songCard.dataset.songId;
                 const activeAudio = getGlobalActiveAudio();
                 const currentSong = getCurrentLoadedSong();
                 const isSessionActive = isDownloadsSessionActive();
-                const isSameSong = isSessionActive && currentSong && String(currentSong.id) === String(songId);
+                const isSameSong = isSessionActive && currentSong && (String(currentSong.id) === String(songId) || (typeof window.areSameSongs === 'function' && window.areSameSongs(currentSong, { id: songId, audio: songCard.dataset.songAudio })));
 
                 if (isSameSong && activeAudio && activeAudio.src) {
                     if (!activeAudio.paused) {
@@ -1095,6 +1345,14 @@ export async function initDownloadsPage(previousPage = 'library-mobile.html') {
  * Cleanup Downloads Page
  */
 export function cleanupDownloadsPage() {
+    if (cleanupGlobalDrag) {
+        cleanupGlobalDrag();
+        cleanupGlobalDrag = null;
+    }
+    if (cleanupSongDrag) {
+        cleanupSongDrag();
+        cleanupSongDrag = null;
+    }
     while (listeners.length > 0) {
         const item = listeners.pop();
         if (item && item.element && item.handler) {
