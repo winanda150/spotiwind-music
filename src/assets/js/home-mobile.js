@@ -1188,6 +1188,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (appContainer && appContainer.scrollTop > 0) {
                     appContainer.scrollTo({ top: 0, behavior: 'smooth' });
                 }
+                const pageWrapper = document.querySelector('.liked-songs-page-wrapper, .downloads-page-wrapper');
+                if (pageWrapper && pageWrapper.scrollTop > 0) {
+                    pageWrapper.scrollTo({ top: 0, behavior: 'smooth' });
+                }
                 return;
             }
             forceCloseMixDetailModal();
@@ -2184,6 +2188,52 @@ document.addEventListener('DOMContentLoaded', () => {
                     appContainer.scrollTo({ top: 0, behavior: 'smooth' });
                 }
                 setPageScrollPosition('windflow-mobile.html', 0);
+                return;
+            }
+
+            const isCurrentlyOnLikedSongsPage = Boolean(
+                document.querySelector('.liked-songs-page-wrapper, #likedSongsHeader, #likedSongsHero') ||
+                (typeof window.getCurrentPageUrl === 'function' && window.getCurrentPageUrl()?.includes('liked-songs')) ||
+                window.location.pathname.includes('/liked-songs')
+            );
+
+            // Smooth scroll to top when tapping active tab while on Liked Songs page
+            if (isCurrentlyOnLikedSongsPage && item.classList.contains('active')) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+                document.body.scrollTo({ top: 0, behavior: 'smooth' });
+                const appContainer = document.querySelector('.app-container');
+                if (appContainer && appContainer.scrollTop > 0) {
+                    appContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                const pageWrapper = document.querySelector('.liked-songs-page-wrapper');
+                if (pageWrapper && pageWrapper.scrollTop > 0) {
+                    pageWrapper.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                setPageScrollPosition('liked-songs-mobile.html', 0);
+                return;
+            }
+
+            const isCurrentlyOnDownloadsPage = Boolean(
+                document.querySelector('.downloads-page-wrapper, #downloadsHeader, #downloadsHero, #downloadsStorageCard') ||
+                (typeof window.getCurrentPageUrl === 'function' && window.getCurrentPageUrl()?.includes('downloads')) ||
+                window.location.pathname.includes('/downloads')
+            );
+
+            // Smooth scroll to top when tapping active tab while on Downloads page
+            if (isCurrentlyOnDownloadsPage && item.classList.contains('active')) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+                document.body.scrollTo({ top: 0, behavior: 'smooth' });
+                const appContainer = document.querySelector('.app-container');
+                if (appContainer && appContainer.scrollTop > 0) {
+                    appContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                const pageWrapper = document.querySelector('.downloads-page-wrapper');
+                if (pageWrapper && pageWrapper.scrollTop > 0) {
+                    pageWrapper.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                setPageScrollPosition('downloads-mobile.html', 0);
                 return;
             }
 

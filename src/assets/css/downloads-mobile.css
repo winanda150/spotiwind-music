@@ -133,6 +133,7 @@
 .downloads-cover-img {
     width: 100%;
     height: 100%;
+    aspect-ratio: 1 / 1;
     object-fit: cover;
     display: block;
 }
@@ -160,6 +161,7 @@
     font-weight: 800;
     letter-spacing: 0.08em;
     margin-bottom: 0.3rem;
+    color: #66D9EF;
 }
 
 .downloads-title {
@@ -212,7 +214,7 @@
     padding: 0.9rem 1rem;
     border-radius: 1rem;
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.65), rgba(15, 23, 42, 0.85));
-    border: 1px solid rgba(185, 30, 201, 0.2);
+    border: 1px solid rgba(102, 217, 239, 0.2);
     box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4);
     box-sizing: border-box;
     backdrop-filter: blur(12px);
@@ -233,7 +235,7 @@
 }
 
 .storage-icon {
-    color: #e879f9;
+    color: #66D9EF;
 }
 
 .storage-card-label {
@@ -246,7 +248,7 @@
 .storage-usage-text {
     font-size: 0.75rem;
     font-weight: 600;
-    color: #f472b6;
+    color: #66D9EF;
 }
 
 .storage-progress-bar-wrapper {
@@ -265,8 +267,8 @@
 
 .storage-fill-spotiwind {
     height: 100%;
-    background: var(--primary-gradient, linear-gradient(90deg, #F12E77, #B91EC9, #7D19F5));
-    box-shadow: 0 0 12px rgba(185, 30, 201, 0.6);
+    background: linear-gradient(90deg, #06b6d4, #66D9EF);
+    box-shadow: 0 0 12px rgba(102, 217, 239, 0.5);
     border-radius: 9999px;
     transition: width 0.4s ease;
     min-width: 4px;
@@ -298,8 +300,8 @@
 }
 
 .dot-spotiwind {
-    background: linear-gradient(135deg, #F12E77, #B91EC9);
-    box-shadow: 0 0 6px rgba(185, 30, 201, 0.6);
+    background: linear-gradient(135deg, #06b6d4, #66D9EF);
+    box-shadow: 0 0 6px rgba(102, 217, 239, 0.5);
 }
 
 .dot-free {
@@ -668,6 +670,7 @@
 .download-song-cover {
     width: 100%;
     height: 100%;
+    aspect-ratio: 1 / 1;
     object-fit: cover;
     display: block;
 }
@@ -832,6 +835,7 @@
 .download-grid-cover {
     width: 100%;
     height: 100%;
+    aspect-ratio: 1 / 1;
     object-fit: cover;
 }
 
@@ -1155,6 +1159,7 @@
 .downloads-options-photo {
     width: 48px;
     height: 48px;
+    aspect-ratio: 1 / 1;
     border-radius: 0.65rem;
     object-fit: cover;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);

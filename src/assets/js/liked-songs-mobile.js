@@ -398,7 +398,7 @@ const renderLikedSongsList = () => {
                     data-song-cover="${coverUrl}"
                     data-song-duration="${duration}">
                     <div class="liked-grid-art-box">
-                        <img src="${coverUrl}" alt="${name}" class="liked-grid-cover" loading="lazy"
+                        <img src="${coverUrl}" alt="${name}" class="liked-grid-cover" width="160" height="160" loading="lazy"
                             onerror="this.onerror=null; this.src='${defaultCover}';">
                         <div class="liked-grid-play-overlay">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
@@ -445,7 +445,7 @@ const renderLikedSongsList = () => {
                     data-song-cover="${coverUrl}"
                     data-song-duration="${duration}">
                     <div class="liked-song-art-wrapper">
-                        <img src="${coverUrl}" alt="${name}" class="liked-song-cover" loading="lazy"
+                        <img src="${coverUrl}" alt="${name}" class="liked-song-cover" width="48" height="48" loading="lazy"
                             onerror="this.onerror=null; this.src='${defaultCover}';">
                         <div class="liked-song-play-overlay">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">

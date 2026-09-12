@@ -141,6 +141,7 @@
 .liked-songs-cover-img {
     width: 100%;
     height: 100%;
+    aspect-ratio: 1 / 1;
     object-fit: cover;
     display: block;
     border-radius: 1.25rem;
@@ -674,6 +675,7 @@
 .liked-song-cover {
     width: 100%;
     height: 100%;
+    aspect-ratio: 1 / 1;
     object-fit: cover;
     display: block;
 }
@@ -850,6 +852,7 @@
 .liked-grid-cover {
     width: 100%;
     height: 100%;
+    aspect-ratio: 1 / 1;
     object-fit: cover;
     display: block;
 }
@@ -1126,6 +1129,7 @@
 .liked-songs-options-photo {
     width: 48px;
     height: 48px;
+    aspect-ratio: 1 / 1;
     border-radius: 0.75rem;
     object-fit: cover;
     border: 1px solid rgba(255, 255, 255, 0.1);

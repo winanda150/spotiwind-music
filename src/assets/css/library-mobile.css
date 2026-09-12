@@ -238,13 +238,9 @@
     border-color: var(--glass-border);
 }
 
-@media (hover: hover) and (pointer: fine) {
-
-    .overview-stat-card:hover,
-    .overview-card:hover {
-        border-color: var(--accent-color);
-        transform: translateY(-2px);
-    }
+.overview-stat-card:hover,
+.overview-card:hover {
+    border-color: var(--accent-color);
 }
 
 .overview-stat-card:active,
@@ -254,7 +250,7 @@
 
 .overview-stat-card.card-liked,
 .overview-card.card-liked {
-    background: linear-gradient(135deg, #381224, #1E0C17);
+    background: linear-gradient(135deg, #134629, #0a2318);
 }
 
 .overview-stat-card.card-downloads,
@@ -282,7 +278,8 @@
 
 .overview-stat-card.card-liked .overview-stat-icon,
 .overview-card.card-liked .overview-card-icon {
-    color: #F43F5E;
+    color: #22c55e;
+    filter: drop-shadow(0 2px 8px rgba(34, 197, 94, 0.35));
 }
 
 .overview-stat-card.card-downloads .overview-stat-icon,

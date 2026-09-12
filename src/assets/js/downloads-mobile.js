@@ -329,7 +329,7 @@ function renderDownloadsList() {
                     data-song-duration="${Number(song.duration) || 0}"
                     data-song-size="${Number(song.size) || 0}">
                     <div class="download-grid-art-box">
-                        <img src="${songCover}" alt="${songName}" class="download-grid-cover" loading="lazy"
+                        <img src="${songCover}" alt="${songName}" class="download-grid-cover" width="160" height="160" loading="lazy"
                             onerror="this.onerror=null; this.src='/public/branding/Spotiwind.webp';">
                         <div class="download-grid-play-overlay">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
@@ -380,7 +380,7 @@ function renderDownloadsList() {
                     data-song-duration="${Number(song.duration) || 0}"
                     data-song-size="${Number(song.size) || 0}">
                     <div class="download-song-art-wrapper">
-                        <img src="${songCover}" alt="${songName}" class="download-song-cover" loading="lazy"
+                        <img src="${songCover}" alt="${songName}" class="download-song-cover" width="48" height="48" loading="lazy"
                             onerror="this.onerror=null; this.src='/public/branding/Spotiwind.webp';">
                         <div class="download-song-play-overlay">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
