@@ -84,6 +84,18 @@ const isGlobalShuffleActive = () => {
     return Boolean(window.__spotiwindIsShuffle);
 };
 
+const setGlobalShuffleState = (val) => {
+    if (typeof window.togglePlaybackShuffle === 'function') {
+        window.togglePlaybackShuffle(val);
+    } else if (typeof window.setPlaybackShuffle === 'function') {
+        window.setPlaybackShuffle(val);
+    } else {
+        window.__spotiwindIsShuffle = Boolean(val);
+        const fullBtn = document.getElementById('fullShuffleBtn');
+        if (fullBtn) fullBtn.classList.toggle('active', Boolean(val));
+    }
+};
+
 const getCurrentLoadedSong = () => {
     return window.spotiwind?.mobile?.getCurrentSongData?.() || window.__currentSongData || window.currentSongData || (typeof window.getCurrentSongData === 'function' ? window.getCurrentSongData() : null);
 };
@@ -99,14 +111,36 @@ const isRecentSessionActive = () => {
     const currentSong = getCurrentLoadedSong();
     if (!currentSong) return false;
 
-    const currentContext = window.__spotiwindPlaybackContext || window.__spotiwindContext || '';
-    return currentContext === 'recently-played';
+    const currentContext = window.__spotiwindPlaybackContext || window.__spotiwindContext || window.currentPlaybackContext || '';
+    return currentContext === 'recently-played' || currentContext === 'recent' || currentContext === 'account-recent';
 };
 
 const isRecentCurrentlyPlaying = () => {
     const activeAudio = getGlobalActiveAudio();
     if (!activeAudio || activeAudio.paused || activeAudio.ended) return false;
     return isRecentSessionActive();
+};
+
+const playSongInRecentContext = (targetSong, playlist) => {
+    if (!targetSong) return;
+
+    if (typeof window.playPreview === 'function') {
+        window.__spotiwindPlaybackContext = 'recently-played';
+        window.__spotiwindContext = 'recently-played';
+
+        window.playPreview(
+            null,
+            targetSong.audio,
+            targetSong.name || targetSong.title,
+            targetSong.artist,
+            targetSong.cover,
+            targetSong.id,
+            Number(targetSong.duration) || 0,
+            'recently-played',
+            playlist || currentRecentSongs
+        );
+    }
+    setTimeout(syncPlayPauseButtonUI, 120);
 };
 
 /**
@@ -242,12 +276,14 @@ function syncSongItemsActiveState() {
     document.querySelectorAll('.recent-song-item, .recent-grid-card').forEach(item => {
         const songId = item.dataset.songId;
         const songAudio = item.dataset.songAudio;
-        const isSame = isSessionActive && currentSong && (String(currentSong.id) === String(songId) || areSameSongs(currentSong, { id: songId, audio: songAudio }));
+        const isSame = isSessionActive && currentSong && (String(currentSong.id) === String(songId) || (typeof window.areSameSongs === 'function' ? window.areSameSongs(currentSong, { id: songId, audio: songAudio }) : (songAudio && currentSong.audio === songAudio)));
 
         item.classList.toggle('is-active-song', Boolean(isSame));
+        item.classList.toggle('is-paused', Boolean(isSame && !isPlaying));
 
         const overlay = item.querySelector('.recent-song-play-overlay, .recent-grid-play-overlay');
         if (overlay) {
+            overlay.style.color = '';
             if (isSame && isPlaying) {
                 overlay.innerHTML = PAUSE_ICON_16;
             } else {
@@ -372,11 +408,11 @@ function renderRecentSongs() {
                     <div class="recent-grid-art-box">
                         <img src="${coverUrl}" alt="${name}" class="recent-grid-cover" width="160" height="160" loading="lazy"
                             onerror="this.onerror=null; this.src='${defaultCover}';">
-                        <div class="recent-grid-play-overlay">
+                        <button class="recent-grid-play-overlay" type="button" aria-label="Play ${name}">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                                 <polygon points="6 4 20 12 6 20 6 4"></polygon>
                             </svg>
-                        </div>
+                        </button>
                     </div>
                     <div class="recent-grid-info">
                         <h4 class="recent-grid-title">${name}</h4>
@@ -595,6 +631,13 @@ function handleSongItemClick(e) {
     const card = e.target.closest('.recent-song-item, .recent-grid-card');
     if (!card) return;
 
+    // In grid view, user must click the circular play button icon to play/pause (like Liked Songs)
+    const isGridCard = card.classList.contains('recent-grid-card');
+    const isGridPlayBtn = Boolean(e.target.closest('.recent-grid-play-overlay'));
+    if (isGridCard && !isGridPlayBtn) {
+        return;
+    }
+
     const audioUrl = card.dataset.songAudio;
     const name = card.dataset.songName;
     const artist = card.dataset.songArtist;
@@ -602,56 +645,115 @@ function handleSongItemClick(e) {
     const id = card.dataset.songId;
     const duration = Number(card.dataset.songDuration) || 0;
 
-    const overlay = card.querySelector('.recent-song-play-overlay, .recent-grid-play-overlay');
+    const isSessionActive = isRecentSessionActive();
+    const currentSong = getCurrentLoadedSong();
+    const isSameSong = isSessionActive && currentSong && (String(currentSong.id) === String(id) || (typeof window.areSameSongs === 'function' ? window.areSameSongs(currentSong, { id, audio: audioUrl }) : (audioUrl && currentSong.audio === audioUrl)));
+    const activeAudio = getGlobalActiveAudio();
 
-    window.__spotiwindPlaybackContext = 'recently-played';
-
-    if (typeof window.playPreview === 'function') {
-        window.playPreview(overlay, audioUrl, name, artist, cover, id, duration, 'recently-played', filteredRecentSongs);
+    if (isSameSong && activeAudio && activeAudio.src) {
+        if (!activeAudio.paused) {
+            activeAudio.pause();
+        } else {
+            activeAudio.play().catch(err => console.error("Play error:", err));
+        }
+        syncPlayPauseButtonUI();
+        if (typeof window.syncActiveSongUI === 'function') {
+            window.syncActiveSongUI();
+        }
+        return;
     }
+
+    const targetSong = {
+        id,
+        name,
+        artist,
+        cover,
+        audio: audioUrl,
+        duration
+    };
+
+    const queueList = filteredRecentSongs.length > 0 ? filteredRecentSongs : currentRecentSongs;
+    playSongInRecentContext(targetSong, queueList);
 }
 
 /**
  * Play All button handler
  */
-function handlePlayAll() {
-    if (filteredRecentSongs.length === 0) {
-        showToast('No recently played tracks to play');
-        return;
-    }
+function handlePlayAll(e) {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
 
-    window.__spotiwindPlaybackContext = 'recently-played';
+    const activeAudio = getGlobalActiveAudio();
+    const isSessionActive = isRecentSessionActive();
 
-    if (isRecentCurrentlyPlaying()) {
-        if (typeof window.togglePlayPause === 'function') {
-            window.togglePlayPause();
+    // Toggle pause / resume if recently-played session is currently active
+    if (isSessionActive && activeAudio && activeAudio.src) {
+        if (!activeAudio.paused) {
+            activeAudio.pause();
+        } else {
+            activeAudio.play().catch(err => console.error("Play error:", err));
+        }
+        syncPlayPauseButtonUI();
+        if (typeof window.syncActiveSongUI === 'function') {
+            window.syncActiveSongUI();
         }
         return;
     }
 
-    const firstSong = filteredRecentSongs[0];
-    if (firstSong && typeof window.playPreview === 'function') {
-        window.playPreview(null, firstSong.audio, firstSong.name, firstSong.artist, firstSong.cover, firstSong.id, Number(firstSong.duration) || 0, 'recently-played', filteredRecentSongs);
+    const targetList = filteredRecentSongs.length > 0 ? filteredRecentSongs : currentRecentSongs;
+    if (!targetList || targetList.length === 0) {
+        showToast('No recently played tracks to play.');
+        return;
     }
+
+    let targetSong = targetList[0];
+    let playlistToPlay = [...targetList];
+
+    if (isGlobalShuffleActive()) {
+        const shuffled = [...targetList];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        targetSong = shuffled[0];
+        playlistToPlay = shuffled;
+    }
+
+    playSongInRecentContext(targetSong, playlistToPlay);
 }
 
 /**
  * Shuffle play button handler
  */
-function handleShuffle() {
-    if (filteredRecentSongs.length === 0) {
-        showToast('No recently played tracks to shuffle');
+function handleShuffle(e) {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+
+    const targetList = filteredRecentSongs.length > 0 ? filteredRecentSongs : currentRecentSongs;
+    if (!targetList || targetList.length === 0) {
+        showToast('No recently played tracks to shuffle.');
         return;
     }
 
-    window.__spotiwindPlaybackContext = 'recently-played';
+    const currentShuffle = isGlobalShuffleActive();
+    const nextShuffle = !currentShuffle;
+    setGlobalShuffleState(nextShuffle);
 
-    const shuffled = [...filteredRecentSongs].sort(() => Math.random() - 0.5);
-    const firstSong = shuffled[0];
-    if (firstSong && typeof window.playPreview === 'function') {
-        window.playPreview(null, firstSong.audio, firstSong.name, firstSong.artist, firstSong.cover, firstSong.id, Number(firstSong.duration) || 0, 'recently-played', shuffled);
-        showToast('Shuffling playback history');
+    const shuffleBtn = document.getElementById('recentShuffleBtn');
+    if (shuffleBtn) {
+        shuffleBtn.classList.toggle('is-active', nextShuffle);
     }
+
+    if (nextShuffle) {
+        const shuffled = [...targetList];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        playSongInRecentContext(shuffled[0], shuffled);
+        showToast('Shuffle enabled for recently played.');
+    } else {
+        showToast('Shuffle disabled.');
+    }
+    setTimeout(syncPlayPauseButtonUI, 120);
 }
 
 /**
@@ -675,11 +777,33 @@ function setViewMode(mode) {
 }
 
 /**
+ * Modals and Sheets Management
+ */
+let cleanupGlobalDrag = null;
+let cleanupSongDrag = null;
+
+const resetSheetStyles = (modal) => {
+    if (!modal) return;
+    const sheet = modal.querySelector('.recently-played-options-sheet');
+    const backdrop = modal.querySelector('.recently-played-options-backdrop');
+    if (sheet) {
+        sheet.classList.remove('is-dragging');
+        sheet.style.transform = '';
+        sheet.style.transition = '';
+    }
+    if (backdrop) {
+        backdrop.style.opacity = '';
+        backdrop.style.transition = '';
+    }
+};
+
+/**
  * Global Options Sheet Controls
  */
 function openGlobalOptions() {
     const modal = document.getElementById('recentGlobalOptionsModal');
     if (!modal) return;
+    resetSheetStyles(modal);
     modal.classList.remove('hidden');
     modal.removeAttribute('inert');
 }
@@ -689,6 +813,7 @@ function closeGlobalOptions() {
     if (!modal) return;
     modal.classList.add('hidden');
     modal.setAttribute('inert', '');
+    resetSheetStyles(modal);
 }
 
 /**
@@ -722,6 +847,7 @@ function openSongOptionsModal(song) {
         }
     }
 
+    resetSheetStyles(modal);
     modal.classList.remove('hidden');
     modal.removeAttribute('inert');
 }
@@ -731,7 +857,176 @@ function closeSongOptionsModal() {
     if (!modal) return;
     modal.classList.add('hidden');
     modal.setAttribute('inert', '');
+    resetSheetStyles(modal);
+    selectedSongForOptions = null;
 }
+
+/**
+ * Setup swipe-down (drag to dismiss) gesture for bottom sheet modals
+ */
+const setupSheetDrag = (modalEl, onCloseCallback) => {
+    if (!modalEl) return () => {};
+
+    const sheet = modalEl.querySelector('.recently-played-options-sheet');
+    const backdrop = modalEl.querySelector('.recently-played-options-backdrop');
+    if (!sheet) return () => {};
+
+    let startX = 0;
+    let startY = 0;
+    let currentDeltaY = 0;
+    let isDragging = false;
+    let startTime = 0;
+    let isListeningWindow = false;
+
+    const resetDragStyles = () => {
+        isDragging = false;
+        sheet.classList.remove('is-dragging');
+        sheet.style.transform = '';
+        sheet.style.transition = '';
+        if (backdrop) {
+            backdrop.style.opacity = '';
+            backdrop.style.transition = '';
+        }
+        removeWindowListeners();
+    };
+
+    const removeWindowListeners = () => {
+        if (!isListeningWindow) return;
+        isListeningWindow = false;
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerCancel);
+    };
+
+    const onPointerMove = (e) => {
+        if (e.pointerType === 'mouse' && e.buttons === 0) {
+            onPointerUp(e);
+            return;
+        }
+
+        const deltaX = e.clientX - startX;
+        const deltaY = e.clientY - startY;
+
+        if (!isDragging) {
+            // Ignore gesture if predominantly horizontal
+            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 8) {
+                return;
+            }
+
+            const handle = sheet.querySelector('.recently-played-options-handle-wrapper');
+            const header = sheet.querySelector('.recently-played-options-header');
+            const isHandleOrHeader = Boolean(
+                (handle && handle.contains(e.target)) ||
+                (header && header.contains(e.target))
+            );
+            const dragStartThreshold = isHandleOrHeader ? 10 : 20;
+
+            if (deltaY > dragStartThreshold) {
+                isDragging = true;
+                sheet.classList.add('is-dragging');
+                sheet.style.transition = 'none';
+                if (backdrop) backdrop.style.transition = 'none';
+            } else if (deltaY < -10) {
+                const rubberBand = Math.max(-12, deltaY * 0.12);
+                sheet.style.transform = `translateY(${rubberBand}px)`;
+                return;
+            } else {
+                return;
+            }
+        }
+
+        if (isDragging) {
+            if (e.cancelable) e.preventDefault();
+            const sheetHeight = sheet.offsetHeight || 320;
+            if (deltaY > 0) {
+                currentDeltaY = deltaY;
+                sheet.style.transform = `translateY(${deltaY}px)`;
+                if (backdrop) {
+                    const opacity = Math.max(0, 1 - (deltaY / (sheetHeight * 0.95)));
+                    backdrop.style.opacity = String(opacity);
+                }
+            } else {
+                currentDeltaY = 0;
+                const rubberBand = Math.max(-12, deltaY * 0.12);
+                sheet.style.transform = `translateY(${rubberBand}px)`;
+                if (backdrop) backdrop.style.opacity = '1';
+            }
+        }
+    };
+
+    const onPointerUp = () => {
+        removeWindowListeners();
+
+        if (!isDragging) {
+            resetDragStyles();
+            return;
+        }
+
+        const sheetHeight = sheet.offsetHeight || 320;
+        const elapsed = Math.max(1, Date.now() - startTime);
+        const velocityY = currentDeltaY / elapsed;
+
+        sheet.classList.remove('is-dragging');
+
+        // Dismiss thresholds: distance >= 30% height or fast swipe down flick (velocity > 0.55 and deltaY >= 40)
+        const dismissDistance = Math.max(100, sheetHeight * 0.30);
+        const isIntentionalSwipe = (velocityY > 0.55 && currentDeltaY >= 40);
+        const shouldDismiss = (currentDeltaY >= dismissDistance || isIntentionalSwipe);
+
+        if (shouldDismiss) {
+            sheet.style.transition = 'transform 0.24s cubic-bezier(0.32, 1, 0.23, 1)';
+            if (backdrop) backdrop.style.transition = 'opacity 0.24s ease';
+            sheet.style.transform = 'translateY(100%)';
+            if (backdrop) backdrop.style.opacity = '0';
+            setTimeout(() => {
+                resetDragStyles();
+                if (typeof onCloseCallback === 'function') {
+                    onCloseCallback();
+                }
+            }, 240);
+        } else {
+            sheet.style.transition = 'transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1)';
+            if (backdrop) backdrop.style.transition = 'opacity 0.28s ease';
+            sheet.style.transform = 'translateY(0)';
+            if (backdrop) backdrop.style.opacity = '1';
+            setTimeout(() => {
+                resetDragStyles();
+            }, 280);
+        }
+
+        isDragging = false;
+    };
+
+    const onPointerCancel = () => {
+        resetDragStyles();
+    };
+
+    const onPointerDown = (e) => {
+        if (e.button !== undefined && e.button !== 0 && e.pointerType === 'mouse') return;
+        // Ignore interactive controls inside sheet
+        if (e.target.closest('button, a, input, [role="button"]')) return;
+
+        startX = e.clientX;
+        startY = e.clientY;
+        currentDeltaY = 0;
+        startTime = Date.now();
+
+        if (!isListeningWindow) {
+            isListeningWindow = true;
+            window.addEventListener('pointermove', onPointerMove, { passive: false });
+            window.addEventListener('pointerup', onPointerUp);
+            window.addEventListener('pointercancel', onPointerCancel);
+        }
+    };
+
+    sheet.addEventListener('pointerdown', onPointerDown);
+
+    return () => {
+        sheet.removeEventListener('pointerdown', onPointerDown);
+        removeWindowListeners();
+        resetDragStyles();
+    };
+};
 
 /**
  * Remove single song from history
@@ -1010,13 +1305,18 @@ function setupEventListeners() {
     const playNextBtn = document.getElementById('optRecentSongPlayNext');
     if (playNextBtn) {
         const handlePlayNext = () => {
-            if (selectedSongForOptions && typeof window.addToQueueNext === 'function') {
-                window.addToQueueNext(selectedSongForOptions);
-                showToast(`"${selectedSongForOptions.name}" will play next`);
+            if (!selectedSongForOptions) return;
+            const targetSong = { ...selectedSongForOptions };
+            closeSongOptionsModal();
+            if (typeof window.addToQueueNext === 'function') {
+                window.addToQueueNext(targetSong);
+                showToast(`"${targetSong.name || 'Track'}" will play next`);
+            } else if (typeof window.addToQueue === 'function') {
+                window.addToQueue(targetSong);
+                showToast(`"${targetSong.name || 'Track'}" will play next`);
             } else {
                 showToast('Added to queue next');
             }
-            closeSongOptionsModal();
         };
         playNextBtn.addEventListener('click', handlePlayNext);
         listeners.push({ element: playNextBtn, type: 'click', handler: handlePlayNext });
@@ -1026,21 +1326,22 @@ function setupEventListeners() {
     if (toggleLikeBtn) {
         const handleToggleLike = async () => {
             if (!selectedSongForOptions) return;
+            const targetSong = { ...selectedSongForOptions };
             if (!auth.currentUser) {
                 showToast("Please log in to manage favorites");
                 closeSongOptionsModal();
                 return;
             }
-            const updated = await toggleFavorite(selectedSongForOptions);
+            closeSongOptionsModal();
+            const updated = await toggleFavorite(targetSong);
             if (Array.isArray(updated)) {
                 currentFavorites = updated;
             } else {
                 await loadFavorites();
             }
-            const isNowLiked = Array.isArray(currentFavorites) && currentFavorites.some(f => areSameSongs(f, selectedSongForOptions));
-            showToast(isNowLiked ? `Added "${selectedSongForOptions.name}" to Liked Songs` : `Removed "${selectedSongForOptions.name}" from Liked Songs`);
+            const isNowLiked = Array.isArray(currentFavorites) && currentFavorites.some(f => areSameSongs(f, targetSong));
+            showToast(isNowLiked ? `Added "${targetSong.name || 'Track'}" to Liked Songs` : `Removed "${targetSong.name || 'Track'}" from Liked Songs`);
             renderRecentSongs();
-            closeSongOptionsModal();
         };
         toggleLikeBtn.addEventListener('click', handleToggleLike);
         listeners.push({ element: toggleLikeBtn, type: 'click', handler: handleToggleLike });
@@ -1050,11 +1351,12 @@ function setupEventListeners() {
     if (downloadBtn) {
         const handleDownload = async () => {
             if (!selectedSongForOptions) return;
+            const targetSong = { ...selectedSongForOptions };
             closeSongOptionsModal();
-            showToast(`Downloading "${selectedSongForOptions.name}" for offline playback...`);
+            showToast(`Downloading "${targetSong.name || 'Track'}" for offline playback...`);
             try {
-                await cacheSongAudio(selectedSongForOptions);
-                showToast(`"${selectedSongForOptions.name}" saved for offline playback!`);
+                await cacheSongAudio(targetSong);
+                showToast(`"${targetSong.name || 'Track'}" saved for offline playback!`);
             } catch (err) {
                 console.error("Offline download failed:", err);
                 showToast('Failed to save track for offline playback');
@@ -1068,16 +1370,19 @@ function setupEventListeners() {
     if (shareBtn) {
         const handleShare = async () => {
             if (!selectedSongForOptions) return;
-            const text = `Listen to ${selectedSongForOptions.name} by ${selectedSongForOptions.artist} on Spotiwind!`;
+            const targetSong = { ...selectedSongForOptions };
+            closeSongOptionsModal();
+            const songName = targetSong.name || 'Track';
+            const artistName = targetSong.artist || 'Unknown Artist';
+            const text = `Listen to ${songName} by ${artistName} on Spotiwind!`;
             if (navigator.share) {
                 try {
-                    await navigator.share({ title: selectedSongForOptions.name, text, url: window.location.href });
+                    await navigator.share({ title: songName, text, url: window.location.href });
                 } catch { }
             } else if (navigator.clipboard) {
                 await navigator.clipboard.writeText(`${text} ${window.location.href}`);
                 showToast('Song info copied to clipboard');
             }
-            closeSongOptionsModal();
         };
         shareBtn.addEventListener('click', handleShare);
         listeners.push({ element: shareBtn, type: 'click', handler: handleShare });
@@ -1086,10 +1391,10 @@ function setupEventListeners() {
     const removeBtn = document.getElementById('optRecentSongRemove');
     if (removeBtn) {
         const handleRemove = () => {
-            if (selectedSongForOptions) {
-                removeSongFromHistory(selectedSongForOptions);
-            }
+            if (!selectedSongForOptions) return;
+            const targetSong = { ...selectedSongForOptions };
             closeSongOptionsModal();
+            removeSongFromHistory(targetSong);
         };
         removeBtn.addEventListener('click', handleRemove);
         listeners.push({ element: removeBtn, type: 'click', handler: handleRemove });
@@ -1119,11 +1424,44 @@ function setupEventListeners() {
     window.addEventListener('favorites-updated', onFavoritesUpdated);
     listeners.push({ element: window, type: 'favorites-updated', handler: onFavoritesUpdated });
 
-    const onAudioStateChanged = () => {
+    const handleSyncUI = () => {
         syncPlayPauseButtonUI();
     };
-    window.addEventListener('song-playing-state-changed', onAudioStateChanged);
-    listeners.push({ element: window, type: 'song-playing-state-changed', handler: onAudioStateChanged });
+
+    window.addEventListener('song-changed', handleSyncUI);
+    listeners.push({ element: window, type: 'song-changed', handler: handleSyncUI });
+
+    window.addEventListener('song-playback-state-changed', handleSyncUI);
+    listeners.push({ element: window, type: 'song-playback-state-changed', handler: handleSyncUI });
+
+    const activeAudio = getGlobalActiveAudio();
+    if (activeAudio) {
+        activeAudio.addEventListener('play', handleSyncUI);
+        activeAudio.addEventListener('pause', handleSyncUI);
+        activeAudio.addEventListener('ended', handleSyncUI);
+        listeners.push({ element: activeAudio, type: 'play', handler: handleSyncUI });
+        listeners.push({ element: activeAudio, type: 'pause', handler: handleSyncUI });
+        listeners.push({ element: activeAudio, type: 'ended', handler: handleSyncUI });
+    }
+
+    // 10. Drag-to-dismiss on bottom sheets
+    const globalModal = document.getElementById('recentGlobalOptionsModal');
+    if (globalModal) {
+        if (cleanupGlobalDrag) {
+            cleanupGlobalDrag();
+            cleanupGlobalDrag = null;
+        }
+        cleanupGlobalDrag = setupSheetDrag(globalModal, closeGlobalOptions);
+    }
+
+    const songModal = document.getElementById('recentSongOptionsModal');
+    if (songModal) {
+        if (cleanupSongDrag) {
+            cleanupSongDrag();
+            cleanupSongDrag = null;
+        }
+        cleanupSongDrag = setupSheetDrag(songModal, closeSongOptionsModal);
+    }
 
     // 11. Infinite scroll setup
     setupRecentInfiniteScroll();
@@ -1155,6 +1493,8 @@ export async function initRecentlyPlayedPage(prevUrl = 'library-mobile.html') {
             }
         });
     }
+
+    syncPlayPauseButtonUI();
 }
 
 /**
@@ -1172,6 +1512,16 @@ export function cleanupRecentlyPlayedPage() {
         }
     });
     listeners.length = 0;
+
+    if (cleanupGlobalDrag) {
+        cleanupGlobalDrag();
+        cleanupGlobalDrag = null;
+    }
+    if (cleanupSongDrag) {
+        cleanupSongDrag();
+        cleanupSongDrag = null;
+    }
+
     selectedSongForOptions = null;
     currentFavorites = [];
 }
