@@ -5,14 +5,14 @@
 
 import { auth, db, onAuthStateChanged, collection, onSnapshot, query, orderBy, getDocs } from './firebase-config.js';
 import { getFavoriteSongs, toggleFavorite } from '../../services/favoriteService.js';
-import { 
-    getUserPlaylists, 
-    getUserSavedAlbums, 
-    subscribeUserSavedAlbums, 
-    saveAlbumToLibrary, 
-    removeAlbumFromLibrary, 
-    toggleSaveAlbum, 
-    isAlbumSavedInLibrary 
+import {
+    getUserPlaylists,
+    getUserSavedAlbums,
+    subscribeUserSavedAlbums,
+    saveAlbumToLibrary,
+    removeAlbumFromLibrary,
+    toggleSaveAlbum,
+    isAlbumSavedInLibrary
 } from '../../services/libraryService.js';
 import { subscribeUserProfile, getProfileByUid } from '../../services/profileService.js';
 import { openProSubscriptionModal, closeProSubscriptionModal } from '../../components/modals/proSubscriptionModal.js';
@@ -93,7 +93,7 @@ export function switchToLibraryTab(tabKey, options = {}) {
     activeLibraryTab = targetTab.dataset.libraryTab || 'overview';
     try {
         sessionStorage.setItem('library_active_tab', activeLibraryTab);
-    } catch {}
+    } catch { }
 
     tabs.forEach((item) => {
         const isActive = item === targetTab;
@@ -1055,7 +1055,7 @@ function renderAlbumsPanel(songs = [], isGuest = false) {
         const rawDl = localStorage.getItem('downloaded_songs') || localStorage.getItem('spotiwind_downloads') || '[]';
         const dls = JSON.parse(rawDl);
         if (Array.isArray(dls)) downloadedSongs = dls;
-    } catch {}
+    } catch { }
 
     const albumMap = new Map();
 
@@ -1124,8 +1124,8 @@ function renderAlbumsPanel(songs = [], isGuest = false) {
 
     // 2. Filter by search input
     if (albumSearchQuery) {
-        albums = albums.filter(a => 
-            (a.name || '').toLowerCase().includes(albumSearchQuery) || 
+        albums = albums.filter(a =>
+            (a.name || '').toLowerCase().includes(albumSearchQuery) ||
             (a.artist || '').toLowerCase().includes(albumSearchQuery)
         );
     }
@@ -1137,7 +1137,7 @@ function renderAlbumsPanel(songs = [], isGuest = false) {
             const rawRecent = localStorage.getItem('recently_played_songs') || localStorage.getItem('recentlyPlayed') || '[]';
             recentList = JSON.parse(rawRecent);
             if (!Array.isArray(recentList)) recentList = [];
-        } catch {}
+        } catch { }
 
         const getAlbumRecentIndex = (album) => {
             const index = recentList.findIndex(recentSong => {
@@ -1363,7 +1363,7 @@ async function renderArtistsPanel(isGuest = false) {
         const rawRecent = localStorage.getItem('recently_played_songs') || localStorage.getItem('recentlyPlayed') || '[]';
         recentSongsList = JSON.parse(rawRecent);
         if (!Array.isArray(recentSongsList)) recentSongsList = [];
-    } catch {}
+    } catch { }
 
     recentSongsList.forEach(recentSong => {
         const rawArtist = recentSong.artist || recentSong.artistName || '';
@@ -1534,7 +1534,7 @@ function renderTracksPanel(songs = [], isGuest = false) {
         const rawDl = localStorage.getItem('downloaded_songs') || localStorage.getItem('spotiwind_downloads') || '[]';
         const dls = JSON.parse(rawDl);
         if (Array.isArray(dls)) downloadedSongs = dls;
-    } catch {}
+    } catch { }
 
     let allTracks = [...likedSongs];
 
@@ -1548,7 +1548,7 @@ function renderTracksPanel(songs = [], isGuest = false) {
 
     // 2. Filter by search input
     if (trackSearchQuery) {
-        filtered = filtered.filter(s => 
+        filtered = filtered.filter(s =>
             (s.name || s.title || '').toLowerCase().includes(trackSearchQuery) ||
             (s.artist || '').toLowerCase().includes(trackSearchQuery)
         );
@@ -2875,7 +2875,7 @@ function setupSongActionListeners() {
             e.preventDefault();
             try {
                 sessionStorage.setItem('spotiwind_auth_previous_page', 'library-mobile.html');
-            } catch {}
+            } catch { }
             if (typeof window.navigateToAuthPage === 'function') {
                 window.navigateToAuthPage('login');
             } else {
@@ -2906,7 +2906,7 @@ function setupSongActionListeners() {
                 }
                 try {
                     sessionStorage.setItem('spotiwind_auth_previous_page', 'library-mobile.html');
-                } catch {}
+                } catch { }
                 setTimeout(() => {
                     if (typeof window.navigateToAuthPage === 'function') {
                         window.navigateToAuthPage('login');
@@ -3160,11 +3160,11 @@ let cleanupDownloadOptionsDrag = null;
  * Setup swipe-down (collapse / dismiss) gesture only for download options bottom sheet modal
  */
 function setupDownloadOptionsDrag(modalEl, onCloseCallback) {
-    if (!modalEl) return () => {};
+    if (!modalEl) return () => { };
 
     const sheet = modalEl.querySelector('.download-options-sheet');
     const backdrop = modalEl.querySelector('.download-options-backdrop');
-    if (!sheet) return () => {};
+    if (!sheet) return () => { };
 
     let startX = 0;
     let startY = 0;

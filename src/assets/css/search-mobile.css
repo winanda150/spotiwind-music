@@ -81,17 +81,21 @@
     gap: 0.4rem;
     padding: 0.6rem 0.55rem;
     color: var(--text-main);
-    background: rgba(255, 255, 255, 0.055);
-    border: 1px solid var(--glass-border);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 0.7rem;
     cursor: pointer;
     text-align: left;
     transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .recent-search-card:hover,
 .recent-search-card:focus-visible {
-    background: rgba(255, 255, 255, 0.1);
+    background: #1e293f;
     border-color: var(--accent-color);
     outline: none;
     transform: translateY(-1px);
@@ -208,15 +212,20 @@
     min-width: 0;
     gap: 0.75rem;
     padding: 0.55rem;
-    background: rgba(255, 255, 255, 0.055);
-    border: 1px solid var(--glass-border);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 0.65rem;
     cursor: pointer;
-    transition: border-color 0.2s ease, transform 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .popular-search-card:hover,
 .popular-search-card:focus-visible {
+    background: #1e293f;
     border-color: var(--accent-color);
     outline: none;
     transform: translateY(-1px);
@@ -873,13 +882,14 @@
     width: 54px;
     height: 54px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #172033;
+    border: 1px solid #1e2738;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-muted);
     margin-bottom: 0.25rem;
+    isolation: isolate;
 }
 
 .search-empty-icon svg {

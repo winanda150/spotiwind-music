@@ -3,14 +3,23 @@
  * Enables 100% Offline Playback & Seamless Offline Browsing
  */
 
-const APP_SHELL_CACHE = 'spotiwind-app-shell-v1';
+const APP_SHELL_CACHE = 'spotiwind-app-shell-v2';
 const AUDIO_CACHE = 'spotiwind-offline-audio-v1';
 
 const PRECACHE_ASSETS = [
+    // Entry Points & PWA Manifest
     '/',
     '/index.html',
+    '/manifest.json',
+
+    // Core Architecture & Engines
     '/src/assets/css/index.css',
     '/src/assets/js/index.js',
+    '/src/assets/js/firebase-config.js',
+    '/src/core/pageLoader.js',
+    '/src/core/audioEngine.js',
+
+    // HTML Pages (Mobile & Desktop)
     '/src/pages/home-mobile.html',
     '/src/pages/home-desktop.html',
     '/src/pages/library-mobile.html',
@@ -19,52 +28,98 @@ const PRECACHE_ASSETS = [
     '/src/pages/account-mobile.html',
     '/src/pages/artist-mobile.html',
     '/src/pages/auth-mobile.html',
+    '/src/pages/auth-desktop.html',
     '/src/pages/notifications-mobile.html',
     '/src/pages/liked-songs-mobile.html',
     '/src/pages/downloads-mobile.html',
+    '/src/pages/recently-played-mobile.html',
+
+    // Stylesheets (CSS)
     '/src/assets/css/home-mobile.css',
     '/src/assets/css/home-desktop.css',
     '/src/assets/css/library-mobile.css',
     '/src/assets/css/liked-songs-mobile.css',
     '/src/assets/css/downloads-mobile.css',
+    '/src/assets/css/recently-played-mobile.css',
     '/src/assets/css/search-mobile.css',
     '/src/assets/css/windflow-mobile.css',
     '/src/assets/css/account-mobile.css',
     '/src/assets/css/artist-mobile.css',
     '/src/assets/css/auth-mobile.css',
+    '/src/assets/css/auth-desktop.css',
     '/src/assets/css/notifications-mobile.css',
+
+    // Page Scripts (JS)
     '/src/assets/js/home-mobile.js',
     '/src/assets/js/home-desktop.js',
     '/src/assets/js/library-mobile.js',
     '/src/assets/js/liked-songs-mobile.js',
     '/src/assets/js/downloads-mobile.js',
+    '/src/assets/js/recently-played-mobile.js',
     '/src/assets/js/search-mobile.js',
     '/src/assets/js/windflow-mobile.js',
     '/src/assets/js/account-mobile.js',
     '/src/assets/js/artist-mobile.js',
     '/src/assets/js/auth-mobile.js',
-    '/src/assets/js/firebase-config.js',
-    '/src/services/offlineAudioService.js',
-    '/src/services/libraryService.js',
+    '/src/assets/js/auth-desktop.js',
+    '/src/assets/js/notifications-mobile.js',
+
+    // UI Components (Modals & Bottom Sheets)
+    '/src/components/modals/avatarPreviewModal.js',
+    '/src/components/modals/createPlaylistModal.js',
+    '/src/components/modals/friendsActivityModal.js',
+    '/src/components/modals/proSubscriptionModal.js',
+    '/src/components/sheets/mixDetailSheet.js',
+    '/src/components/sheets/songOptionsSheet.js',
+
+    // Constants & Utilities
+    '/src/constants/icons.js',
+    '/src/utils/audioUtils.js',
+    '/src/utils/domUtils.js',
+    '/src/utils/formatters.js',
+
+    // Application Services
+    '/src/services/activityService.js',
+    '/src/services/authService.js',
     '/src/services/catalogService.js',
     '/src/services/favoriteService.js',
-    '/src/services/playerService.js',
-    '/src/services/profileService.js',
-    '/src/services/activityService.js',
-    '/src/services/presenceService.js',
-    '/src/services/notificationService.js',
-    '/src/services/recentlyPlayedService.js',
+    '/src/services/fuzzySearch.js',
+    '/src/services/guestHistoryService.js',
+    '/src/services/index.js',
     '/src/services/jamendoService.js',
+    '/src/services/libraryService.js',
+    '/src/services/madeForYouService.js',
+    '/src/services/notificationService.js',
+    '/src/services/offlineAudioService.js',
+    '/src/services/playerService.js',
+    '/src/services/popularTrackService.js',
+    '/src/services/presenceService.js',
+    '/src/services/profileService.js',
+    '/src/services/recentSearchService.js',
+    '/src/services/recentlyPlayedService.js',
+    '/src/services/searchPopularityService.js',
+    '/src/services/searchService.js',
+    '/src/services/topArtistService.js',
+    '/src/services/userService.js',
+
+    // Data Catalogs (JSON)
     '/public/data/artists.json',
     '/public/data/songs.json',
     '/public/data/albums.json',
+
+    // Branding, Icons & Hero Images
     '/public/branding/Spotiwind.webp',
     '/public/branding/Spotiwind.ico',
+    '/public/branding/Spotiwind.png',
+    '/public/branding/Spotiwind%20Animation%20Logo.gif',
+    '/public/branding/Spotiwind%20OG%20Image.jpg',
     '/public/images/Hero%20Section.webp',
     '/public/images/Download%20Image.webp',
     '/public/images/Banner%20Exclusive.webp',
+    '/public/images/Banner%20PRO.webp',
     '/public/images/Love%20Image.webp',
-    '/public/branding/Spotiwind%20OG%20Image.jpg'
+    '/public/images/Favorites%20Image.webp',
+    '/public/images/Recent%20Image.webp'
 ];
 
 // Install: Pre-cache App Shell

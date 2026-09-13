@@ -959,7 +959,7 @@ body.mix-detail-open .mobile-header {
 .hero-card {
     background: linear-gradient(to right, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.5) 60%, rgba(15, 23, 42, 0.2) 100%), url('../../../public/images/Hero%20Section.webp');
     background-size: cover;
-    background-position: center;
+    background-position: center center;
     background-repeat: no-repeat;
     border-radius: 1rem;
     padding: 1.5rem var(--mobile-horizontal-padding);
@@ -1203,17 +1203,21 @@ body.mix-detail-open .mobile-header {
 }
 
 .song-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 0.8rem;
     transition: all 0.3s ease;
     cursor: pointer;
     overflow: hidden;
     flex: 0 0 160px;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .song-card:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: #1e293f;
     border-color: var(--accent-color);
 }
 
@@ -3016,13 +3020,14 @@ body.full-player-open {
     width: 52px;
     height: 52px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #172033;
+    border: 1px solid #1e2738;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-muted);
     margin-bottom: 0.2rem;
+    isolation: isolate;
 }
 
 .popular-empty-icon svg {
@@ -3489,22 +3494,26 @@ body.player-active .mix-detail-modal .mix-detail-scrollable {
     align-items: center;
     gap: 0.75rem;
     padding: 0.5rem 0.75rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 12px;
     cursor: pointer;
     transition: background-color 0.2s ease, border-color 0.2s ease;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .recent-track-row:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: #1e293f;
     border-color: var(--accent-color, #B91EC9);
 }
 
 .recent-track-row:active {
-    background: rgba(255, 255, 255, 0.06);
+    background: #1b2438;
 }
 
 .recent-track-row.is-active-song {
@@ -3693,13 +3702,14 @@ body.player-active .mix-detail-modal .mix-detail-scrollable {
     width: 52px;
     height: 52px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #172033;
+    border: 1px solid #1e2738;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-muted);
     margin-bottom: 0.2rem;
+    isolation: isolate;
 }
 
 .recent-empty-icon svg {

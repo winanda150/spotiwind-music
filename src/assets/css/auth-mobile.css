@@ -209,15 +209,16 @@ body.player-active .app-container {
     text-decoration: none;
     padding: 7px 14px;
     border-radius: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #172033;
+    border: 1px solid #1e2738;
     backdrop-filter: blur(10px);
     transition: all 0.2s ease;
+    isolation: isolate;
 }
 
 .back-btn-pill:active {
     transform: scale(0.96);
-    background: rgba(255, 255, 255, 0.1);
+    background: #1e293f;
 }
 
 /* Hero Branding Section */
@@ -323,16 +324,17 @@ body.player-active .app-container {
     align-items: center;
     justify-content: center;
     height: 48px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: var(--radius-md);
     backdrop-filter: blur(10px);
     transition: all 0.2s ease;
+    isolation: isolate;
 }
 
 .m-social-btn:active {
     transform: scale(0.95);
-    background: rgba(255, 255, 255, 0.08);
+    background: #1e293f;
 }
 
 .m-social-btn svg {

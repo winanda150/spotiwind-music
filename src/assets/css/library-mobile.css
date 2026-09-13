@@ -344,17 +344,21 @@
     align-items: center;
     gap: 0.85rem;
     padding: 0.6rem 0.75rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 10px;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .overview-playlist-item:hover {
-    background: rgba(255, 255, 255, 0.07);
+    background: #1e293f;
     border-color: rgba(255, 255, 255, 0.12);
 }
 
@@ -444,16 +448,20 @@
     gap: 0.85rem;
     padding: 0.55rem 0.65rem;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: #172033;
+    border: 1px solid #1e2738;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .overview-song-item:hover {
-    background: rgba(255, 255, 255, 0.07);
+    background: #1e293f;
     border-color: rgba(255, 255, 255, 0.12);
 }
 
@@ -1015,23 +1023,26 @@
     flex-direction: column;
 }
 
-/* --- Your Playlist: List View (.your-playlist-item) --- */
 .your-playlist-item {
     display: flex;
     align-items: center;
     gap: 0.85rem;
     padding: 0.6rem 0.75rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 12px;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .your-playlist-item:hover {
-    background: rgba(255, 255, 255, 0.07);
+    background: #1e293f;
     border-color: rgba(255, 255, 255, 0.12);
 }
 
@@ -1119,13 +1130,12 @@
     background: rgba(255, 255, 255, 0.08);
 }
 
-/* --- Your Playlist: Grid View (.your-playlist-grid-card) --- */
 .your-playlist-grid-card {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 12px;
     padding: 0.65rem;
     cursor: pointer;
@@ -1134,10 +1144,14 @@
     -webkit-tap-highlight-color: transparent;
     box-sizing: border-box;
     width: 100%;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .your-playlist-grid-card:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: #1e293f;
     border-color: rgba(255, 255, 255, 0.12);
     transform: translateY(-2px);
 }
@@ -1682,23 +1696,26 @@
     flex-direction: column;
 }
 
-/* --- Your Album: List View (.your-album-item) --- */
 .your-album-item {
     display: flex;
     align-items: center;
     gap: 0.85rem;
     padding: 0.6rem 0.75rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 12px;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .your-album-item:hover {
-    background: rgba(255, 255, 255, 0.07);
+    background: #1e293f;
     border-color: rgba(255, 255, 255, 0.12);
 }
 
@@ -1802,13 +1819,12 @@
     background: rgba(255, 255, 255, 0.08);
 }
 
-/* --- Your Album: Grid View (.your-album-grid-card) --- */
 .your-album-grid-card {
     display: flex;
     flex-direction: column;
     gap: 0.55rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 12px;
     padding: 0.65rem;
     cursor: pointer;
@@ -1817,10 +1833,14 @@
     -webkit-tap-highlight-color: transparent;
     box-sizing: border-box;
     width: 100%;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .your-album-grid-card:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: #1e293f;
     border-color: rgba(255, 255, 255, 0.12);
     transform: translateY(-2px);
 }
@@ -2420,23 +2440,26 @@
     flex-direction: column;
 }
 
-/* --- Your Artist: List View (.your-artist-item) --- */
 .your-artist-item {
     display: flex;
     align-items: center;
     gap: 0.85rem;
     padding: 0.6rem 0.75rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 12px;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .your-artist-item:hover {
-    background: rgba(255, 255, 255, 0.07);
+    background: #1e293f;
     border-color: rgba(255, 255, 255, 0.12);
 }
 
@@ -2525,15 +2548,14 @@
     background: rgba(255, 255, 255, 0.08);
 }
 
-/* --- Your Artist: Grid View (.your-artist-grid-card) --- */
 .your-artist-grid-card {
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     gap: 0.6rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 12px;
     padding: 0.85rem 0.65rem 0.75rem;
     cursor: pointer;
@@ -2542,10 +2564,14 @@
     -webkit-tap-highlight-color: transparent;
     box-sizing: border-box;
     width: 100%;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .your-artist-grid-card:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: #1e293f;
     border-color: rgba(255, 255, 255, 0.12);
     transform: translateY(-2px);
 }
@@ -3085,23 +3111,26 @@
     flex-direction: column;
 }
 
-/* --- Your Track: List View (.your-track-item) --- */
 .your-track-item {
     display: flex;
     align-items: center;
     gap: 0.85rem;
     padding: 0.6rem 0.75rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 12px;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .your-track-item:hover {
-    background: rgba(255, 255, 255, 0.07);
+    background: #1e293f;
     border-color: rgba(255, 255, 255, 0.12);
 }
 
@@ -3243,13 +3272,12 @@
     background: rgba(255, 255, 255, 0.08);
 }
 
-/* --- Your Track: Grid View (.your-track-grid-card) --- */
 .your-track-grid-card {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 12px;
     padding: 0.65rem;
     cursor: pointer;
@@ -3259,10 +3287,14 @@
     box-sizing: border-box;
     width: 100%;
     min-width: 0;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .your-track-grid-card:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: #1e293f;
     border-color: rgba(255, 255, 255, 0.12);
     transform: translateY(-2px);
 }
@@ -3460,8 +3492,8 @@
 .downloads-storage-card {
     margin: 0 var(--mobile-horizontal-padding) 0.65rem;
     padding: 0.75rem 0.85rem;
-    background: rgba(255, 255, 255, 0.035);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 14px;
     display: flex;
     flex-direction: column;
@@ -3470,11 +3502,15 @@
     -webkit-backdrop-filter: blur(8px);
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
     transition: border-color 0.2s ease, background 0.2s ease;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .downloads-storage-card:hover {
     border-color: rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.05);
+    background: #1e293f;
 }
 
 .downloads-storage-top {
@@ -3928,23 +3964,26 @@
     flex-direction: column;
 }
 
-/* --- Your Downloads: List View (.your-download-item) --- */
 .your-download-item {
     display: flex;
     align-items: center;
     gap: 0.85rem;
     padding: 0.6rem 0.75rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 12px;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .your-download-item:hover {
-    background: rgba(255, 255, 255, 0.07);
+    background: #1e293f;
     border-color: rgba(255, 255, 255, 0.12);
 }
 
@@ -4059,13 +4098,12 @@
     background: rgba(255, 255, 255, 0.08);
 }
 
-/* --- Your Downloads: Grid View (.your-download-grid-card) --- */
 .your-download-grid-card {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 12px;
     padding: 0.65rem;
     cursor: pointer;
@@ -4075,10 +4113,14 @@
     box-sizing: border-box;
     width: 100%;
     min-width: 0;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .your-download-grid-card:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: #1e293f;
     border-color: rgba(255, 255, 255, 0.12);
     transform: translateY(-2px);
 }
@@ -4282,7 +4324,6 @@
    7. SHARED COMPATIBILITY & MODALS
    ========================================================================== */
 
-/* Generic Song Item & Empty State Fallbacks */
 .library-song-item {
     position: relative;
     display: flex;
@@ -4290,17 +4331,21 @@
     gap: 0.85rem;
     padding: 0.55rem 0.65rem;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: #172033;
+    border: 1px solid #1e2738;
     cursor: pointer;
     overflow: hidden;
     transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .library-song-item:hover {
-    background: rgba(255, 255, 255, 0.07);
+    background: #1e293f;
     border-color: rgba(255, 255, 255, 0.12);
 }
 
@@ -4940,12 +4985,14 @@
     list-style: none;
     margin: 0 0 1.25rem 0;
     padding: 0.85rem 1rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    isolation: isolate;
+    contain: paint;
 }
 
 .pro-benefit-item {

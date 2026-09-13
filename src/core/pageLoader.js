@@ -46,11 +46,11 @@ export const setPageScrollPosition = (page, pos) => {
     pageScrollPositions.set(pageName, scrollNum);
     try {
         sessionStorage.setItem(`scroll_pos_${pageName}`, String(scrollNum));
-    } catch {}
+    } catch { }
 
     if (pageName === 'home-mobile.html') {
         homeScrollPosition = scrollNum;
-        try { sessionStorage.setItem('home_scroll_pos', String(scrollNum)); } catch {}
+        try { sessionStorage.setItem('home_scroll_pos', String(scrollNum)); } catch { }
     }
 };
 
@@ -67,7 +67,7 @@ export const getPageScrollPosition = (page) => {
         if (pageName === 'home-mobile.html') {
             return homeScrollPosition || Number(sessionStorage.getItem('home_scroll_pos')) || 0;
         }
-    } catch {}
+    } catch { }
     return 0;
 };
 
@@ -341,7 +341,7 @@ export const loadSubpage = async (page, options = {}, context = null) => {
             previousPageUrl = currentPageUrl;
             try {
                 sessionStorage.setItem('spotiwind_auth_previous_page', currentPageUrl);
-            } catch {}
+            } catch { }
         }
     }
     currentPageUrl = page;

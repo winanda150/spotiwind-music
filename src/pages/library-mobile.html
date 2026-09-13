@@ -2,7 +2,8 @@
     <header class="mobile-header">
         <div class="header-left">
             <button class="menu-btn" type="button" aria-label="Open menu">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" aria-hidden="true">
                     <line x1="3" y1="6" x2="21" y2="6"></line>
                     <line x1="3" y1="12" x2="21" y2="12"></line>
                     <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -10,12 +11,14 @@
             </button>
         </div>
         <div class="header-brand">
-            <img src="../../public/branding/Spotiwind.webp" alt="Spotiwind Logo" class="mobile-logo" width="28" height="28">
+            <img src="../../public/branding/Spotiwind.webp" alt="Spotiwind Logo" class="mobile-logo" width="28"
+                height="28">
             <span class="mobile-brand-name">Spotiwind</span>
         </div>
         <div class="header-right">
             <button id="notificationBtn" class="notification-btn" type="button" aria-label="Notifications">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" aria-hidden="true">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                     <path d="M13.73 21a2 2 0 0 0-3.46 0"></path>
                 </svg>
@@ -32,14 +35,18 @@
                 <p class="library-subtitle">Your music, your collection.</p>
             </div>
             <div class="library-header-actions">
-                <button class="library-action-btn" id="librarySearchBtn" type="button" aria-label="Search in library" title="Search">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <button class="library-action-btn" id="librarySearchBtn" type="button" aria-label="Search in library"
+                    title="Search">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
                 </button>
-                <button class="library-action-btn" id="libraryAddBtn" type="button" aria-label="Add to library" title="Add">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <button class="library-action-btn" id="libraryAddBtn" type="button" aria-label="Add to library"
+                    title="Add">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="12" y1="8" x2="12" y2="16"></line>
                         <line x1="8" y1="12" x2="16" y2="12"></line>
@@ -50,25 +57,34 @@
 
         <!-- Library Tabs Navigation (Underline Style like Search Page) -->
         <div class="library-tabs" role="tablist" aria-label="Library categories">
-            <button class="library-tab is-active" type="button" role="tab" aria-selected="true" data-library-tab="overview">Overview</button>
-            <button class="library-tab" type="button" role="tab" aria-selected="false" data-library-tab="playlists">Playlists</button>
-            <button class="library-tab" type="button" role="tab" aria-selected="false" data-library-tab="albums">Albums</button>
-            <button class="library-tab" type="button" role="tab" aria-selected="false" data-library-tab="artists">Artists</button>
-            <button class="library-tab" type="button" role="tab" aria-selected="false" data-library-tab="tracks">Tracks</button>
-            <button class="library-tab" type="button" role="tab" aria-selected="false" data-library-tab="download">Download</button>
+            <button class="library-tab is-active" type="button" role="tab" aria-selected="true"
+                data-library-tab="overview">Overview</button>
+            <button class="library-tab" type="button" role="tab" aria-selected="false"
+                data-library-tab="playlists">Playlists</button>
+            <button class="library-tab" type="button" role="tab" aria-selected="false"
+                data-library-tab="albums">Albums</button>
+            <button class="library-tab" type="button" role="tab" aria-selected="false"
+                data-library-tab="artists">Artists</button>
+            <button class="library-tab" type="button" role="tab" aria-selected="false"
+                data-library-tab="tracks">Tracks</button>
+            <button class="library-tab" type="button" role="tab" aria-selected="false"
+                data-library-tab="download">Download</button>
             <span class="library-active-indicator" aria-hidden="true"></span>
         </div>
 
         <!-- Library Tab Panels -->
         <div class="library-panels">
             <!-- 1. Overview Panel -->
-            <section class="library-panel overview-tab-panel is-active" id="overviewPanel" data-library-panel="overview">
+            <section class="library-panel overview-tab-panel is-active" id="overviewPanel"
+                data-library-panel="overview">
                 <!-- Overview Stats Cards -->
                 <div class="overview-stats-grid">
                     <div class="overview-stat-card card-liked" data-overview-item="liked-songs">
                         <div class="overview-stat-icon">
                             <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
-                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+                                <path
+                                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z">
+                                </path>
                             </svg>
                         </div>
                         <div class="overview-stat-info">
@@ -79,7 +95,8 @@
 
                     <div class="overview-stat-card card-downloads" data-overview-item="downloads">
                         <div class="overview-stat-icon">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                                stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                 <polyline points="7 10 12 15 17 10"></polyline>
                                 <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -93,7 +110,8 @@
 
                     <div class="overview-stat-card card-recent" data-overview-item="recently-played">
                         <div class="overview-stat-icon">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                                stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <polyline points="12 6 12 12 16 14"></polyline>
                             </svg>
@@ -106,8 +124,11 @@
 
                     <div class="overview-stat-card card-favorites" data-overview-item="favorites">
                         <div class="overview-stat-icon">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" stroke="currentColor"
+                                stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polygon
+                                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                                </polygon>
                             </svg>
                         </div>
                         <div class="overview-stat-info">
@@ -140,8 +161,10 @@
             <section class="library-panel playlists-tab-panel" id="playlistsPanel" data-library-panel="playlists">
                 <div class="playlists-header">
                     <h2 class="playlists-title">Playlists</h2>
-                    <button class="playlists-create-btn" id="createPlaylistBtn" type="button" aria-label="Create playlist">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <button class="playlists-create-btn" id="createPlaylistBtn" type="button"
+                        aria-label="Create playlist">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
@@ -152,13 +175,18 @@
                 <!-- Playlist Search Box -->
                 <div class="playlists-search-container">
                     <div class="playlists-search-box">
-                        <svg class="playlists-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg class="playlists-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
                             <circle cx="11" cy="11" r="8"></circle>
                             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
-                        <input type="search" id="playlistSearchInput" class="playlists-search-input" placeholder="Search your playlists..." autocomplete="off" aria-label="Search playlists">
-                        <button type="button" id="playlistSearchClearBtn" class="playlists-search-clear hidden" aria-label="Clear search">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <input type="search" id="playlistSearchInput" class="playlists-search-input"
+                            placeholder="Search your playlists..." autocomplete="off" aria-label="Search playlists">
+                        <button type="button" id="playlistSearchClearBtn" class="playlists-search-clear hidden"
+                            aria-label="Clear search">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
@@ -169,41 +197,65 @@
                 <!-- Playlist Controls Bar (Filter Chips + Sort & View Controls) -->
                 <div class="playlists-controls-bar">
                     <div class="playlists-filter-chips" role="tablist" aria-label="Filter playlists">
-                        <button type="button" class="playlists-filter-chip is-active" data-playlist-filter="all">All</button>
-                        <button type="button" class="playlists-filter-chip" data-playlist-filter="create">Create</button>
-                        <button type="button" class="playlists-filter-chip" data-playlist-filter="collab">Collaboration</button>
+                        <button type="button" class="playlists-filter-chip is-active"
+                            data-playlist-filter="all">All</button>
+                        <button type="button" class="playlists-filter-chip"
+                            data-playlist-filter="create">Create</button>
+                        <button type="button" class="playlists-filter-chip"
+                            data-playlist-filter="collab">Collaboration</button>
                     </div>
 
                     <div class="playlists-actions-right">
                         <!-- Sort Dropdown -->
                         <div class="playlists-sort-dropdown" id="playlistSortDropdown">
-                            <button type="button" class="playlists-sort-trigger" id="playlistSortBtn" aria-haspopup="true" aria-expanded="false" title="Sort playlists">
+                            <button type="button" class="playlists-sort-trigger" id="playlistSortBtn"
+                                aria-haspopup="true" aria-expanded="false" title="Sort playlists">
                                 <span class="playlists-sort-prefix">Sort:</span>
                                 <span class="playlists-sort-current" id="playlistSortLabel">Recently added</span>
-                                <svg class="playlists-sort-arrow" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <svg class="playlists-sort-arrow" viewBox="0 0 24 24" width="13" height="13" fill="none"
+                                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                    stroke-linejoin="round">
                                     <polyline points="6 9 12 15 18 9"></polyline>
                                 </svg>
                             </button>
                             <div class="playlists-sort-menu hidden" id="playlistSortMenu" role="menu">
-                                <button type="button" class="playlists-sort-item is-selected" data-sort-val="recently-added" role="menuitem">
+                                <button type="button" class="playlists-sort-item is-selected"
+                                    data-sort-val="recently-added" role="menuitem">
                                     <span>Recently added</span>
-                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
                                 </button>
-                                <button type="button" class="playlists-sort-item" data-sort-val="recently-played" role="menuitem">
+                                <button type="button" class="playlists-sort-item" data-sort-val="recently-played"
+                                    role="menuitem">
                                     <span>Recently played</span>
-                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
                                 </button>
-                                <button type="button" class="playlists-sort-item" data-sort-val="alphabetical" role="menuitem">
+                                <button type="button" class="playlists-sort-item" data-sort-val="alphabetical"
+                                    role="menuitem">
                                     <span>Alphabetical</span>
-                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
                                 </button>
                             </div>
                         </div>
 
                         <!-- View Toggle: List & Grid (SVG Icons) -->
                         <div class="playlists-view-toggle" role="group" aria-label="Playlist view mode">
-                            <button type="button" class="playlists-view-btn is-active" id="playlistViewListBtn" data-view-mode="list" aria-label="List view" title="List view">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <button type="button" class="playlists-view-btn is-active" id="playlistViewListBtn"
+                                data-view-mode="list" aria-label="List view" title="List view">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
                                     <line x1="8" y1="6" x2="21" y2="6"></line>
                                     <line x1="8" y1="12" x2="21" y2="12"></line>
                                     <line x1="8" y1="18" x2="21" y2="18"></line>
@@ -212,8 +264,11 @@
                                     <line x1="3" y1="18" x2="3.01" y2="18"></line>
                                 </svg>
                             </button>
-                            <button type="button" class="playlists-view-btn" id="playlistViewGridBtn" data-view-mode="grid" aria-label="Grid view" title="Grid view">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <button type="button" class="playlists-view-btn" id="playlistViewGridBtn"
+                                data-view-mode="grid" aria-label="Grid view" title="Grid view">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
                                     <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
                                     <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
                                     <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
@@ -233,12 +288,16 @@
                 <div class="your-playlists-container view-list" id="libraryPlaylistsList">
                     <div class="your-playlists-empty-state">
                         <div class="your-playlists-empty-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon
+                                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                                </polygon>
                             </svg>
                         </div>
                         <h3 class="your-playlists-empty-title">Create your custom playlists</h3>
-                        <p class="your-playlists-empty-desc">Log in to create, organize, and view your custom playlists.</p>
+                        <p class="your-playlists-empty-desc">Log in to create, organize, and view your custom playlists.
+                        </p>
                         <a href="auth-mobile.html" class="your-playlists-empty-btn">Log In / Sign Up</a>
                     </div>
                 </div>
@@ -253,13 +312,18 @@
                 <!-- Album Search Box -->
                 <div class="albums-search-container">
                     <div class="albums-search-box">
-                        <svg class="albums-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg class="albums-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
                             <circle cx="11" cy="11" r="8"></circle>
                             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
-                        <input type="search" id="albumSearchInput" class="albums-search-input" placeholder="Search your albums..." autocomplete="off" aria-label="Search albums">
-                        <button type="button" id="albumSearchClearBtn" class="albums-search-clear hidden" aria-label="Clear search">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <input type="search" id="albumSearchInput" class="albums-search-input"
+                            placeholder="Search your albums..." autocomplete="off" aria-label="Search albums">
+                        <button type="button" id="albumSearchClearBtn" class="albums-search-clear hidden"
+                            aria-label="Clear search">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
@@ -272,39 +336,61 @@
                     <div class="albums-filter-chips" role="tablist" aria-label="Filter albums">
                         <button type="button" class="albums-filter-chip is-active" data-album-filter="all">All</button>
                         <button type="button" class="albums-filter-chip" data-album-filter="saved">Saved</button>
-                        <button type="button" class="albums-filter-chip" data-album-filter="downloaded">Downloaded</button>
+                        <button type="button" class="albums-filter-chip"
+                            data-album-filter="downloaded">Downloaded</button>
                     </div>
 
                     <div class="albums-actions-right">
                         <!-- Sort Dropdown -->
                         <div class="albums-sort-dropdown" id="albumSortDropdown">
-                            <button type="button" class="albums-sort-trigger" id="albumSortBtn" aria-haspopup="true" aria-expanded="false" title="Sort albums">
+                            <button type="button" class="albums-sort-trigger" id="albumSortBtn" aria-haspopup="true"
+                                aria-expanded="false" title="Sort albums">
                                 <span class="albums-sort-prefix">Sort:</span>
                                 <span class="albums-sort-current" id="albumSortLabel">Recently added</span>
-                                <svg class="albums-sort-arrow" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <svg class="albums-sort-arrow" viewBox="0 0 24 24" width="13" height="13" fill="none"
+                                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                    stroke-linejoin="round">
                                     <polyline points="6 9 12 15 18 9"></polyline>
                                 </svg>
                             </button>
                             <div class="albums-sort-menu hidden" id="albumSortMenu" role="menu">
-                                <button type="button" class="albums-sort-item is-selected" data-album-sort-val="recently-added" role="menuitem">
+                                <button type="button" class="albums-sort-item is-selected"
+                                    data-album-sort-val="recently-added" role="menuitem">
                                     <span>Recently added</span>
-                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
                                 </button>
-                                <button type="button" class="albums-sort-item" data-album-sort-val="recently-played" role="menuitem">
+                                <button type="button" class="albums-sort-item" data-album-sort-val="recently-played"
+                                    role="menuitem">
                                     <span>Recently played</span>
-                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
                                 </button>
-                                <button type="button" class="albums-sort-item" data-album-sort-val="alphabetical" role="menuitem">
+                                <button type="button" class="albums-sort-item" data-album-sort-val="alphabetical"
+                                    role="menuitem">
                                     <span>Alphabetical</span>
-                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
                                 </button>
                             </div>
                         </div>
 
                         <!-- View Toggle: List & Grid (SVG Icons) -->
                         <div class="albums-view-toggle" role="group" aria-label="Album view mode">
-                            <button type="button" class="albums-view-btn" id="albumViewListBtn" data-album-view-mode="list" aria-label="List view" title="List view">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <button type="button" class="albums-view-btn" id="albumViewListBtn"
+                                data-album-view-mode="list" aria-label="List view" title="List view">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
                                     <line x1="8" y1="6" x2="21" y2="6"></line>
                                     <line x1="8" y1="12" x2="21" y2="12"></line>
                                     <line x1="8" y1="18" x2="21" y2="18"></line>
@@ -313,8 +399,11 @@
                                     <line x1="3" y1="18" x2="3.01" y2="18"></line>
                                 </svg>
                             </button>
-                            <button type="button" class="albums-view-btn is-active" id="albumViewGridBtn" data-album-view-mode="grid" aria-label="Grid view" title="Grid view">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <button type="button" class="albums-view-btn is-active" id="albumViewGridBtn"
+                                data-album-view-mode="grid" aria-label="Grid view" title="Grid view">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
                                     <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
                                     <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
                                     <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
@@ -338,8 +427,10 @@
             <section class="library-panel artists-tab-panel" id="artistsPanel" data-library-panel="artists">
                 <div class="artists-header">
                     <h2 class="artists-title">Artists</h2>
-                    <button class="artists-create-btn" id="exploreArtistsBtn" type="button" aria-label="Explore artists">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <button class="artists-create-btn" id="exploreArtistsBtn" type="button"
+                        aria-label="Explore artists">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="8" r="5"></circle>
                             <path d="M20 21a8 8 0 0 0-16 0"></path>
                         </svg>
@@ -350,13 +441,18 @@
                 <!-- Artist Search Box -->
                 <div class="artists-search-container">
                     <div class="artists-search-box">
-                        <svg class="artists-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg class="artists-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
                             <circle cx="11" cy="11" r="8"></circle>
                             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
-                        <input type="search" id="artistSearchInput" class="artists-search-input" placeholder="Search your artists..." autocomplete="off" aria-label="Search artists">
-                        <button type="button" id="artistSearchClearBtn" class="artists-search-clear hidden" aria-label="Clear search">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <input type="search" id="artistSearchInput" class="artists-search-input"
+                            placeholder="Search your artists..." autocomplete="off" aria-label="Search artists">
+                        <button type="button" id="artistSearchClearBtn" class="artists-search-clear hidden"
+                            aria-label="Clear search">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
@@ -367,44 +463,72 @@
                 <!-- Artist Controls Bar (Filter Chips + Sort & View Controls) -->
                 <div class="artists-controls-bar">
                     <div class="artists-filter-chips" role="tablist" aria-label="Filter artists">
-                        <button type="button" class="artists-filter-chip is-active" data-artist-filter="all">All</button>
-                        <button type="button" class="artists-filter-chip" data-artist-filter="followed">Followed</button>
+                        <button type="button" class="artists-filter-chip is-active"
+                            data-artist-filter="all">All</button>
+                        <button type="button" class="artists-filter-chip"
+                            data-artist-filter="followed">Followed</button>
                     </div>
 
                     <div class="artists-actions-right">
                         <!-- Sort Dropdown -->
                         <div class="artists-sort-dropdown" id="artistSortDropdown">
-                            <button type="button" class="artists-sort-trigger" id="artistSortBtn" aria-haspopup="true" aria-expanded="false" title="Sort artists">
+                            <button type="button" class="artists-sort-trigger" id="artistSortBtn" aria-haspopup="true"
+                                aria-expanded="false" title="Sort artists">
                                 <span class="artists-sort-prefix">Sort:</span>
                                 <span class="artists-sort-current" id="artistSortLabel">Recently followed</span>
-                                <svg class="artists-sort-arrow" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <svg class="artists-sort-arrow" viewBox="0 0 24 24" width="13" height="13" fill="none"
+                                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                    stroke-linejoin="round">
                                     <polyline points="6 9 12 15 18 9"></polyline>
                                 </svg>
                             </button>
                             <div class="artists-sort-menu hidden" id="artistSortMenu" role="menu">
-                                <button type="button" class="artists-sort-item is-selected" data-artist-sort-val="recently-followed" role="menuitem">
+                                <button type="button" class="artists-sort-item is-selected"
+                                    data-artist-sort-val="recently-followed" role="menuitem">
                                     <span>Recently followed</span>
-                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
                                 </button>
-                                <button type="button" class="artists-sort-item" data-artist-sort-val="recently-added" role="menuitem">
+                                <button type="button" class="artists-sort-item" data-artist-sort-val="recently-added"
+                                    role="menuitem">
                                     <span>Recently added</span>
-                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
                                 </button>
-                                <button type="button" class="artists-sort-item" data-artist-sort-val="recently-played" role="menuitem">
+                                <button type="button" class="artists-sort-item" data-artist-sort-val="recently-played"
+                                    role="menuitem">
                                     <span>Recently played</span>
-                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
                                 </button>
-                                <button type="button" class="artists-sort-item" data-artist-sort-val="alphabetical" role="menuitem">
+                                <button type="button" class="artists-sort-item" data-artist-sort-val="alphabetical"
+                                    role="menuitem">
                                     <span>Alphabetical</span>
-                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
                                 </button>
                             </div>
                         </div>
 
                         <!-- View Toggle: List & Grid (SVG Icons) -->
                         <div class="artists-view-toggle" role="group" aria-label="Artist view mode">
-                            <button type="button" class="artists-view-btn is-active" id="artistViewListBtn" data-artist-view-mode="list" aria-label="List view" title="List view">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <button type="button" class="artists-view-btn is-active" id="artistViewListBtn"
+                                data-artist-view-mode="list" aria-label="List view" title="List view">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
                                     <line x1="8" y1="6" x2="21" y2="6"></line>
                                     <line x1="8" y1="12" x2="21" y2="12"></line>
                                     <line x1="8" y1="18" x2="21" y2="18"></line>
@@ -413,8 +537,11 @@
                                     <line x1="3" y1="18" x2="3.01" y2="18"></line>
                                 </svg>
                             </button>
-                            <button type="button" class="artists-view-btn" id="artistViewGridBtn" data-artist-view-mode="grid" aria-label="Grid view" title="Grid view">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <button type="button" class="artists-view-btn" id="artistViewGridBtn"
+                                data-artist-view-mode="grid" aria-label="Grid view" title="Grid view">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
                                     <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
                                     <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
                                     <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
@@ -434,13 +561,15 @@
                 <div class="your-artists-container view-list" id="libraryArtistsList">
                     <div class="your-artists-empty-state">
                         <div class="your-artists-empty-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="8" r="5"></circle>
                                 <path d="M20 21a8 8 0 0 0-16 0"></path>
                             </svg>
                         </div>
                         <h3 class="your-artists-empty-title">Follow your favorite artists</h3>
-                        <p class="your-artists-empty-desc">Log in to follow artists, explore their discography, and see updates here.</p>
+                        <p class="your-artists-empty-desc">Log in to follow artists, explore their discography, and see
+                            updates here.</p>
                         <a href="auth-mobile.html" class="your-artists-empty-btn">Log In / Sign Up</a>
                     </div>
                 </div>
@@ -455,13 +584,18 @@
                 <!-- Track Search Box -->
                 <div class="tracks-search-container">
                     <div class="tracks-search-box">
-                        <svg class="tracks-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg class="tracks-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
                             <circle cx="11" cy="11" r="8"></circle>
                             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
-                        <input type="search" id="trackSearchInput" class="tracks-search-input" placeholder="Search your tracks..." autocomplete="off" aria-label="Search tracks">
-                        <button type="button" id="trackSearchClearBtn" class="tracks-search-clear hidden" aria-label="Clear search">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <input type="search" id="trackSearchInput" class="tracks-search-input"
+                            placeholder="Search your tracks..." autocomplete="off" aria-label="Search tracks">
+                        <button type="button" id="trackSearchClearBtn" class="tracks-search-clear hidden"
+                            aria-label="Clear search">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
@@ -474,39 +608,61 @@
                     <div class="tracks-filter-chips" role="tablist" aria-label="Filter tracks">
                         <button type="button" class="tracks-filter-chip is-active" data-track-filter="all">All</button>
                         <button type="button" class="tracks-filter-chip" data-track-filter="liked">Liked</button>
-                        <button type="button" class="tracks-filter-chip" data-track-filter="downloaded">Downloaded</button>
+                        <button type="button" class="tracks-filter-chip"
+                            data-track-filter="downloaded">Downloaded</button>
                     </div>
 
                     <div class="tracks-actions-right">
                         <!-- Sort Dropdown -->
                         <div class="tracks-sort-dropdown" id="trackSortDropdown">
-                            <button type="button" class="tracks-sort-trigger" id="trackSortBtn" aria-haspopup="true" aria-expanded="false" title="Sort tracks">
+                            <button type="button" class="tracks-sort-trigger" id="trackSortBtn" aria-haspopup="true"
+                                aria-expanded="false" title="Sort tracks">
                                 <span class="tracks-sort-prefix">Sort:</span>
                                 <span class="tracks-sort-current" id="trackSortLabel">Recently added</span>
-                                <svg class="tracks-sort-arrow" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <svg class="tracks-sort-arrow" viewBox="0 0 24 24" width="13" height="13" fill="none"
+                                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                    stroke-linejoin="round">
                                     <polyline points="6 9 12 15 18 9"></polyline>
                                 </svg>
                             </button>
                             <div class="tracks-sort-menu hidden" id="trackSortMenu" role="menu">
-                                <button type="button" class="tracks-sort-item is-selected" data-track-sort-val="recently-added" role="menuitem">
+                                <button type="button" class="tracks-sort-item is-selected"
+                                    data-track-sort-val="recently-added" role="menuitem">
                                     <span>Recently added</span>
-                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
                                 </button>
-                                <button type="button" class="tracks-sort-item" data-track-sort-val="recently-played" role="menuitem">
+                                <button type="button" class="tracks-sort-item" data-track-sort-val="recently-played"
+                                    role="menuitem">
                                     <span>Recently played</span>
-                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
                                 </button>
-                                <button type="button" class="tracks-sort-item" data-track-sort-val="alphabetical" role="menuitem">
+                                <button type="button" class="tracks-sort-item" data-track-sort-val="alphabetical"
+                                    role="menuitem">
                                     <span>Alphabetical</span>
-                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
                                 </button>
                             </div>
                         </div>
 
                         <!-- View Toggle: List & Grid (SVG Icons) -->
                         <div class="tracks-view-toggle" role="group" aria-label="Track view mode">
-                            <button type="button" class="tracks-view-btn is-active" id="trackViewListBtn" data-track-view-mode="list" aria-label="List view" title="List view">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <button type="button" class="tracks-view-btn is-active" id="trackViewListBtn"
+                                data-track-view-mode="list" aria-label="List view" title="List view">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
                                     <line x1="8" y1="6" x2="21" y2="6"></line>
                                     <line x1="8" y1="12" x2="21" y2="12"></line>
                                     <line x1="8" y1="18" x2="21" y2="18"></line>
@@ -515,8 +671,11 @@
                                     <line x1="3" y1="18" x2="3.01" y2="18"></line>
                                 </svg>
                             </button>
-                            <button type="button" class="tracks-view-btn" id="trackViewGridBtn" data-track-view-mode="grid" aria-label="Grid view" title="Grid view">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <button type="button" class="tracks-view-btn" id="trackViewGridBtn"
+                                data-track-view-mode="grid" aria-label="Grid view" title="Grid view">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
                                     <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
                                     <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
                                     <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
@@ -536,14 +695,16 @@
                 <div class="your-tracks-container view-list" id="libraryTracksList">
                     <div class="your-tracks-empty-state">
                         <div class="your-tracks-empty-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M9 18V5l12-2v13"></path>
                                 <circle cx="6" cy="18" r="3"></circle>
                                 <circle cx="18" cy="16" r="3"></circle>
                             </svg>
                         </div>
                         <h3 class="your-tracks-empty-title">Save your favorite tracks</h3>
-                        <p class="your-tracks-empty-desc">Log in to like songs, create a collection, and access them anywhere.</p>
+                        <p class="your-tracks-empty-desc">Log in to like songs, create a collection, and access them
+                            anywhere.</p>
                         <a href="auth-mobile.html" class="your-tracks-empty-btn">Log In / Sign Up</a>
                     </div>
                 </div>
@@ -560,7 +721,8 @@
                     <div class="downloads-storage-top">
                         <div class="downloads-storage-info-left">
                             <div class="downloads-storage-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                     <polyline points="7 10 12 15 17 10"></polyline>
                                     <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -574,20 +736,26 @@
                         <span class="downloads-storage-badge" id="downloadsStorageBadge">0 MB / 10 GB</span>
                     </div>
                     <div class="downloads-storage-progress-track">
-                        <div class="downloads-storage-progress-fill" id="downloadsStorageProgressFill" style="width: 0%;"></div>
+                        <div class="downloads-storage-progress-fill" id="downloadsStorageProgressFill"
+                            style="width: 0%;"></div>
                     </div>
                 </div>
 
                 <!-- Download Search Box -->
                 <div class="downloads-search-container">
                     <div class="downloads-search-box">
-                        <svg class="downloads-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg class="downloads-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
                             <circle cx="11" cy="11" r="8"></circle>
                             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
-                        <input type="search" id="downloadSearchInput" class="downloads-search-input" placeholder="Search your downloads..." autocomplete="off" aria-label="Search downloads">
-                        <button type="button" id="downloadSearchClearBtn" class="downloads-search-clear hidden" aria-label="Clear search">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <input type="search" id="downloadSearchInput" class="downloads-search-input"
+                            placeholder="Search your downloads..." autocomplete="off" aria-label="Search downloads">
+                        <button type="button" id="downloadSearchClearBtn" class="downloads-search-clear hidden"
+                            aria-label="Clear search">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
@@ -598,46 +766,76 @@
                 <!-- Download Controls Bar (Filter Chips + Sort & View Controls) -->
                 <div class="downloads-controls-bar">
                     <div class="downloads-filter-chips" role="tablist" aria-label="Filter downloads">
-                        <button type="button" class="downloads-filter-chip is-active" data-download-filter="all">All</button>
-                        <button type="button" class="downloads-filter-chip" data-download-filter="tracks">Tracks</button>
-                        <button type="button" class="downloads-filter-chip" data-download-filter="albums">Albums</button>
-                        <button type="button" class="downloads-filter-chip" data-download-filter="playlist">Playlist</button>
+                        <button type="button" class="downloads-filter-chip is-active"
+                            data-download-filter="all">All</button>
+                        <button type="button" class="downloads-filter-chip"
+                            data-download-filter="tracks">Tracks</button>
+                        <button type="button" class="downloads-filter-chip"
+                            data-download-filter="albums">Albums</button>
+                        <button type="button" class="downloads-filter-chip"
+                            data-download-filter="playlist">Playlist</button>
                     </div>
 
                     <div class="downloads-actions-right">
                         <!-- Sort Dropdown -->
                         <div class="downloads-sort-dropdown" id="downloadSortDropdown">
-                            <button type="button" class="downloads-sort-trigger" id="downloadSortBtn" aria-haspopup="true" aria-expanded="false" title="Sort downloads">
+                            <button type="button" class="downloads-sort-trigger" id="downloadSortBtn"
+                                aria-haspopup="true" aria-expanded="false" title="Sort downloads">
                                 <span class="downloads-sort-prefix">Sort:</span>
                                 <span class="downloads-sort-current" id="downloadSortLabel">Recently downloaded</span>
-                                <svg class="downloads-sort-arrow" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <svg class="downloads-sort-arrow" viewBox="0 0 24 24" width="13" height="13" fill="none"
+                                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                    stroke-linejoin="round">
                                     <polyline points="6 9 12 15 18 9"></polyline>
                                 </svg>
                             </button>
                             <div class="downloads-sort-menu hidden" id="downloadSortMenu" role="menu">
-                                <button type="button" class="downloads-sort-item is-selected" data-download-sort-val="recently-downloaded" role="menuitem">
+                                <button type="button" class="downloads-sort-item is-selected"
+                                    data-download-sort-val="recently-downloaded" role="menuitem">
                                     <span>Recently downloaded</span>
-                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
                                 </button>
-                                <button type="button" class="downloads-sort-item" data-download-sort-val="recently-played" role="menuitem">
+                                <button type="button" class="downloads-sort-item"
+                                    data-download-sort-val="recently-played" role="menuitem">
                                     <span>Recently played</span>
-                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
                                 </button>
-                                <button type="button" class="downloads-sort-item" data-download-sort-val="alphabetical" role="menuitem">
+                                <button type="button" class="downloads-sort-item" data-download-sort-val="alphabetical"
+                                    role="menuitem">
                                     <span>Alphabetical</span>
-                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
                                 </button>
-                                <button type="button" class="downloads-sort-item" data-download-sort-val="size" role="menuitem">
+                                <button type="button" class="downloads-sort-item" data-download-sort-val="size"
+                                    role="menuitem">
                                     <span>Size</span>
-                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <svg class="check-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
                                 </button>
                             </div>
                         </div>
 
                         <!-- View Toggle: List & Grid (SVG Icons) -->
                         <div class="downloads-view-toggle" role="group" aria-label="Downloads view mode">
-                            <button type="button" class="downloads-view-btn is-active" id="downloadViewListBtn" data-view-mode="list" aria-label="List view" title="List view">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <button type="button" class="downloads-view-btn is-active" id="downloadViewListBtn"
+                                data-view-mode="list" aria-label="List view" title="List view">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
                                     <line x1="8" y1="6" x2="21" y2="6"></line>
                                     <line x1="8" y1="12" x2="21" y2="12"></line>
                                     <line x1="8" y1="18" x2="21" y2="18"></line>
@@ -646,8 +844,11 @@
                                     <line x1="3" y1="18" x2="3.01" y2="18"></line>
                                 </svg>
                             </button>
-                            <button type="button" class="downloads-view-btn" id="downloadViewGridBtn" data-view-mode="grid" aria-label="Grid view" title="Grid view">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <button type="button" class="downloads-view-btn" id="downloadViewGridBtn"
+                                data-view-mode="grid" aria-label="Grid view" title="Grid view">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
                                     <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
                                     <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
                                     <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
@@ -667,14 +868,16 @@
                 <div class="your-downloads-container view-list" id="libraryDownloadsList">
                     <div class="your-downloads-empty-state">
                         <div class="your-downloads-empty-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                 <polyline points="7 10 12 15 17 10"></polyline>
                                 <line x1="12" y1="15" x2="12" y2="3"></line>
                             </svg>
                         </div>
                         <h3 class="your-downloads-empty-title">Download music for offline listening</h3>
-                        <p class="your-downloads-empty-desc">Log in to download your favorite songs and enjoy offline playback anywhere.</p>
+                        <p class="your-downloads-empty-desc">Log in to download your favorite songs and enjoy offline
+                            playback anywhere.</p>
                         <a href="auth-mobile.html" class="your-downloads-empty-btn">Log In / Sign Up</a>
                     </div>
                 </div>
@@ -687,9 +890,10 @@
         <div class="download-options-backdrop" id="downloadOptionsBackdrop"></div>
         <div class="download-options-sheet" role="dialog" aria-modal="true" aria-labelledby="optionsSongTitle">
             <div class="download-options-handle" aria-hidden="true"></div>
-            
+
             <div class="download-options-header">
-                <img id="optionsSongCover" src="../../public/branding/Spotiwind.webp" alt="Cover" class="options-song-cover" width="48" height="48">
+                <img id="optionsSongCover" src="../../public/branding/Spotiwind.webp" alt="Cover"
+                    class="options-song-cover" width="48" height="48">
                 <div class="options-song-info">
                     <h3 id="optionsSongTitle" class="options-song-title">Song Title</h3>
                     <p id="optionsSongArtist" class="options-song-artist">Artist Name</p>
@@ -699,7 +903,8 @@
             <div class="download-options-actions">
                 <button id="optSaveToDeviceBtn" class="download-opt-btn" type="button">
                     <div class="opt-btn-icon icon-save">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="7 10 12 15 17 10"></polyline>
                             <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -713,9 +918,11 @@
 
                 <button id="optDeleteOfflineBtn" class="download-opt-btn btn-danger" type="button">
                     <div class="opt-btn-icon icon-trash">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                            </path>
                         </svg>
                     </div>
                     <div class="opt-btn-text">
@@ -734,17 +941,19 @@
         <div class="pro-modal-backdrop"></div>
         <div class="pro-modal-sheet" role="dialog" aria-labelledby="proModalTitle">
             <div class="pro-modal-handle-bar" aria-hidden="true"></div>
-            
+
             <header class="pro-modal-header">
                 <div class="pro-modal-crown" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M5 16h14a1 1 0 0 0 1-1L21 6l-4.5 4L12 3 7.5 10 3 6l1 9a1 1 0 0 0 1 1zm-1 2a1 1 0 0 0 0 2h16a1 1 0 1 0 0-2H4z"/>
+                        <path
+                            d="M5 16h14a1 1 0 0 0 1-1L21 6l-4.5 4L12 3 7.5 10 3 6l1 9a1 1 0 0 0 1 1zm-1 2a1 1 0 0 0 0 2h16a1 1 0 1 0 0-2H4z" />
                     </svg>
                 </div>
                 <h2 id="proModalTitle" class="pro-modal-title">Spotiwind PRO</h2>
                 <p class="pro-modal-subtitle">Nikmati pengalaman mendengarkan musik premium tanpa batas.</p>
                 <button id="closeSubscriptionModalBtn" class="pro-modal-close-btn" type="button" aria-label="Tutup">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -770,7 +979,8 @@
             <!-- Plans Cards -->
             <div class="pro-plans-container" role="radiogroup" aria-label="Pilihan Paket Langganan">
                 <!-- Plan 1: Individual Monthly -->
-                <div class="pro-plan-card is-selected" role="radio" aria-checked="true" tabindex="0" data-plan-id="individual" data-plan-name="Individual Monthly" data-plan-price="Rp 29.000">
+                <div class="pro-plan-card is-selected" role="radio" aria-checked="true" tabindex="0"
+                    data-plan-id="individual" data-plan-name="Individual Monthly" data-plan-price="Rp 29.000">
                     <div class="pro-plan-badge">Populer</div>
                     <div class="pro-plan-info">
                         <h3 class="pro-plan-name">Individual</h3>
@@ -783,7 +993,8 @@
                 </div>
 
                 <!-- Plan 2: Student -->
-                <div class="pro-plan-card" role="radio" aria-checked="false" tabindex="0" data-plan-id="student" data-plan-name="Student Plan" data-plan-price="Rp 15.000">
+                <div class="pro-plan-card" role="radio" aria-checked="false" tabindex="0" data-plan-id="student"
+                    data-plan-name="Student Plan" data-plan-price="Rp 15.000">
                     <div class="pro-plan-badge badge-student">Pelajar</div>
                     <div class="pro-plan-info">
                         <h3 class="pro-plan-name">Student (Pelajar)</h3>
@@ -796,7 +1007,8 @@
                 </div>
 
                 <!-- Plan 3: Annual Best Value -->
-                <div class="pro-plan-card" role="radio" aria-checked="false" tabindex="0" data-plan-id="annual" data-plan-name="Annual Best Value" data-plan-price="Rp 249.000">
+                <div class="pro-plan-card" role="radio" aria-checked="false" tabindex="0" data-plan-id="annual"
+                    data-plan-name="Annual Best Value" data-plan-price="Rp 249.000">
                     <div class="pro-plan-badge badge-annual">Hemat 28%</div>
                     <div class="pro-plan-info">
                         <h3 class="pro-plan-name">Annual (1 Tahun)</h3>
@@ -813,7 +1025,8 @@
             <div class="pro-modal-footer">
                 <button id="activateProTrialBtn" class="pro-modal-subscribe-btn" type="button">
                     <span>Mulai Uji Coba Gratis 7 Hari</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
                         <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
                 </button>

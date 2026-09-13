@@ -284,12 +284,16 @@
     justify-content: space-between;
     padding: 0.95rem 0.4rem 0.85rem;
     margin-bottom: 1rem;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 1.25rem;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .stat-item {
@@ -391,7 +395,7 @@
     background-color: #1a0f2e;
     background-image:
         linear-gradient(135deg, rgba(20, 10, 35, 0.82) 0%, rgba(28, 12, 45, 0.65) 50%, rgba(15, 23, 42, 0.82) 100%),
-        url('../../../public/images/Banner%20Exclusive.webp');
+        url('../../../public/images/Banner%20PRO.webp');
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -601,13 +605,14 @@
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #172033;
+    border: 1px solid #1e2738;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-muted, #94A3B8);
     margin-bottom: 0.15rem;
+    isolation: isolate;
 }
 
 .account-recent-empty-icon svg {
@@ -736,13 +741,14 @@
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #172033;
+    border: 1px solid #1e2738;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-muted, #94A3B8);
     margin-bottom: 0.15rem;
+    isolation: isolate;
 }
 
 .account-artists-empty-icon svg {
@@ -1107,12 +1113,14 @@
     list-style: none;
     margin: 0 0 1.25rem 0;
     padding: 0.85rem 1rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    isolation: isolate;
+    contain: paint;
 }
 
 .pro-benefit-item {
@@ -1152,16 +1160,20 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.9rem 1.05rem;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1.5px solid rgba(255, 255, 255, 0.09);
+    background: #172033;
+    border: 1.5px solid #1e2738;
     border-radius: 1.1rem;
     cursor: pointer;
     user-select: none;
     transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .pro-plan-card:hover {
-    background: rgba(255, 255, 255, 0.07);
+    background: #1e293f;
     border-color: rgba(241, 46, 119, 0.4);
 }
 
@@ -1294,14 +1306,18 @@
 }
 
 .manage-details-card {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 1rem;
     padding: 0.9rem 1.1rem;
     margin-bottom: 1.25rem;
     display: flex;
     flex-direction: column;
     gap: 0.65rem;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .manage-detail-row {

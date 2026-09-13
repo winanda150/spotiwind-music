@@ -126,11 +126,12 @@
     gap: 0.35rem;
     padding: 0.25rem 0.6rem;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+    background: #172033;
+    border: 1px solid #1e2738;
     color: var(--text-muted, #9ca3af);
     font-size: 0.65rem;
     font-weight: 500;
+    isolation: isolate;
 }
 
 .windflow-hero-desc {
@@ -219,8 +220,8 @@
    -------------------------------------------------------------------------- */
 .windflow-controller-card {
     position: relative;
-    background: rgba(255, 255, 255, 0.055);
-    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 1.15rem;
     padding: 1.15rem;
     display: flex;
@@ -230,6 +231,10 @@
     -webkit-backdrop-filter: blur(12px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
     transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .windflow-controller-card.is-gust-active {
@@ -376,8 +381,8 @@
 
 .flow-control-btn {
     appearance: none;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 0.75rem;
     padding: 0.65rem 0.35rem;
     display: flex;
@@ -391,10 +396,11 @@
     cursor: pointer;
     font-family: inherit;
     transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+    isolation: isolate;
 }
 
 .flow-control-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: #1e293f;
     border-color: var(--accent-color, #B91EC9);
     transform: translateY(-1px);
 }
@@ -487,8 +493,8 @@
 .current-card {
     appearance: none;
     position: relative;
-    background: rgba(255, 255, 255, 0.055);
-    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 1rem;
     padding: 0.9rem;
     display: flex;
@@ -500,6 +506,10 @@
     overflow: hidden;
     font-family: inherit;
     transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .current-card-glow {
@@ -516,7 +526,7 @@
 
 .current-card:hover {
     transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.08);
+    background: #1e293f;
     border-color: var(--accent-color, #B91EC9);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
 }
@@ -631,8 +641,8 @@
 
 .stream-refresh-btn {
     appearance: none;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 999px;
     padding: 0.35rem 0.75rem;
     display: flex;
@@ -644,10 +654,11 @@
     cursor: pointer;
     font-family: inherit;
     transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    isolation: isolate;
 }
 
 .stream-refresh-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: #1e293f;
     color: var(--text-main, #ffffff);
     border-color: var(--accent-color, #B91EC9);
 }
@@ -662,16 +673,20 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    background: rgba(255, 255, 255, 0.055);
-    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+    background: #172033;
+    border: 1px solid #1e2738;
     border-radius: 0.85rem;
     padding: 0.55rem 0.75rem;
     cursor: pointer;
     transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .stream-track-card:hover {
-    background: rgba(255, 255, 255, 0.09);
+    background: #1e293f;
     border-color: var(--accent-color, #B91EC9);
     transform: translateX(3px);
 }
