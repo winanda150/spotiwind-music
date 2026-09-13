@@ -1077,18 +1077,20 @@
 }
 
 .downloads-infinite-spinner {
-    width: 18px;
-    height: 18px;
-    border: 2px solid rgba(255, 255, 255, 0.14);
-    border-top-color: #F12E77;
-    border-right-color: #B91EC9;
+    width: 20px;
+    height: 20px;
+    border: 2.5px solid rgba(185, 30, 201, 0.2);
+    border-top-color: var(--accent-color, #B91EC9);
+    border-right-color: var(--accent-color, #B91EC9);
     border-radius: 50%;
+    filter: drop-shadow(0 0 8px rgba(185, 30, 201, 0.45));
     animation: downloadsInfiniteSpin 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
     flex-shrink: 0;
 }
 
 .downloads-infinite-text {
-    font-size: 0.78rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
     color: #cbd5e1;
     display: flex;
     align-items: center;

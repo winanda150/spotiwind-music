@@ -254,7 +254,7 @@
     "name": "Pergilah Kasih",
     "artistId": "raim-laode",
     "artist": "Raim Laode",
-    "audio": "music/Raim%20Laode/Pergilah Kasih.mp3",
+    "audio": "music/Raim%20Laode/Pergilah%20Kasih.mp3",
     "cover": "music/Raim%20Laode/Image%20Songs/Pergilah%20Kasih.webp",
     "duration": 272,
     "albumId": "raim-laode-suara-suara"
@@ -450,7 +450,7 @@
     "name": "Karma Police",
     "artistId": "radiohead",
     "artist": "Radiohead",
-    "audio": "music/Radiohead/Karma Police.mp3",
+    "audio": "music/Radiohead/Karma%20Police.mp3",
     "cover": "music/Radiohead/Image%20Songs/Karma%20Police.webp",
     "duration": 264,
     "albumId": "radiohead-ok-computer"
@@ -460,7 +460,7 @@
     "name": "Let Down",
     "artistId": "radiohead",
     "artist": "Radiohead",
-    "audio": "music/Radiohead/Let Down.mp3",
+    "audio": "music/Radiohead/Let%20Down.mp3",
     "cover": "music/Radiohead/Image%20Songs/Let%20Down.webp",
     "duration": 299,
     "albumId": "radiohead-ok-computer"
@@ -470,7 +470,7 @@
     "name": "No Surprises",
     "artistId": "radiohead",
     "artist": "Radiohead",
-    "audio": "music/Radiohead/No Surprises.mp3",
+    "audio": "music/Radiohead/No%20Surprises.mp3",
     "cover": "music/Radiohead/Image%20Songs/No%20Surprises.webp",
     "duration": 229,
     "albumId": "radiohead-ok-computer"

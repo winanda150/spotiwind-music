@@ -3,7 +3,7 @@
  * Enables 100% Offline Playback & Seamless Offline Browsing
  */
 
-const APP_SHELL_CACHE = 'spotiwind-app-shell-v2';
+const APP_SHELL_CACHE = 'spotiwind-app-shell-v1';
 const AUDIO_CACHE = 'spotiwind-offline-audio-v1';
 
 const PRECACHE_ASSETS = [
@@ -22,17 +22,17 @@ const PRECACHE_ASSETS = [
     // HTML Pages (Mobile & Desktop)
     '/src/pages/home-mobile.html',
     '/src/pages/home-desktop.html',
-    '/src/pages/library-mobile.html',
-    '/src/pages/search-mobile.html',
-    '/src/pages/windflow-mobile.html',
-    '/src/pages/account-mobile.html',
-    '/src/pages/artist-mobile.html',
-    '/src/pages/auth-mobile.html',
-    '/src/pages/auth-desktop.html',
     '/src/pages/notifications-mobile.html',
+    '/src/pages/search-mobile.html',
+    '/src/pages/artist-mobile.html',
+    '/src/pages/windflow-mobile.html',
+    '/src/pages/library-mobile.html',
     '/src/pages/liked-songs-mobile.html',
     '/src/pages/downloads-mobile.html',
     '/src/pages/recently-played-mobile.html',
+    '/src/pages/account-mobile.html',
+    '/src/pages/auth-mobile.html',
+    '/src/pages/auth-desktop.html',
 
     // Stylesheets (CSS)
     '/src/assets/css/home-mobile.css',
@@ -103,8 +103,8 @@ const PRECACHE_ASSETS = [
     '/src/services/userService.js',
 
     // Data Catalogs (JSON)
-    '/public/data/artists.json',
     '/public/data/songs.json',
+    '/public/data/artists.json',
     '/public/data/albums.json',
 
     // Branding, Icons & Hero Images
@@ -113,13 +113,13 @@ const PRECACHE_ASSETS = [
     '/public/branding/Spotiwind.png',
     '/public/branding/Spotiwind%20Animation%20Logo.gif',
     '/public/branding/Spotiwind%20OG%20Image.jpg',
-    '/public/images/Hero%20Section.webp',
-    '/public/images/Download%20Image.webp',
-    '/public/images/Banner%20Exclusive.webp',
     '/public/images/Banner%20PRO.webp',
-    '/public/images/Love%20Image.webp',
-    '/public/images/Favorites%20Image.webp',
-    '/public/images/Recent%20Image.webp'
+    '/public/images/Banner%20Exclusive.webp',
+    '/public/images/Hero%20Section.webp',
+    '/public/images/Liked%20Image.webp',
+    '/public/images/Download%20Image.webp',
+    '/public/images/Recent%20Image.webp',
+    '/public/images/Favorites%20Image.webp'
 ];
 
 // Install: Pre-cache App Shell

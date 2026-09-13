@@ -1092,12 +1092,15 @@
 }
 
 .recently-played-infinite-spinner {
-    width: 18px;
-    height: 18px;
-    border: 2px solid rgba(174, 129, 255, 0.25);
-    border-top-color: #AE81FF;
+    width: 20px;
+    height: 20px;
+    border: 2.5px solid rgba(185, 30, 201, 0.2);
+    border-top-color: var(--accent-color, #B91EC9);
+    border-right-color: var(--accent-color, #B91EC9);
     border-radius: 50%;
+    filter: drop-shadow(0 0 8px rgba(185, 30, 201, 0.45));
     animation: recentSpinner 0.75s infinite linear;
+    flex-shrink: 0;
 }
 
 @keyframes recentSpinner {
@@ -1109,7 +1112,7 @@
 .recently-played-infinite-text {
     font-size: 0.8125rem;
     font-weight: 600;
-    color: #94a3b8;
+    color: #cbd5e1;
 }
 
 /* ==========================================================================
