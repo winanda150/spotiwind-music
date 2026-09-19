@@ -5,14 +5,14 @@
     <meta charset="UTF-8">
     <script>
         // Suppress third-party/extension performance observer noise in console
-        (function() {
-            var isExtensionNoise = function(text) {
+        (function () {
+            var isExtensionNoise = function (text) {
                 if (!text) return false;
                 var str = String(text);
                 return str.indexOf('startTime') !== -1 || str.indexOf('reportAllChanges') !== -1;
             };
 
-            var suppress = function(e) {
+            var suppress = function (e) {
                 var msg = (e && (e.message || (e.error && e.error.message) || String(e))) || '';
                 var stack = (e && e.error && e.error.stack) || '';
                 if (isExtensionNoise(msg) || isExtensionNoise(stack)) {
@@ -22,13 +22,13 @@
                 }
             };
             window.addEventListener('error', suppress, true);
-            window.onerror = function(msg, url, line, col, err) {
+            window.onerror = function (msg, url, line, col, err) {
                 var text = String(msg || '') + ' ' + String(err && err.stack || '');
                 if (isExtensionNoise(text)) {
                     return true;
                 }
             };
-            window.addEventListener('unhandledrejection', function(e) {
+            window.addEventListener('unhandledrejection', function (e) {
                 var reason = String(e && e.reason ? (e.reason.message || e.reason.stack || e.reason) : '');
                 if (isExtensionNoise(reason)) {
                     e.preventDefault();
@@ -38,9 +38,9 @@
             // Intercept console.error calls from injected scripts
             if (window.console && window.console.error) {
                 var origError = window.console.error;
-                window.console.error = function() {
+                window.console.error = function () {
                     var args = Array.prototype.slice.call(arguments);
-                    var joined = args.map(function(a) {
+                    var joined = args.map(function (a) {
                         return (a && (a.message || a.stack || String(a))) || '';
                     }).join(' ');
                     if (isExtensionNoise(joined)) {
@@ -52,7 +52,7 @@
         })();
 
         // Ensure relative URLs in DOM and fetch resolve correctly from pages directory
-        (function() {
+        (function () {
             var base = document.createElement('base');
             base.href = window.location.origin + '/src/pages/';
             document.head.appendChild(base);
@@ -87,7 +87,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(() => {});
+                navigator.serviceWorker.register('/sw.js').catch(() => { });
             });
         }
     </script>
@@ -174,22 +174,31 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-bar">
-                <div class="search-box">
-                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    <input type="text" id="searchInput" placeholder="Search songs, artists, albums...">
-                    <div id="searchDropdown" class="search-results-dropdown"></div>
+                <div class="header-left">
+                    <button id="desktopSidebarToggle" class="desktop-hamburger-btn" type="button"
+                        aria-label="Toggle Sidebar" title="Toggle Sidebar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
                 </div>
-                <button class="notification-btn" title="Notifications">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                    </svg>
-                </button>
+                <div class="header-brand" role="img" aria-label="Spotiwind Logo">
+                    <img src="../../public/branding/Spotiwind.webp" alt="Spotiwind Logo" class="desktop-top-logo"
+                        width="28" height="28">
+                    <span class="desktop-top-brand-name">Spotiwind</span>
+                </div>
+                <div class="header-right">
+                    <button class="notification-btn" title="Notifications">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                    </button>
+                </div>
             </header>
 
             <section class="greeting-section" aria-label="Greeting">
@@ -605,7 +614,8 @@
         <aside class="right-sidebar">
             <div class="user-profile">
                 <div class="avatar-container" role="img" aria-label="User profile picture container">
-                    <img id="userAvatar" class="avatar" src="" alt="Profile Picture" width="40" height="40" referrerpolicy="no-referrer">
+                    <img id="userAvatar" class="avatar" src="" alt="Profile Picture" width="40" height="40"
+                        referrerpolicy="no-referrer">
                     <span class="online-status"></span>
                 </div>
                 <div class="user-info">
@@ -813,7 +823,8 @@
         <div class="mix-detail-backdrop"></div>
         <div class="mix-detail-sheet">
             <button id="closeMixDetailBtn" class="mix-detail-close-btn" type="button" aria-label="Close">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
@@ -824,7 +835,8 @@
                 </div>
                 <div class="mix-detail-actions">
                     <button id="mixDetailShuffleBtn" class="mix-detail-action-icon-btn" aria-label="Shuffle">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="16 3 21 3 21 8"></polyline>
                             <line x1="4" y1="20" x2="21" y2="3"></line>
                             <polyline points="21 16 21 21 16 21"></polyline>

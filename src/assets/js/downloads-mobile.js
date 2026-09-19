@@ -1275,7 +1275,7 @@ export async function initDownloadsPage(previousPage = 'library-mobile.html') {
                 const activeAudio = getGlobalActiveAudio();
                 const currentSong = getCurrentLoadedSong();
                 const isSessionActive = isDownloadsSessionActive();
-                const isSameSong = isSessionActive && currentSong && (String(currentSong.id) === String(songId) || (typeof window.areSameSongs === 'function' && window.areSameSongs(currentSong, { id: songId, audio: songCard.dataset.songAudio })));
+                const isSameSong = Boolean(currentSong && (String(currentSong.id) === String(songId) || (typeof window.areSameSongs === 'function' ? window.areSameSongs(currentSong, { id: songId, audio: songCard.dataset.songAudio }) : (songCard.dataset.songAudio && currentSong.audio === songCard.dataset.songAudio))));
 
                 if (isSameSong && activeAudio && activeAudio.src) {
                     if (!activeAudio.paused) {

@@ -213,8 +213,6 @@ const loadLikedSongsCount = async (uid) => {
     updateSidebarMusicCounts();
 };
 
-
-
 // Cache friend online status (same as desktop)
 const friendOnlineStatus = {};
 
@@ -222,12 +220,6 @@ const isSameSongForContext = (currentSong, targetSong, context = null, contextMi
     if (!currentSong || !targetSong) return false;
     const sameSong = areSameSongs(currentSong, targetSong);
     if (!sameSong) return false;
-
-    // Scoped playback contexts (made-for-you, downloads, liked-songs, recently-played, artist)
-    // If context is explicitly specified and differs from currentPlaybackContext, treat as different context
-    if (context && currentPlaybackContext && context !== currentPlaybackContext) {
-        return false;
-    }
 
     // Only Made for You mixes require scoping by mix ID when switching between different mixes
     if (context === 'made-for-you') {
@@ -247,7 +239,27 @@ const getSongElements = (song) => {
     const elements = Array.from(document.querySelectorAll('[data-id], [data-song-id], .library-song-item, .popular-search-card, .dropdown-item, .song-card, .artist-song-list-item, .recent-track-row'));
     return elements.filter(element => {
         // Exclude mix cards, mix track rows, liked song items, download items, and recently played items because they are strictly scoped by their playback context
-        if (element.classList.contains('mix-card') || element.classList.contains('mix-track-row') || element.classList.contains('liked-song-item') || element.classList.contains('liked-grid-card') || element.classList.contains('download-song-item') || element.classList.contains('download-grid-card') || element.classList.contains('recent-song-item') || element.classList.contains('recent-grid-card')) {
+        if (
+            element.closest('.recently-played-page-wrapper') ||
+            element.closest('.liked-songs-page-wrapper') ||
+            element.closest('.downloads-page-wrapper') ||
+            element.closest('.recent-song-item') ||
+            element.closest('.recent-grid-card') ||
+            element.closest('.liked-song-item') ||
+            element.closest('.liked-grid-card') ||
+            element.closest('.download-song-item') ||
+            element.closest('.download-grid-card') ||
+            element.closest('.mix-card') ||
+            element.closest('.mix-track-row') ||
+            element.classList.contains('mix-card') ||
+            element.classList.contains('mix-track-row') ||
+            element.classList.contains('liked-song-item') ||
+            element.classList.contains('liked-grid-card') ||
+            element.classList.contains('download-song-item') ||
+            element.classList.contains('download-grid-card') ||
+            element.classList.contains('recent-song-item') ||
+            element.classList.contains('recent-grid-card')
+        ) {
             return false;
         }
         const id = element.dataset.id || element.dataset.songId || element.dataset.popularId;

@@ -1335,7 +1335,7 @@ export async function initLikedSongsPage(previousPage = 'library-mobile.html') {
                 const currentSong = getCurrentLoadedSong();
                 const activeAudio = getGlobalActiveAudio();
                 const isLikedSession = isLikedSongsSessionActive();
-                const isSameSong = isLikedSession && currentSong && (String(currentSong.id) === String(songId) || (typeof window.areSameSongs === 'function' && window.areSameSongs(currentSong, { id: songId, audio: songAudio })));
+                const isSameSong = Boolean(currentSong && (String(currentSong.id) === String(songId) || (typeof window.areSameSongs === 'function' ? window.areSameSongs(currentSong, { id: songId, audio: songAudio }) : (songAudio && currentSong.audio === songAudio))));
 
                 if (isSameSong && activeAudio && activeAudio.src) {
                     if (!activeAudio.paused) {

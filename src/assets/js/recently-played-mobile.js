@@ -647,7 +647,7 @@ function handleSongItemClick(e) {
 
     const isSessionActive = isRecentSessionActive();
     const currentSong = getCurrentLoadedSong();
-    const isSameSong = isSessionActive && currentSong && (String(currentSong.id) === String(id) || (typeof window.areSameSongs === 'function' ? window.areSameSongs(currentSong, { id, audio: audioUrl }) : (audioUrl && currentSong.audio === audioUrl)));
+    const isSameSong = Boolean(currentSong && (String(currentSong.id) === String(id) || (typeof window.areSameSongs === 'function' ? window.areSameSongs(currentSong, { id, audio: audioUrl }) : (audioUrl && currentSong.audio === audioUrl))));
     const activeAudio = getGlobalActiveAudio();
 
     if (isSameSong && activeAudio && activeAudio.src) {

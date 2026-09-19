@@ -1884,6 +1884,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             };
         }
+
+        const toggleBtn = document.getElementById('desktopSidebarToggle');
+        const dashboardContainer = document.querySelector('.dashboard-container');
+        const sidebar = document.querySelector('.sidebar');
+        if (toggleBtn && sidebar) {
+            try {
+                const isCollapsed = localStorage.getItem('spotiwind_desktop_sidebar_collapsed') === 'true';
+                if (isCollapsed) {
+                    dashboardContainer?.classList.add('sidebar-collapsed');
+                    sidebar.classList.add('collapsed');
+                }
+            } catch {}
+
+            toggleBtn.onclick = () => {
+                const willCollapse = !sidebar.classList.contains('collapsed');
+                if (willCollapse) {
+                    dashboardContainer?.classList.add('sidebar-collapsed');
+                    sidebar.classList.add('collapsed');
+                    try {
+                        localStorage.setItem('spotiwind_desktop_sidebar_collapsed', 'true');
+                    } catch {}
+                } else {
+                    dashboardContainer?.classList.remove('sidebar-collapsed');
+                    sidebar.classList.remove('collapsed');
+                    try {
+                        localStorage.setItem('spotiwind_desktop_sidebar_collapsed', 'false');
+                    } catch {}
+                }
+            };
+        }
     };
 
     const loadDesktopPageContent = async (page, options = {}) => {
