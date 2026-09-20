@@ -58,12 +58,25 @@ export const recordRecentlyPlayed = (song) => {
             return itemId !== songId && (item.audio !== song.audio || !item.audio);
         });
 
+        let safeAudio = song.audio || '';
+        let safeCover = song.cover || '../../public/branding/Spotiwind.webp';
+        if (typeof window !== 'undefined' && (safeAudio.includes('blob:') || safeCover.includes('blob:'))) {
+            const localCatalog = window.__indonesianSongsPlaylist || window.__desktopLocalSongs;
+            if (Array.isArray(localCatalog)) {
+                const matched = localCatalog.find(s => areSameSongs(s, song));
+                if (matched) {
+                    if (matched.audio && !matched.audio.includes('blob:')) safeAudio = matched.audio;
+                    if (matched.cover && !matched.cover.includes('blob:')) safeCover = matched.cover;
+                }
+            }
+        }
+
         const newEntry = {
             id: songId,
             name: String(song.name || song.title || 'Untitled').replace(/\\'/g, "'").trim(),
             artist: String(song.artist || 'Unknown Artist').replace(/\\'/g, "'").trim(),
-            cover: song.cover || '../../public/branding/Spotiwind.webp',
-            audio: song.audio || '',
+            cover: safeCover,
+            audio: safeAudio,
             duration: Number(song.duration) || 0,
             playedAt: Date.now()
         };
@@ -103,12 +116,23 @@ const queueSongCloudSync = (uid, song) => {
             if (!songId) return;
 
             let songDuration = Number(song.duration) || 0;
+            let safeAudio = String(song.audio || '');
+            let safeCover = String(song.cover || '');
+
             if (typeof window !== 'undefined') {
                 const localCatalog = window.__indonesianSongsPlaylist || window.__desktopLocalSongs;
                 if (Array.isArray(localCatalog)) {
                     const matched = localCatalog.find(s => areSameSongs(s, song));
-                    if (matched && Number(matched.duration) > 0) {
-                        songDuration = Number(matched.duration);
+                    if (matched) {
+                        if (Number(matched.duration) > 0) {
+                            songDuration = Number(matched.duration);
+                        }
+                        if (safeAudio.includes('blob:') && matched.audio && !matched.audio.includes('blob:')) {
+                            safeAudio = matched.audio;
+                        }
+                        if (safeCover.includes('blob:') && matched.cover && !matched.cover.includes('blob:')) {
+                            safeCover = matched.cover;
+                        }
                     }
                 }
             }
@@ -118,8 +142,8 @@ const queueSongCloudSync = (uid, song) => {
                 id: songId,
                 name: String(song.name || ''),
                 artist: String(song.artist || ''),
-                cover: String(song.cover || ''),
-                audio: String(song.audio || ''),
+                cover: safeCover,
+                audio: safeAudio,
                 playedAt: serverTimestamp()
             };
             if (songDuration > 0) {
@@ -172,12 +196,27 @@ const parseCloudDocs = (docs) => {
             playedAtMillis = data.playedAt;
         }
 
+        let itemAudio = data.audio || '';
+        let itemCover = data.cover || '../../public/branding/Spotiwind.webp';
+        if (itemAudio.includes('blob:') || itemCover.includes('blob:')) {
+            const localCatalog = (typeof window !== 'undefined')
+                ? (window.__indonesianSongsPlaylist || window.__desktopLocalSongs)
+                : null;
+            if (Array.isArray(localCatalog)) {
+                const matched = localCatalog.find(s => areSameSongs(s, { id: docSnap.id, name: data.name, artist: data.artist }));
+                if (matched) {
+                    if (matched.audio && !matched.audio.includes('blob:')) itemAudio = matched.audio;
+                    if (matched.cover && !matched.cover.includes('blob:')) itemCover = matched.cover;
+                }
+            }
+        }
+
         return {
             id: docSnap.id,
             name: String(data.name || 'Untitled').replace(/\\'/g, "'").trim(),
             artist: String(data.artist || 'Unknown Artist').replace(/\\'/g, "'").trim(),
-            cover: data.cover || '../../public/branding/Spotiwind.webp',
-            audio: data.audio || '',
+            cover: itemCover,
+            audio: itemAudio,
             duration: Number(data.duration) || 0,
             playedAt: playedAtMillis
         };

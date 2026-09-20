@@ -3287,6 +3287,14 @@ body.player-active .mix-detail-modal .mix-detail-scrollable {
     aspect-ratio: 4 / 3;
 }
 
+.mix-detail-hero-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+}
+
 .mix-detail-hero-badge {
     display: inline-block;
     background: rgba(255, 255, 255, 0.08);

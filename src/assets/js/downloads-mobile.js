@@ -528,22 +528,23 @@ function setupDownloadsInfiniteScroll() {
 async function playSongInDownloadsContext(targetSong, queueList) {
     if (!targetSong) return;
 
-    // Check if audio file has an offline cached blob
-    let finalAudioSrc = targetSong.audio;
-    try {
-        const cachedBlobUrl = await getCachedAudioBlobUrl(targetSong.audio);
-        if (cachedBlobUrl) {
-            finalAudioSrc = cachedBlobUrl;
+    // Use canonical audio URL to prevent temporary blob URLs from leaking into Firestore
+    let canonicalAudio = targetSong.audio;
+    if (canonicalAudio && canonicalAudio.startsWith('blob:')) {
+        const localCatalog = window.__indonesianSongsPlaylist || window.__desktopLocalSongs;
+        if (Array.isArray(localCatalog)) {
+            const matched = localCatalog.find(s => areSameSongs(s, targetSong));
+            if (matched && matched.audio && !matched.audio.startsWith('blob:')) {
+                canonicalAudio = matched.audio;
+            }
         }
-    } catch (err) {
-        console.warn("Could not retrieve offline blob URL, using online URL:", err);
     }
 
     if (typeof window.playPreview === 'function') {
         window.__spotiwindPlaybackContext = 'downloads';
         window.playPreview(
             null,
-            finalAudioSrc,
+            canonicalAudio,
             targetSong.name || targetSong.title,
             targetSong.artist,
             targetSong.cover,

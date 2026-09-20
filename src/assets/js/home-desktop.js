@@ -36,13 +36,12 @@ let hasReachedActivityEnd = false;
 let activityUpdateTimeout = null; // For activity update optimization
 let lastRecordedActivitySong = '';
 
-
-
 // Audio Controller Global (Single Instance)
 let activeAudio = new Audio();
 let currentPlayingBtn = null;
 let currentPlaylist = [];
 let desktopMadeForYouMixes = []; // Buffer to store 10 Made for You mixes on desktop
+let desktopTrendingPlaylist = []; // Buffer to store Popular Right Now songs for queue & sequential playback
 let currentSongIndex = -1;
 let activeMixId = null; // Track the active Made for You mix so overlapping songs do not cross-switch between mixes
 let isDesktopMixDetailShuffleActive = false; // Track whether shuffle is toggled on in the desktop Mix Detail modal
@@ -157,19 +156,29 @@ activeAudio.addEventListener('error', () => {
  */
 window.playNext = () => {
     const next = getNextSong();
-    if (next) triggerSongByIndex(currentPlaylist.findIndex((song) => song.id === next.id));
+    if (next) {
+        const nextIdx = currentPlaylist.findIndex((song) => areSameSongs(song, next) || String(song.id) === String(next.id));
+        if (nextIdx !== -1) triggerSongByIndex(nextIdx);
+    }
 };
 
 window.playPrevious = () => {
     const previous = getPreviousSong();
-    if (previous) triggerSongByIndex(currentPlaylist.findIndex((song) => song.id === previous.id));
+    if (previous) {
+        const prevIdx = currentPlaylist.findIndex((song) => areSameSongs(song, previous) || String(song.id) === String(previous.id));
+        if (prevIdx !== -1) triggerSongByIndex(prevIdx);
+    }
 };
 
 const triggerSongByIndex = (index, context = null) => {
     const song = currentPlaylist[index];
     if (!song) return;
 
-    const btn = document.querySelector(`.song-card[data-id="${song.id}"] .play-overlay`);
+    let btn = document.querySelector(`.song-card[data-id="${song.id}"] .play-overlay`);
+    if (!btn) {
+        btn = document.querySelector(`.recent-track-row[data-id="${song.id}"] .recent-track-play-icon`) ||
+            document.querySelector(`[data-id="${song.id}"] .play-overlay, [data-id="${song.id}"] .recent-track-play-icon`);
+    }
     window.playPreview(btn, song.audio, song.name, song.artist, song.cover, song.id, song.duration || 0, context || currentDesktopPlaybackContext, currentPlaylist, activeMixId);
 };
 
@@ -304,9 +313,15 @@ window.playPreview = async (btn, audioUrl, title, artist, cover, id, duration = 
     let songDuration = (localSong && Number(localSong.duration) > 0)
         ? Number(localSong.duration)
         : (Number(duration) || 0);
+
+    let finalCanonicalAudio = audioUrl;
+    if ((!finalCanonicalAudio || finalCanonicalAudio.includes('blob:')) && localSong && localSong.audio && !localSong.audio.includes('blob:')) {
+        finalCanonicalAudio = localSong.audio;
+    }
+
     const targetSong = {
         id: songId,
-        audio: audioUrl,
+        audio: finalCanonicalAudio,
         name: title,
         artist,
         cover,
@@ -355,38 +370,118 @@ window.playPreview = async (btn, audioUrl, title, artist, cover, id, duration = 
     }
 
     // Context-aware playlist management
-    if ((context === 'recently-played' || (context && context.startsWith('artist-'))) && Array.isArray(customPlaylist) && customPlaylist.length > 0) {
-        currentPlaylist = [...customPlaylist];
-    }
-    if (context && currentPlaylist.length > 0) {
-        const queueState = setContextPlaylist(currentPlaylist, songId);
-        currentPlaylist = queueState.playlist;
-        currentSongIndex = queueState.currentIndex;
-        currentSongData = queueState.currentSong;
+    let baseQueue = [];
+    if (context) {
+        if (context === 'trending' || context === 'popular') {
+            if (Array.isArray(customPlaylist) && customPlaylist.length > 0) {
+                baseQueue = [...customPlaylist];
+            } else if (desktopTrendingPlaylist && desktopTrendingPlaylist.length > 0) {
+                baseQueue = [...desktopTrendingPlaylist];
+            } else {
+                const cards = Array.from(document.querySelectorAll('.popular-section .song-card'));
+                baseQueue = cards.map(card => {
+                    const ov = card.querySelector('.play-overlay');
+                    const dt = ov ? ov.dataset : {};
+                    return {
+                        id: String(card.dataset.id || dt.id || ''),
+                        audio: card.dataset.audio || dt.audio || '',
+                        name: dt.name || card.querySelector('.song-name')?.textContent?.trim() || 'Untitled',
+                        artist: dt.artist || card.querySelector('.song-artist')?.textContent?.trim() || 'Unknown Artist',
+                        cover: dt.cover || card.querySelector('img')?.src || '../../public/branding/Spotiwind.webp',
+                        duration: Number(dt.duration) || 0
+                    };
+                }).filter(s => s.audio);
+            }
+        } else if (context === 'made-for-you') {
+            if (Array.isArray(customPlaylist) && customPlaylist.length > 0) {
+                baseQueue = [...customPlaylist];
+            } else {
+                const exactMix = mixId ? desktopMadeForYouMixes.find(m => String(m.id) === String(mixId)) : null;
+                const matchedMix = exactMix || desktopMadeForYouMixes.find(m => m.songs && m.songs.some(s => areSameSongs(s, targetSong) || String(s.id) === songId || (s.audio && s.audio === audioUrl)));
+                baseQueue = matchedMix ? [...matchedMix.songs] : [targetSong];
+            }
+        } else if (context === 'recently-played' || context === 'recent') {
+            if (Array.isArray(customPlaylist) && customPlaylist.length > 0) {
+                baseQueue = [...customPlaylist];
+            } else if (desktopRecentlyPlayedListCache && desktopRecentlyPlayedListCache.length > 0) {
+                baseQueue = [...desktopRecentlyPlayedListCache];
+            } else {
+                const rawRecent = getRecentlyPlayed();
+                const validRecent = (Array.isArray(rawRecent) ? rawRecent : []).filter(s => s && s.audio).slice(0, 3);
+                if (validRecent.length > 0) {
+                    baseQueue = validRecent;
+                } else {
+                    const rows = Array.from(document.querySelectorAll('.recently-played-section .recent-track-row'));
+                    baseQueue = rows.map(row => {
+                        const dt = row.dataset;
+                        return {
+                            id: String(dt.id || ''),
+                            audio: dt.audio || '',
+                            name: dt.name || row.querySelector('.recent-track-name')?.textContent?.trim() || 'Untitled',
+                            artist: dt.artist || row.querySelector('.recent-track-artist')?.textContent?.trim() || 'Unknown Artist',
+                            cover: dt.cover || row.querySelector('img')?.src || '../../public/branding/Spotiwind.webp',
+                            duration: Number(dt.duration) || 0
+                        };
+                    }).filter(s => s.audio);
+                }
+            }
+        } else if (context.startsWith('artist-')) {
+            if (Array.isArray(customPlaylist) && customPlaylist.length > 0) {
+                baseQueue = [...customPlaylist];
+            }
+        } else if (Array.isArray(customPlaylist) && customPlaylist.length > 0) {
+            baseQueue = [...customPlaylist];
+        }
+
+        if (baseQueue.length > 0) {
+            const queueState = setContextPlaylist(baseQueue, songId);
+            currentPlaylist = queueState.playlist;
+            currentSongIndex = queueState.currentIndex;
+            currentSongData = queueState.currentSong || targetSong;
+        } else if (currentPlaylist.length > 0) {
+            const queueState = setContextPlaylist(currentPlaylist, songId);
+            currentPlaylist = queueState.playlist;
+            currentSongIndex = queueState.currentIndex;
+            currentSongData = queueState.currentSong || targetSong;
+        }
+    } else {
+        if (!currentPlaylist.some(s => areSameSongs(s, targetSong))) {
+            currentPlaylist = [targetSong];
+            currentSongIndex = 0;
+            currentSongData = targetSong;
+            syncQueueState(currentPlaylist, currentSongData, currentSongIndex);
+        }
     }
 
     if (!audioUrl) return;
 
     activeAudio.pause();
-    currentSongData = { id: songId, audio: audioUrl, name: title, artist, cover, duration };
+    currentSongData = targetSong;
     recordRecentlyPlayed(currentSongData);
     recordTrackPlay(currentSongData);
     recordArtistPlay(currentSongData);
-    currentSongIndex = currentPlaylist.findIndex(s => s.audio === audioUrl);
+
+    currentSongIndex = currentPlaylist.findIndex(s => areSameSongs(s, targetSong) || String(s.id) === String(songId));
+    if (currentSongIndex === -1 && currentPlaylist.length > 0) {
+        currentPlaylist.unshift(targetSong);
+        currentSongIndex = 0;
+    }
     syncQueueState(currentPlaylist, currentSongData, currentSongIndex);
     window.__spotiwindCurrentPlaylist = currentPlaylist;
     window.__spotiwindCurrentIndex = currentSongIndex;
     window.__spotiwindCurrentSong = currentSongData;
     window.__spotiwindContext = currentDesktopPlaybackContext;
     window.__spotiwindActiveMixId = activeMixId;
+    window.currentPlaylist = currentPlaylist;
+    window.currentSongIndex = currentSongIndex;
 
     // Reset ALL song UI states (to prevent visual duplicates during fast skipping)
     document.querySelectorAll('.is-active-song, .is-paused').forEach(el => {
         el.classList.remove('is-active-song', 'is-paused');
     });
-    document.querySelectorAll('.play-overlay, .play-pause-btn').forEach(el => {
+    document.querySelectorAll('.play-overlay, .play-pause-btn, .recent-track-play-icon').forEach(el => {
         el.classList.remove('btn-loading');
-        if (el.classList.contains('play-overlay')) el.innerHTML = PLAY_ICON;
+        if (el.classList.contains('play-overlay') || el.classList.contains('recent-track-play-icon')) el.innerHTML = PLAY_ICON;
     });
 
     // Set loading state
@@ -537,18 +632,18 @@ const showSkeletonLoader = (gridSelector, type, count = 6) => {
  * @param {object} song - Song data object.
  * @returns {string} - HTML string for the song card.
  */
-const createSongCardHTML = (song) => {
+const createSongCardHTML = (song, context = 'trending') => {
     const isActive = areSameSongs(song, currentSongData);
-    const isPaused = activeAudio.paused;
+    const isPaused = activeAudio && activeAudio.paused;
     const safeName = (song.name || '').replace(/"/g, '&quot;');
     const safeArtist = (song.artist || '').replace(/"/g, '&quot;');
 
     return `
-    <div class="song-card ${isActive ? 'is-active-song' : ''} ${isActive && isPaused ? 'is-paused' : ''}" data-id="${song.id}" data-audio="${song.audio}">
+    <div class="song-card ${isActive ? 'is-active-song' : ''} ${isActive && isPaused ? 'is-paused' : ''}" data-id="${song.id}" data-audio="${song.audio}" data-context="${context}">
         <div class="song-cover">
             <img src="${song.cover}" alt="${song.name}" style="width:100%; height:100%; object-fit:cover;">
             <button class="play-overlay" aria-label="Play ${song.name}"
-                data-audio="${song.audio}" data-name="${safeName}" data-artist="${safeArtist}" data-cover="${song.cover}" data-duration="${song.duration || 0}">
+                data-audio="${song.audio}" data-name="${safeName}" data-artist="${safeArtist}" data-cover="${song.cover}" data-duration="${song.duration || 0}" data-context="${context}">
                 ${isActive && !isPaused ? PAUSE_ICON : PLAY_ICON}
             </button>
         </div>
@@ -783,7 +878,10 @@ const fetchTrendingMusic = async () => {
             }
 
             if (!rawSongs || rawSongs.length === 0) {
-                currentPlaylist = [];
+                desktopTrendingPlaylist = [];
+                if (!currentDesktopPlaybackContext || currentDesktopPlaybackContext === 'trending') {
+                    currentPlaylist = [];
+                }
                 grid.innerHTML = `
                     <div class="popular-empty-state">
                         <div class="popular-empty-icon">
@@ -802,13 +900,16 @@ const fetchTrendingMusic = async () => {
                     const local = (desktopLocalSongs || []).find((s) => areSameSongs(s, song));
                     return local && Number(local.duration) > 0 ? { ...song, duration: Number(local.duration) } : song;
                 });
-                currentPlaylist = enrichedTracks;
-                syncQueueState(currentPlaylist, null, -1);
+                desktopTrendingPlaylist = enrichedTracks;
+                if (!currentDesktopPlaybackContext && !currentSongData) {
+                    currentPlaylist = enrichedTracks;
+                    syncQueueState(currentPlaylist, null, -1);
+                }
                 const hasSkeletons = Boolean(grid.querySelector('.song-card-skeleton'));
                 if (isFirstLoad && hasSkeletons) {
-                    renderGridProgressively(gridSelector, enrichedTracks, createSongCardHTML, '.song-card-skeleton');
+                    renderGridProgressively(gridSelector, enrichedTracks, song => createSongCardHTML(song, 'trending'), '.song-card-skeleton');
                 } else {
-                    grid.innerHTML = enrichedTracks.map(createSongCardHTML).join('');
+                    grid.innerHTML = enrichedTracks.map(song => createSongCardHTML(song, 'trending')).join('');
                     syncActiveDesktopUI();
                 }
             }
@@ -1002,6 +1103,15 @@ document.addEventListener('DOMContentLoaded', () => {
     activeAudio.addEventListener('play', () => syncActiveDesktopUI());
     activeAudio.addEventListener('pause', () => syncActiveDesktopUI());
 
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const mixDetailModal = document.getElementById('mixDetailModal');
+            if (mixDetailModal && !mixDetailModal.classList.contains('hidden')) {
+                closeDesktopMixDetailModal();
+            }
+        }
+    });
+
     // Implementation of Event Delegation instead of inline onclick
     document.body.addEventListener('click', (e) => {
         // 1. Click on Mix Play Overlay Button -> toggle play mix directly
@@ -1041,29 +1151,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 2. Click on Mix Card (outside play button) -> Play Mix
+        // 2. Click on Mix Card (outside play button) -> Open Mix Detail Modal View
         const mixCard = e.target.closest('.mix-card');
         if (mixCard) {
             e.stopPropagation();
             const mixId = mixCard.dataset.mixId;
-            const targetMix = desktopMadeForYouMixes.find(m => String(m.id) === String(mixId));
-            if (targetMix && targetMix.songs && targetMix.songs.length > 0) {
-                const firstSong = targetMix.songs[0];
-                currentPlaylist = [...targetMix.songs];
-                activeMixId = targetMix.id;
-                window.playPreview(
-                    mixCard.querySelector('.play-overlay') || null,
-                    firstSong.audio,
-                    firstSong.name,
-                    firstSong.artist,
-                    firstSong.cover,
-                    firstSong.id,
-                    Number(firstSong.duration) || 0,
-                    'made-for-you',
-                    targetMix.songs,
-                    targetMix.id
-                );
-            }
+            openDesktopMixDetailModal(mixId);
             return;
         }
 
@@ -1166,16 +1259,43 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Click handler for Popular Right Now (only when clicking play/pause button overlay)
+        const popularPlayBtn = e.target.closest('.popular-section .song-card .play-overlay');
+        if (popularPlayBtn) {
+            e.stopPropagation();
+            const card = popularPlayBtn.closest('.song-card');
+            const overlay = popularPlayBtn;
+            const audio = overlay.dataset.audio || card?.dataset?.audio;
+            const name = overlay.dataset.name || card?.querySelector('.song-name')?.textContent?.trim();
+            const artist = overlay.dataset.artist || card?.querySelector('.song-artist')?.textContent?.trim();
+            const cover = overlay.dataset.cover || card?.querySelector('img')?.src;
+            const duration = overlay.dataset.duration || 0;
+            const id = card?.dataset?.id || '';
+
+            window.playPreview(
+                overlay,
+                audio,
+                name,
+                artist,
+                cover,
+                id,
+                Number(duration) || 0,
+                'trending',
+                desktopTrendingPlaylist
+            );
+            return;
+        }
+
         const playBtn = e.target.closest('.play-overlay') || e.target.closest('.play-mini-btn');
         if (!playBtn) return;
 
         const card = playBtn.closest('.song-card');
         if (!card) return;
         const overlay = card.querySelector('.play-overlay');
-        const { audio, name, artist, cover, duration } = overlay.dataset;
+        const { audio, name, artist, cover, duration, context } = overlay ? overlay.dataset : playBtn.dataset;
         const id = card.dataset.id;
 
-        window.playPreview(overlay, audio, name, artist, cover, id, Number(duration) || 0, 'trending');
+        window.playPreview(overlay || playBtn, audio, name, artist, cover, id, Number(duration) || 0, context || 'trending', desktopTrendingPlaylist);
     });
     /**
      * NEW: Wrapper to continuously retry a fetch function upon failure.
@@ -1217,9 +1337,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initialize search with Slidedown Dropdown feature
-    // Listener for music controls in the sidebar
-    document.querySelector('button[title="Next"]')?.addEventListener('click', playNext);
-    document.querySelector('button[title="Previous"]')?.addEventListener('click', playPrevious);
+    // Listener for music controls in the sidebar and bottom player bar
+    document.querySelectorAll('button[title="Next"]').forEach(btn => btn.addEventListener('click', playNext));
+    document.querySelectorAll('button[title="Previous"]').forEach(btn => btn.addEventListener('click', playPrevious));
 
     // Listener for Repeat (Sidebar & Bottom)
     document.querySelectorAll('#sidebarRepeat, #bottomRepeat').forEach(btn => {
@@ -1895,7 +2015,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     dashboardContainer?.classList.add('sidebar-collapsed');
                     sidebar.classList.add('collapsed');
                 }
-            } catch {}
+            } catch { }
 
             toggleBtn.onclick = () => {
                 const willCollapse = !sidebar.classList.contains('collapsed');
@@ -1904,13 +2024,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     sidebar.classList.add('collapsed');
                     try {
                         localStorage.setItem('spotiwind_desktop_sidebar_collapsed', 'true');
-                    } catch {}
+                    } catch { }
                 } else {
                     dashboardContainer?.classList.remove('sidebar-collapsed');
                     sidebar.classList.remove('collapsed');
                     try {
                         localStorage.setItem('spotiwind_desktop_sidebar_collapsed', 'false');
-                    } catch {}
+                    } catch { }
                 }
             };
         }
@@ -2003,7 +2123,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 desktopPreviousPageUrl = desktopCurrentPageUrl;
                 try {
                     sessionStorage.setItem('spotiwind_desktop_auth_previous_page', desktopCurrentPageUrl);
-                } catch {}
+                } catch { }
             }
         }
         desktopCurrentPageUrl = page;

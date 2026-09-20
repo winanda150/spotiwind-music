@@ -33,6 +33,11 @@ export const getTrackEntityId = (song = {}) => {
 export const normalizePopularTrackAssetUrl = (url) => {
     if (!url || typeof url !== 'string') return '';
 
+    // NEVER treat temporary blob URLs as relative public paths
+    if (url.startsWith('blob:') || url.includes('/blob:') || url.includes('blob:http')) {
+        return '';
+    }
+
     // If it's an absolute URL containing local asset path (from localhost, vercel, github pages, etc.)
     if (url.startsWith('http://') || url.startsWith('https://')) {
         if (url.includes('/frontend/public/')) {
@@ -69,11 +74,16 @@ export const normalizePopularTrackAssetUrl = (url) => {
         .replace(/Gambar[12]\.webp/gi, 'images/Hero%20Section.webp')
         .replace(/^\/+/, '');
 
+    if (!cleanPath || cleanPath.startsWith('blob:') || cleanPath.includes('blob:')) {
+        return '';
+    }
+
     return `../../public/${cleanPath}`;
 };
 
 /**
  * Automatically syncs & updates track paths in Firestore if Firestore holds legacy or outdated paths.
+ * Also heals corrupted blob URLs by checking the local song catalog.
  * @param {string} docId - Firestore document ID
  * @param {Object} rawData - Raw data stored in Firestore document
  */
@@ -83,10 +93,36 @@ export const syncPopularTrackPathToFirestore = async (docId, rawData = {}) => {
     const rawCover = String(rawData.cover || '').trim();
     const rawAudio = String(rawData.audio || '').trim();
 
-    const targetCover = normalizePopularTrackAssetUrl(rawCover || '../../public/branding/Spotiwind.webp');
-    const targetAudio = normalizePopularTrackAssetUrl(rawAudio);
+    const isCorruptedCover = rawCover.includes('blob:');
+    const isCorruptedAudio = rawAudio.includes('blob:');
 
-    const hasLegacyCover = rawCover && (
+    let resolvedCover = rawCover;
+    let resolvedAudio = rawAudio;
+
+    let durationUpdate = null;
+    if (typeof window !== 'undefined') {
+        const localCatalog = window.__indonesianSongsPlaylist || window.__desktopLocalSongs;
+        if (Array.isArray(localCatalog)) {
+            const matched = localCatalog.find(s => areSameSongs(s, { id: docId, ...rawData }));
+            if (matched) {
+                if (Number(matched.duration) > 0 && Number(rawData.duration) !== Number(matched.duration)) {
+                    durationUpdate = Number(matched.duration);
+                }
+                if (isCorruptedAudio && matched.audio && !matched.audio.includes('blob:')) {
+                    resolvedAudio = matched.audio;
+                }
+                if (isCorruptedCover && matched.cover && !matched.cover.includes('blob:')) {
+                    resolvedCover = matched.cover;
+                }
+            }
+        }
+    }
+
+    const targetCover = normalizePopularTrackAssetUrl(resolvedCover || '../../public/branding/Spotiwind.webp');
+    const targetAudio = normalizePopularTrackAssetUrl(resolvedAudio);
+
+    const hasLegacyCover = targetCover && (
+        isCorruptedCover ||
         rawCover.includes('Elemen') ||
         rawCover.includes('frontend') ||
         rawCover.includes('Logo') ||
@@ -98,22 +134,12 @@ export const syncPopularTrackPathToFirestore = async (docId, rawData = {}) => {
         rawCover !== targetCover
     );
 
-    const hasLegacyAudio = rawAudio && (
+    const hasLegacyAudio = targetAudio && (
+        isCorruptedAudio ||
         rawAudio.includes('Elemen') ||
         rawAudio.includes('frontend') ||
         rawAudio !== targetAudio
     );
-
-    let durationUpdate = null;
-    if (typeof window !== 'undefined') {
-        const localCatalog = window.__indonesianSongsPlaylist || window.__desktopLocalSongs;
-        if (Array.isArray(localCatalog)) {
-            const matched = localCatalog.find(s => areSameSongs(s, { id: docId, ...rawData }));
-            if (matched && Number(matched.duration) > 0 && Number(rawData.duration) !== Number(matched.duration)) {
-                durationUpdate = Number(matched.duration);
-            }
-        }
-    }
 
     if (hasLegacyCover || hasLegacyAudio || durationUpdate !== null) {
         try {
@@ -121,8 +147,8 @@ export const syncPopularTrackPathToFirestore = async (docId, rawData = {}) => {
             const updates = {
                 updatedAt: serverTimestamp()
             };
-            if (hasLegacyCover) updates.cover = targetCover;
-            if (hasLegacyAudio) updates.audio = targetAudio;
+            if (hasLegacyCover && targetCover) updates.cover = targetCover;
+            if (hasLegacyAudio && targetAudio) updates.audio = targetAudio;
             if (durationUpdate !== null) updates.duration = durationUpdate;
 
             await setDoc(trackRef, updates, { merge: true });
@@ -134,7 +160,7 @@ export const syncPopularTrackPathToFirestore = async (docId, rawData = {}) => {
 
 /**
  * Record a song play to Firestore popular_tracks collection.
- * Increments playCount and updates metadata.
+ * Increments playCount and updates metadata safely (never saves blob URLs).
  * @param {Object} song - The song object being played
  */
 export const recordTrackPlay = async (song) => {
@@ -154,31 +180,48 @@ export const recordTrackPlay = async (song) => {
 
     try {
         let songDuration = Number(song.duration) || 0;
+        let songCover = song.cover || song.image || '';
+        let songAudio = song.audio || '';
 
         // Check local catalog: songs.json is the source of truth for duration & metadata
         if (typeof window !== 'undefined') {
             const localCatalog = window.__indonesianSongsPlaylist || window.__desktopLocalSongs;
             if (Array.isArray(localCatalog)) {
                 const matched = localCatalog.find(s => areSameSongs(s, song));
-                if (matched && Number(matched.duration) > 0) {
-                    songDuration = Number(matched.duration);
+                if (matched) {
+                    if (Number(matched.duration) > 0) {
+                        songDuration = Number(matched.duration);
+                    }
+                    if ((!songAudio || songAudio.includes('blob:')) && matched.audio && !matched.audio.includes('blob:')) {
+                        songAudio = matched.audio;
+                    }
+                    if ((!songCover || songCover.includes('blob:')) && matched.cover && !matched.cover.includes('blob:')) {
+                        songCover = matched.cover;
+                    }
                 }
             }
         }
+
+        const normalizedCover = normalizePopularTrackAssetUrl(songCover || '../../public/branding/Spotiwind.webp');
+        const normalizedAudio = normalizePopularTrackAssetUrl(songAudio);
 
         const trackRef = doc(getPopularTracksRef(), trackId);
         const trackData = {
             id: song.id ? String(song.id) : trackId,
             name: String(song.name || song.title || 'Untitled Track').replace(/\\'/g, "'").trim(),
             artist: String(song.artist || song.artist_name || 'Unknown Artist').replace(/\\'/g, "'").trim(),
-            cover: normalizePopularTrackAssetUrl(song.cover || song.image || '../../public/branding/Spotiwind.webp'),
-            audio: normalizePopularTrackAssetUrl(song.audio || ''),
             playCount: increment(1),
             updatedAt: serverTimestamp()
         };
 
-        // CRITICAL FIX: Only set duration in Firestore if we have a valid positive duration (> 0)
-        // Never overwrite an existing Firestore duration with 0!
+        if (normalizedCover) {
+            trackData.cover = normalizedCover;
+        }
+        if (normalizedAudio) {
+            trackData.audio = normalizedAudio;
+        }
+
+        // Only set duration in Firestore if we have a valid positive duration (> 0)
         if (songDuration > 0) {
             trackData.duration = songDuration;
         }
@@ -208,35 +251,28 @@ export const sortPopularTracks = (list = []) => {
             if (!ts) return 0;
             if (typeof ts.toMillis === 'function') return ts.toMillis();
             if (typeof ts.seconds === 'number') return ts.seconds * 1000;
-            if (typeof ts === 'number') return ts;
-            return 0;
+            return Number(ts) || 0;
         };
 
-        const timeLeft = getTimestamp(left);
-        const timeRight = getTimestamp(right);
-
-        if (timeLeft > 0 && timeRight > 0 && timeLeft !== timeRight) {
-            return timeLeft - timeRight; // Earlier recorded plays preserve precedence
-        }
-
-        return 0;
+        return getTimestamp(left) - getTimestamp(right);
     });
 };
 
 /**
- * Fetch top popular tracks once from Firestore.
- * @param {number} limitCount - Maximum number of tracks to fetch (default: 10)
- * @returns {Promise<Array>} List of popular tracks
+ * Fetch top popular tracks from Firestore popular_tracks collection.
+ * Heals any legacy corrupted blob paths on the fly.
+ * @param {number} limitCount - Maximum number of popular tracks to retrieve (default: 10)
+ * @returns {Promise<Array>} Array of popular track objects sorted by playCount
  */
-export const getPopularTracks = async (limitCount = DEFAULT_LIMIT) => {
+export const fetchPopularTracks = async (limitCount = DEFAULT_LIMIT) => {
     try {
         const q = firestoreQuery(
             getPopularTracksRef(),
             orderBy('playCount', 'desc'),
             limit(limitCount)
         );
-        const querySnapshot = await getDocs(q);
 
+        const querySnapshot = await getDocs(q);
         if (querySnapshot.empty) {
             return [];
         }
@@ -244,13 +280,33 @@ export const getPopularTracks = async (limitCount = DEFAULT_LIMIT) => {
         const tracks = querySnapshot.docs.map((docSnap) => {
             const data = docSnap.data() || {};
             syncPopularTrackPathToFirestore(docSnap.id, data);
+            let audioPath = normalizePopularTrackAssetUrl(data.audio);
+            let coverPath = normalizePopularTrackAssetUrl(data.cover);
+
+            if (!audioPath || !coverPath) {
+                const localCatalog = (typeof window !== 'undefined')
+                    ? (window.__indonesianSongsPlaylist || window.__desktopLocalSongs)
+                    : null;
+                if (Array.isArray(localCatalog)) {
+                    const matched = localCatalog.find(s => areSameSongs(s, { id: docSnap.id, ...data }));
+                    if (matched) {
+                        if (!audioPath && matched.audio && !matched.audio.includes('blob:')) {
+                            audioPath = normalizePopularTrackAssetUrl(matched.audio);
+                        }
+                        if (!coverPath && matched.cover && !matched.cover.includes('blob:')) {
+                            coverPath = normalizePopularTrackAssetUrl(matched.cover);
+                        }
+                    }
+                }
+            }
+
             return {
                 id: docSnap.id,
                 ...data,
                 name: String(data.name || '').replace(/\\'/g, "'").trim(),
                 artist: String(data.artist || '').replace(/\\'/g, "'").trim(),
-                audio: normalizePopularTrackAssetUrl(data.audio),
-                cover: normalizePopularTrackAssetUrl(data.cover),
+                audio: audioPath || data.audio,
+                cover: coverPath || data.cover || '../../public/branding/Spotiwind.webp',
                 playCount: Number(data.playCount) || 0
             };
         });
@@ -262,8 +318,11 @@ export const getPopularTracks = async (limitCount = DEFAULT_LIMIT) => {
     }
 };
 
+export const getPopularTracks = fetchPopularTracks;
+
 /**
  * Real-time subscription to top popular tracks in Firestore.
+ * Heals any legacy corrupted blob paths on the fly.
  * @param {Function} callback - Function called with popular tracks array on update
  * @param {number} limitCount - Maximum number of tracks to subscribe to (default: 10)
  * @returns {Function} Unsubscribe function
@@ -280,13 +339,33 @@ export const subscribePopularTracks = (callback, limitCount = DEFAULT_LIMIT) => 
             const tracks = snapshot.docs.map((docSnap) => {
                 const data = docSnap.data() || {};
                 syncPopularTrackPathToFirestore(docSnap.id, data);
+                let audioPath = normalizePopularTrackAssetUrl(data.audio);
+                let coverPath = normalizePopularTrackAssetUrl(data.cover);
+
+                if (!audioPath || !coverPath) {
+                    const localCatalog = (typeof window !== 'undefined')
+                        ? (window.__indonesianSongsPlaylist || window.__desktopLocalSongs)
+                        : null;
+                    if (Array.isArray(localCatalog)) {
+                        const matched = localCatalog.find(s => areSameSongs(s, { id: docSnap.id, ...data }));
+                        if (matched) {
+                            if (!audioPath && matched.audio && !matched.audio.includes('blob:')) {
+                                audioPath = normalizePopularTrackAssetUrl(matched.audio);
+                            }
+                            if (!coverPath && matched.cover && !matched.cover.includes('blob:')) {
+                                coverPath = normalizePopularTrackAssetUrl(matched.cover);
+                            }
+                        }
+                    }
+                }
+
                 return {
                     id: docSnap.id,
                     ...data,
                     name: String(data.name || '').replace(/\\'/g, "'").trim(),
                     artist: String(data.artist || '').replace(/\\'/g, "'").trim(),
-                    audio: normalizePopularTrackAssetUrl(data.audio),
-                    cover: normalizePopularTrackAssetUrl(data.cover),
+                    audio: audioPath || data.audio,
+                    cover: coverPath || data.cover || '../../public/branding/Spotiwind.webp',
                     playCount: Number(data.playCount) || 0
                 };
             });

@@ -34,6 +34,11 @@ export const getPublicAssetUrl = (relativePath) => {
     if (!relativePath) return '';
     if (typeof relativePath !== 'string') return relativePath;
 
+    // Never treat blob URLs as relative public paths
+    if (relativePath.startsWith('blob:') || relativePath.includes('/blob:') || relativePath.includes('blob:http')) {
+        return '';
+    }
+
     // If it's an external URL (e.g. Jamendo CDN) and NOT a local domain
     if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) {
         if (relativePath.includes('/frontend/public/')) {
@@ -61,6 +66,10 @@ export const getPublicAssetUrl = (relativePath) => {
         .replace(/^Elemen\/Logo\//, 'branding/')
         .replace(/^Elemen\//, 'music/')
         .replace(/^\/+/, '');
+
+    if (!cleanPath || cleanPath.startsWith('blob:') || cleanPath.includes('blob:')) {
+        return '';
+    }
 
     return `../../public/${cleanPath}`;
 };

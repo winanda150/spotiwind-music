@@ -35,6 +35,11 @@ export const getArtistEntityId = (nameOrId = '') => {
 export const normalizeArtistPhotoUrl = (url) => {
     if (!url || typeof url !== 'string') return '../../public/branding/Spotiwind.webp';
 
+    // Never treat blob URLs as relative public paths
+    if (url.startsWith('blob:') || url.includes('/blob:') || url.includes('blob:http')) {
+        return '../../public/branding/Spotiwind.webp';
+    }
+
     if (url.startsWith('http://') || url.startsWith('https://')) {
         if (url.includes('/frontend/public/')) {
             url = url.split('/frontend/public/')[1];
@@ -69,6 +74,10 @@ export const normalizeArtistPhotoUrl = (url) => {
         .replace(/^Love%20Image\.png/g, 'images/Love%20Image.png')
         .replace(/Gambar[12]\.webp/gi, 'images/Hero%20Section.webp')
         .replace(/^\/+/, '');
+
+    if (!cleanPath || cleanPath.startsWith('blob:') || cleanPath.includes('blob:')) {
+        return '../../public/branding/Spotiwind.webp';
+    }
 
     return `../../public/${cleanPath}`;
 };

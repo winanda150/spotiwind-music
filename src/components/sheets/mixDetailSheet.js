@@ -48,11 +48,13 @@ export const openMixDetailModal = async (mixId, madeForYouMixes = []) => {
                 <div class="mix-overlay-gradient"></div>
                 <div class="mix-color-strip" style="background: ${targetMix.accentColor};"></div>
             </div>
-            <span class="mix-detail-hero-badge">${targetMix.tag}</span>
-            <h1 class="mix-detail-hero-title">${targetMix.title}</h1>
-            <p class="mix-detail-hero-desc">${targetMix.subtitle}</p>
-            <div class="mix-detail-hero-meta">
-                <span>Spotiwind</span> • <span>${targetMix.songs.length} songs</span> • <span>~${totalMin} min</span>
+            <div class="mix-detail-hero-info">
+                <span class="mix-detail-hero-badge">${targetMix.tag}</span>
+                <h1 class="mix-detail-hero-title">${targetMix.title}</h1>
+                <p class="mix-detail-hero-desc">${targetMix.subtitle}</p>
+                <div class="mix-detail-hero-meta">
+                    <span>Spotiwind</span> • <span>${targetMix.songs.length} songs</span> • <span>~${totalMin} min</span>
+                </div>
             </div>
         </div>
     `;

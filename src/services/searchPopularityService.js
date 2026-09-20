@@ -41,6 +41,11 @@ const getEntityId = (type, item) => {
 export const normalizePopularityAssetUrl = (url) => {
     if (!url || typeof url !== 'string') return '';
 
+    // Never treat blob URLs as relative public paths
+    if (url.startsWith('blob:') || url.includes('/blob:') || url.includes('blob:http')) {
+        return '';
+    }
+
     // If it's an absolute URL containing local asset path (from localhost, vercel, github pages, etc.)
     if (url.startsWith('http://') || url.startsWith('https://')) {
         if (url.includes('/frontend/public/')) {
@@ -68,6 +73,10 @@ export const normalizePopularityAssetUrl = (url) => {
         .replace(/^Elemen\/Logo\//, 'branding/')
         .replace(/^Elemen\//, 'music/')
         .replace(/^\/+/, '');
+
+    if (!cleanPath || cleanPath.startsWith('blob:') || cleanPath.includes('blob:')) {
+        return '';
+    }
 
     return `../../public/${cleanPath}`;
 };

@@ -1483,9 +1483,14 @@ document.addEventListener('DOMContentLoaded', () => {
             ? Number(localSong.duration)
             : (Number(duration) || 0);
 
+        let finalCanonicalAudio = audioUrl;
+        if ((!finalCanonicalAudio || finalCanonicalAudio.includes('blob:')) && localSong && localSong.audio && !localSong.audio.includes('blob:')) {
+            finalCanonicalAudio = localSong.audio;
+        }
+
         const targetSong = {
             id: songId,
-            audio: audioUrl,
+            audio: finalCanonicalAudio,
             name: title,
             artist,
             cover,
