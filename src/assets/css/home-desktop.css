@@ -194,7 +194,7 @@ body.is-desktop-auth-view .bottom-player-bar {
     gap: 0.5rem;
     margin-bottom: 1rem;
     font-size: 1.4rem;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: -0.05em;
 }
 
@@ -234,9 +234,7 @@ body.is-desktop-auth-view .bottom-player-bar {
 }
 
 .brand-logo span {
-    font-size: 1.30rem;
-    font-weight: 700;
-    letter-spacing: -0.05em;
+    font-size: 1.4rem;
 }
 
 .nav-menu {
@@ -357,13 +355,13 @@ body.player-active .right-sidebar {
 }
 
 .top-bar .desktop-top-logo {
-    height: 28px;
-    width: 28px;
+    height: 40px;
+    width: 40px;
     object-fit: contain;
 }
 
 .top-bar .desktop-top-brand-name {
-    font-size: 1.15rem;
+    font-size: 1.4rem;
     font-weight: 600;
     letter-spacing: -0.04em;
     color: var(--text-main);
@@ -486,7 +484,7 @@ body.player-active .right-sidebar {
 
 
 .greeting-section {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .greeting-section .badge {
@@ -520,7 +518,7 @@ body.player-active .right-sidebar {
     position: relative;
     overflow: hidden;
     box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.4);
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.5rem;
 }
 
 .hero-card h1 {
@@ -1154,8 +1152,7 @@ body.is-dragging-progress .progress-thumb {
 
 /* Mood Section Styles */
 .mood-section {
-    margin-top: -1rem;
-    margin-bottom: 3rem;
+    margin-bottom: 1.5rem;
 }
 
 .section-header {
@@ -1202,9 +1199,7 @@ body.is-dragging-progress .progress-thumb {
     display: flex;
     gap: 1rem;
     overflow-x: auto;
-    padding-bottom: 0.5rem;
     scrollbar-width: none;
-    /* Sembunyikan scrollbar di Firefox */
 }
 
 .mood-grid::-webkit-scrollbar {
@@ -1353,8 +1348,7 @@ body.is-dragging-progress .progress-thumb {
 
 /* Popular Section Styles */
 .popular-section {
-    margin-top: -1.8rem;
-    margin-bottom: 3rem;
+    margin-bottom: 1.5rem;
 }
 
 .song-grid {
@@ -1363,7 +1357,6 @@ body.is-dragging-progress .progress-thumb {
     scrollbar-width: none;
     gap: 1.5rem;
     margin-top: 1rem;
-    padding-bottom: 1rem;
 }
 
 .song-grid::-webkit-scrollbar {
@@ -1550,10 +1543,14 @@ body.is-dragging-progress .progress-thumb {
     /* Redupkan ikon play saat loading */
 }
 
+/* Made For You Section Styles */
+.made-for-you-section {
+    margin-bottom: 1.5rem;
+}
+
 /* Top Artists Section Styles */
 .top-artists-section {
-    margin-top: -1.5rem;
-    margin-bottom: 3rem;
+    margin-bottom: 1.5rem;
 }
 
 .artists-grid {
@@ -1561,7 +1558,6 @@ body.is-dragging-progress .progress-thumb {
     gap: 2rem;
     overflow-x: auto;
     scrollbar-width: none;
-    padding: 1rem 0;
 }
 
 .artists-grid::-webkit-scrollbar {
@@ -2453,8 +2449,7 @@ body.is-dragging-volume .volume-level {
    ========================================================================== */
 
 .recently-played-section {
-    margin-top: -1.5rem;
-    margin-bottom: 3rem;
+    margin-bottom: 1.5rem;
 }
 
 .recently-played-list {
