@@ -5,6 +5,8 @@
 
 :root {
     color-scheme: dark;
+
+    /* Brand & Accent Gradients */
     --gradient-windstream: linear-gradient(135deg, #FF2D78 0%, #9B4DFF 35%, #4C6EF5 65%, #1FE8C4 100%);
     --primary-gradient: linear-gradient(to right, #F12E77, #B91EC9, #7D19F5);
     --accent-magenta: #FF2D78;
@@ -13,6 +15,7 @@
     --accent-teal: #1FE8C4;
     --accent-color: #B91EC9;
     
+    /* Backgrounds & Surfaces */
     --bg-dark: #03030a;
     --surface-1: rgba(15, 23, 42, 0.75);
     --surface-2: rgba(26, 31, 56, 0.6);
@@ -21,16 +24,25 @@
     --glass-border-focus: rgba(185, 30, 201, 0.6);
     --input-bg: rgba(10, 14, 28, 0.7);
     
+    /* Typography & Text */
     --text-main: #ffffff;
     --text-secondary: #cbd5e1;
     --text-muted: #94a3b8;
     --text-dim: #64748b;
+    --font-family-base: 'Poppins', sans-serif;
     
+    /* Border Radii */
+    --radius-xs: 4px;
     --radius-sm: 8px;
     --radius-md: 14px;
     --radius-lg: 20px;
     --radius-xl: 28px;
+    --radius-full: 9999px;
     
+    /* Transitions & Shadows */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.25s ease;
+    --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
     --shadow-glow: 0 0 40px -10px rgba(185, 30, 201, 0.35);
     --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.6);

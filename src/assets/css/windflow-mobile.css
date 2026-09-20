@@ -3,14 +3,65 @@
    Color Palette & Theme strictly aligned with Home, Search, Library, & Account
    ========================================================================== */
 
+:root {
+    color-scheme: dark;
+
+    /* Brand & Accent Gradients */
+    --primary-gradient: linear-gradient(to right, #F12E77, #B91EC9, #7D19F5);
+    --gradient-windstream: linear-gradient(135deg, #FF2D78 0%, #9B4DFF 35%, #4C6EF5 65%, #1FE8C4 100%);
+    --accent-color: #B91EC9;
+    --accent-magenta: #F12E77;
+    --accent-violet: #7D19F5;
+    --accent-blue: #4C6EF5;
+    --accent-teal: #1FE8C4;
+
+    /* Backgrounds & Surfaces */
+    --bg-dark: #0f172a;
+    --surface-1: rgba(15, 23, 42, 0.85);
+    --surface-card: rgba(18, 22, 40, 0.7);
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-border-focus: rgba(185, 30, 201, 0.7);
+    --input-bg: rgba(255, 255, 255, 0.08);
+
+    /* Typography & Text */
+    --text-main: #ffffff;
+    --text-secondary: #cbd5e1;
+    --text-muted: #9ca3af;
+    --text-dim: #64748b;
+    --font-family-base: 'Poppins', sans-serif;
+
+    /* Spacing & Layout */
+    --mobile-horizontal-padding: 0.9375rem;
+
+    /* WindFlow Specific Tokens */
+    --windflow-eq-color: #1FE8C4;
+    --windflow-hero-bg: linear-gradient(135deg, rgba(241, 46, 119, 0.22), rgba(185, 30, 201, 0.18), rgba(125, 25, 245, 0.14));
+
+    /* Border Radii */
+    --radius-xs: 4px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+
+    /* Transitions & Shadows */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.25s ease;
+    --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.25);
+    --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35);
+    --shadow-glow: 0 0 25px rgba(185, 30, 201, 0.35);
+}
+
 .windflow-page {
     padding: 0rem var(--mobile-horizontal-padding) 2rem;
     min-height: calc(100vh - 70px);
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    font-family: 'Poppins', sans-serif;
-    color: var(--text-main, #ffffff);
+    font-family: var(--font-family-base);
+    color: var(--text-main);
 }
 
 /* --------------------------------------------------------------------------
@@ -33,11 +84,11 @@
     font-size: 1.5rem;
     font-weight: 600;
     line-height: 1.2;
-    color: var(--text-main, #ffffff);
+    color: var(--text-main);
 }
 
 .windflow-title .theme-text {
-    background: var(--primary-gradient, linear-gradient(to right, #F12E77, #B91EC9, #7D19F5));
+    background: var(--primary-gradient);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -46,7 +97,7 @@
 .windflow-subtitle {
     margin: 0.35rem 0 0;
     font-size: 0.78rem;
-    color: var(--text-muted, #9ca3af);
+    color: var(--text-muted);
     line-height: 1.4;
 }
 
@@ -56,8 +107,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 1.25rem;
-    background: linear-gradient(135deg, rgba(241, 46, 119, 0.22), rgba(185, 30, 201, 0.18), rgba(125, 25, 245, 0.14));
-    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+    background: var(--windflow-hero-bg);
+    border: 1px solid var(--glass-border);
     border-radius: 1.25rem;
     padding: 1.25rem var(--mobile-horizontal-padding);
     overflow: hidden;

@@ -5,6 +5,8 @@
 
 :root {
     color-scheme: dark;
+
+    /* Brand & Accent Gradients */
     --gradient-windstream: linear-gradient(135deg, #FF2D78 0%, #9B4DFF 35%, #4C6EF5 65%, #1FE8C4 100%);
     --primary-gradient: linear-gradient(to right, #F12E77, #B91EC9, #7D19F5);
     --accent-magenta: #FF2D78;
@@ -13,23 +15,40 @@
     --accent-teal: #1FE8C4;
     --accent-color: #B91EC9;
     
+    /* Backgrounds & Surfaces */
     --bg-dark: #03030a;
     --surface-1: rgba(15, 23, 42, 0.85);
     --surface-card: rgba(18, 22, 40, 0.7);
+    --glass-bg: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.09);
     --glass-border-focus: rgba(185, 30, 201, 0.7);
     --input-bg: rgba(10, 14, 26, 0.8);
     
+    /* Typography & Text */
     --text-main: #ffffff;
     --text-secondary: #cbd5e1;
     --text-muted: #94a3b8;
     --text-dim: #64748b;
+    --font-family-base: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     
+    /* Spacing & Layout */
     --mobile-padding: clamp(1rem, 5vw, 1.5rem);
+    --mobile-horizontal-padding: 0.9375rem;
+
+    /* Border Radii */
+    --radius-xs: 4px;
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 18px;
     --radius-xl: 24px;
+    --radius-full: 9999px;
+
+    /* Transitions & Shadows */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.25s ease;
+    --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.25);
+    --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35);
+    --shadow-glow: 0 0 25px rgba(185, 30, 201, 0.35);
 }
 
 *, *::before, *::after {

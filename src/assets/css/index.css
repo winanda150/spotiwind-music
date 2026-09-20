@@ -2,8 +2,15 @@
 :root {
     color-scheme: dark;
     --bg-main: #0f172a;
+    --bg-dark: #0f172a;
     --text-main: #ffffff;
     --text-muted: #94a3b8;
+    --primary-gradient: linear-gradient(to right, #F12E77, #B91EC9, #7D19F5);
+    --accent-color: #B91EC9;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --router-logo-size: 52px;
+    --router-gap: 1rem;
+    --transition-normal: 0.25s ease;
 }
 
 * {
@@ -30,7 +37,7 @@ html, body {
 body {
     background-color: var(--bg-main);
     color: var(--text-main);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: var(--font-sans);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -41,13 +48,13 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
+    gap: var(--router-gap);
     text-align: center;
 }
 
 .router-logo {
-    width: 52px;
-    height: 52px;
+    width: var(--router-logo-size);
+    height: var(--router-logo-size);
     object-fit: contain;
     animation: router-pulse 1.6s ease-in-out infinite;
 }

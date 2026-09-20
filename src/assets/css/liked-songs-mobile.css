@@ -2,8 +2,58 @@
    Spotiwind — Dedicated Liked Songs Page Mobile Styles (Modern & Clean)
    ========================================================================== */
 
+:root {
+    color-scheme: dark;
+
+    /* Brand & Accent Gradients */
+    --primary-gradient: linear-gradient(to right, #F12E77, #B91EC9, #7D19F5);
+    --gradient-windstream: linear-gradient(135deg, #FF2D78 0%, #9B4DFF 35%, #4C6EF5 65%, #1FE8C4 100%);
+    --accent-color: #B91EC9;
+    --accent-magenta: #F12E77;
+    --accent-violet: #7D19F5;
+    --accent-blue: #4C6EF5;
+    --accent-teal: #1FE8C4;
+
+    /* Backgrounds & Surfaces */
+    --bg-dark: #0f172a;
+    --surface-1: rgba(15, 23, 42, 0.85);
+    --surface-card: rgba(18, 22, 40, 0.7);
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-border-focus: rgba(185, 30, 201, 0.7);
+    --input-bg: rgba(255, 255, 255, 0.08);
+
+    /* Typography & Text */
+    --text-main: #ffffff;
+    --text-secondary: #cbd5e1;
+    --text-muted: #9ca3af;
+    --text-dim: #64748b;
+    --font-family-base: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+    /* Spacing & Layout */
+    --mobile-horizontal-padding: 0.9375rem;
+
+    /* Liked Songs Specific Tokens */
+    --liked-songs-btn-size: 40px;
+
+    /* Border Radii */
+    --radius-xs: 4px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+
+    /* Transitions & Shadows */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.25s ease;
+    --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.25);
+    --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35);
+    --shadow-glow: 0 0 25px rgba(185, 30, 201, 0.35);
+}
+
 .liked-songs-page-wrapper {
-    background: #0f172a;
+    background: var(--bg-dark);
     padding-bottom: 1.25rem;
     box-sizing: border-box;
     position: relative;
@@ -19,7 +69,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: calc(env(safe-area-inset-top, 0px) + 0.65rem) var(--mobile-horizontal-padding, 1rem);
+    padding: calc(env(safe-area-inset-top, 0px) + 0.65rem) var(--mobile-horizontal-padding);
     background: transparent;
     border-bottom: none;
     backdrop-filter: none;
@@ -32,9 +82,9 @@
 .liked-songs-more-btn {
     background: transparent;
     border: none;
-    color: var(--text-main, #ffffff);
-    width: 40px;
-    height: 40px;
+    color: var(--text-main);
+    width: var(--liked-songs-btn-size);
+    height: var(--liked-songs-btn-size);
     border-radius: 50%;
     display: flex;
     align-items: center;
