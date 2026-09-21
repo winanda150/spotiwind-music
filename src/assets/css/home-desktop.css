@@ -199,16 +199,19 @@ body.is-desktop-auth-view .bottom-player-bar {
     flex-direction: column;
     padding: 1.5rem 0 0.5rem 1.5rem;
     overflow-y: auto;
+    overflow-x: hidden;
     scrollbar-width: none;
     /* Untuk Firefox */
     -ms-overflow-style: none;
     /* Untuk IE dan Edge */
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
         min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-        padding 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        padding-right 0.3s cubic-bezier(0.4, 0, 0.2, 1),
         opacity 0.25s ease,
-        margin 0.3s ease;
-    will-change: width, min-width, padding, opacity;
+        margin-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        visibility 0.3s ease;
+    will-change: width, min-width, opacity;
 }
 
 .sidebar.collapsed,
@@ -217,7 +220,6 @@ body.is-desktop-auth-view .bottom-player-bar {
     min-width: 0 !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
-    margin: 0 !important;
     opacity: 0 !important;
     pointer-events: none !important;
     overflow: hidden !important;
@@ -638,10 +640,20 @@ body.is-desktop-auth-view .bottom-player-bar {
 
 /* Memberikan ruang di bawah konten saat player bar aktif */
 body.player-active .main-content,
-body.player-active .sidebar,
 body.player-active .right-sidebar {
-    margin-bottom: calc(var(--bottom-player-height, 70px) - 0.5rem);
+    margin-bottom: var(--bottom-player-height, 90px);
     transition: margin-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.player-active .sidebar {
+    margin-bottom: var(--bottom-player-height, 90px);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        padding-right 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.25s ease,
+        margin-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        visibility 0.3s ease;
 }
 
 /* Custom Scrollbar styling untuk Chrome, Safari, dan Edge */
@@ -1501,29 +1513,18 @@ body.is-dragging-progress .progress-thumb {
 }
 
 .see-all-link {
-    display: flex;
-    /* Menggunakan flexbox untuk mensejajarkan teks dan ikon */
+    display: inline-flex;
     align-items: center;
-    /* Pusatkan secara vertikal */
-    gap: 0.4rem;
-    /* Jarak antara teks dan ikon */
     font-size: 0.75rem;
     color: var(--text-muted);
     text-decoration: none;
     font-weight: 600;
-    transition: color 0.2s;
+    transition: color 0.2s ease;
+    cursor: pointer;
 }
 
-.see-all-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    /* Ukuran ikon */
-    height: 16px;
-    color: var(--text-muted);
-    /* Warna ikon default */
-    transition: color 0.2s;
+.see-all-link:hover {
+    color: var(--accent-color);
 }
 
 .mood-grid {
@@ -1917,8 +1918,8 @@ body.is-dragging-progress .progress-thumb {
 }
 
 .artist-photo {
-    width: 120px;
-    height: 120px;
+    width: 130px;
+    height: 130px;
     border-radius: 50%;
     background-size: cover;
     background-position: center;
@@ -2012,8 +2013,8 @@ body.is-dragging-progress .progress-thumb {
 }
 
 .artist-card-skeleton .skeleton-photo {
-    width: 120px;
-    height: 120px;
+    width: 130px;
+    height: 130px;
     border-radius: 50%;
 }
 
