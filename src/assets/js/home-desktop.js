@@ -4,7 +4,7 @@ import {
     signOut
 } from "./firebase-config.js";
 
-import { toggleFavorite, isFavoriteSong } from '../../services/favoriteService.js';
+import { toggleFavorite, isFavoriteSong, getFavoriteSongs } from '../../services/favoriteService.js';
 import { updateMyActivity as updateActivityRecord } from '../../services/activityService.js';
 import { getFollowingIds, subscribeFriendsActivityByIds } from '../../services/activityService.js';
 import { watchUserConnection, watchFriendPresence } from '../../services/presenceService.js';
@@ -58,6 +58,46 @@ const friendOnlineStatus = {};
 const activePresenceListeners = new Map();
 let userPresenceCleanup = null;
 
+/**
+ * Sidebar Music Counters (Module Scope for playPreview, loadedmetadata, & toggleLike)
+ */
+const updateLikedSongsCount = (songs) => {
+    try {
+        const countElement = document.getElementById('likedSongsCount');
+        if (countElement) countElement.textContent = String(songs?.length ?? 0);
+    } catch (e) {
+        console.warn("Could not update liked songs count:", e);
+    }
+};
+
+const updateSidebarMusicCounts = () => {
+    try {
+        // 1. Downloads count
+        try {
+            const savedDownloads = JSON.parse(localStorage.getItem('downloaded_songs') || localStorage.getItem('spotiwind_downloads') || '[]');
+            const count = Array.isArray(savedDownloads) ? savedDownloads.length : 0;
+            const downloadsEl = document.getElementById('sidebarDownloadsCount');
+            if (downloadsEl) downloadsEl.textContent = String(count);
+        } catch {
+            const downloadsEl = document.getElementById('sidebarDownloadsCount');
+            if (downloadsEl) downloadsEl.textContent = '0';
+        }
+
+        // 2. Recently Played count
+        try {
+            const savedRecent = JSON.parse(localStorage.getItem('recently_played_songs') || localStorage.getItem('recentlyPlayed') || '[]');
+            const count = Array.isArray(savedRecent) ? savedRecent.length : 0;
+            const recentEl = document.getElementById('sidebarRecentCount');
+            if (recentEl) recentEl.textContent = String(count);
+        } catch {
+            const recentEl = document.getElementById('sidebarRecentCount');
+            if (recentEl) recentEl.textContent = '0';
+        }
+    } catch (e) {
+        console.warn("Could not update sidebar music counts:", e);
+    }
+};
+
 // Event listener to update the progress bar and time in real-time
 const desktopProgressThumbs = document.querySelectorAll('.progress-thumb');
 const desktopTimeEls = document.querySelectorAll('.time-info span:first-child, .curr-time');
@@ -80,6 +120,11 @@ activeAudio.addEventListener('loadedmetadata', () => {
         currentSongData.duration = dur;
         recordRecentlyPlayed(currentSongData);
         recordTrackPlay(currentSongData);
+        try {
+            updateSidebarMusicCounts();
+        } catch (countErr) {
+            console.warn("Sidebar music counts error on loadedmetadata:", countErr);
+        }
     }
 });
 
@@ -286,9 +331,11 @@ const toggleLike = async (e) => {
         createHeartParticles(btn);
     }
 
-    // 3. RUN FIREBASE PROCESS IN THE BACKGROUND
     try {
         await toggleFavorite(currentSongData);
+        if (user) {
+            getFavoriteSongs(user.uid).then(favs => updateLikedSongsCount(favs)).catch(() => {});
+        }
     } catch (error) {
         // 4. ROLLBACK IF FAILED
         // If the internet is down or permission is denied, revert the button status
@@ -460,6 +507,11 @@ window.playPreview = async (btn, audioUrl, title, artist, cover, id, duration = 
     recordRecentlyPlayed(currentSongData);
     recordTrackPlay(currentSongData);
     recordArtistPlay(currentSongData);
+    try {
+        updateSidebarMusicCounts();
+    } catch (countErr) {
+        console.warn("Sidebar music counts error:", countErr);
+    }
 
     currentSongIndex = currentPlaylist.findIndex(s => areSameSongs(s, targetSong) || String(s.id) === String(songId));
     if (currentSongIndex === -1 && currentPlaylist.length > 0) {
@@ -1403,37 +1455,97 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', toggleLike);
     });
 
+    const loadLikedSongsCount = async (uid) => {
+        if (!uid) {
+            updateLikedSongsCount([]);
+            updateSidebarMusicCounts();
+            return;
+        }
+        try {
+            const favs = await getFavoriteSongs(uid);
+            updateLikedSongsCount(favs);
+        } catch {
+            updateLikedSongsCount([]);
+        }
+        updateSidebarMusicCounts();
+    };
+
+    const renderSidebarPlaylists = (playlists) => {
+        const listContainer = document.getElementById('sidebarPlaylistList') || document.getElementById('playlistContainer');
+        const seeAllBtn = document.getElementById('sidebarSeeAllPlaylists');
+        if (!listContainer) return;
+
+        if (!Array.isArray(playlists) || playlists.length === 0) {
+            const isGuest = !auth.currentUser;
+            listContainer.innerHTML = `
+                <p style="font-size: 0.75rem; color: var(--text-muted); padding: 0.4rem 0.85rem; margin: 0;">
+                    ${isGuest ? 'Sign in to create playlists' : 'No playlists yet'}
+                </p>
+            `;
+            if (seeAllBtn) {
+                seeAllBtn.classList.add('hidden');
+                seeAllBtn.style.display = 'none';
+            }
+            return;
+        }
+
+        const top3 = playlists.slice(0, 3);
+        listContainer.innerHTML = top3.map(p => {
+            const songCount = p.songs?.length || 0;
+            const songText = `${songCount} ${songCount === 1 ? 'Song' : 'Songs'}`;
+            const pName = p.name || 'Untitled Playlist';
+            return `
+                <div class="sidebar-playlist-item" data-playlist-id="${p.id}">
+                    <div class="sidebar-playlist-cover" style="width: 2.4rem; height: 2.4rem; border-radius: 0.4rem; background: linear-gradient(135deg, #B91EC9, #8B5CF6); display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0;">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                    </div>
+                    <span class="sidebar-playlist-info">
+                        <span class="sidebar-playlist-name">${pName}</span>
+                        <span class="sidebar-playlist-count">${songText}</span>
+                    </span>
+                    <button class="sidebar-playlist-menu" type="button" data-playlist-id="${p.id}" data-playlist-name="${pName}" aria-label="More options for ${pName}">
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <circle cx="5" cy="12" r="1.5"></circle>
+                            <circle cx="12" cy="12" r="1.5"></circle>
+                            <circle cx="19" cy="12" r="1.5"></circle>
+                        </svg>
+                    </button>
+                </div>
+            `;
+        }).join('');
+
+        if (seeAllBtn) {
+            if (playlists.length > 3) {
+                seeAllBtn.classList.remove('hidden');
+                seeAllBtn.style.display = 'flex';
+            } else {
+                seeAllBtn.classList.add('hidden');
+                seeAllBtn.style.display = 'none';
+            }
+        }
+    };
+
     /**
      * Function to load playlists from Firestore (Only for the logged-in user)
      */
     const loadUserPlaylists = (uid) => {
-        const playlistContainer = document.getElementById('playlistContainer');
-        if (!playlistContainer) return;
+        if (!uid) {
+            if (playlistUnsubscribe) playlistUnsubscribe();
+            playlistUnsubscribe = null;
+            renderSidebarPlaylists([]);
+            return;
+        }
 
         // Clear old listener if it exists to prevent ERR_INSUFFICIENT_RESOURCES
         if (playlistUnsubscribe) playlistUnsubscribe();
 
         playlistUnsubscribe = subscribeUserPlaylists(uid, (playlists) => {
-            playlistContainer.innerHTML = '';
-            playlists.forEach((playlist) => {
-                const item = document.createElement('a');
-                item.href = "#";
-                item.className = "nav-item";
-                item.innerHTML = `
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 18V5l12-2v13"></path>
-                        <circle cx="6" cy="18" r="3"></circle>
-                        <circle cx="18" cy="16" r="3"></circle>
-                    </svg>
-                    <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1;">
-                        <span style="font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${playlist.name}</span>
-                        <span style="font-size: 0.7rem; color: var(--text-muted);">0 songs</span>
-                    </div>
-                `;
-                playlistContainer.appendChild(item);
-            });
+            renderSidebarPlaylists(playlists);
         }, (error) => {
             console.error("Playlist Snapshot Error:", error);
+            renderSidebarPlaylists([]);
         });
     };
 
@@ -1845,6 +1957,9 @@ document.addEventListener('DOMContentLoaded', () => {
             setupUserPresence(user);
             renderFriendActivity();
             loadUserPlaylists(user.uid);
+            loadLikedSongsCount(user.uid);
+            const authBtnText = document.getElementById('sidebarAuthText');
+            if (authBtnText) authBtnText.textContent = 'Log Out';
             if (recentlyPlayedUnsubscribe) {
                 recentlyPlayedUnsubscribe();
             }
@@ -1938,6 +2053,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 playlistUnsubscribe();
                 playlistUnsubscribe = null;
             }
+            loadUserPlaylists(null);
+            loadLikedSongsCount(null);
+            const guestAuthBtnText = document.getElementById('sidebarAuthText');
+            if (guestAuthBtnText) guestAuthBtnText.textContent = 'Log In / Sign Up';
             if (document.getElementById('premiumBadge')) document.getElementById('premiumBadge').classList.add('hidden');
             renderDesktopRecentlyPlayed(true);
             if (recentlyPlayedUnsubscribe) {
@@ -2033,6 +2152,111 @@ document.addEventListener('DOMContentLoaded', () => {
                     } catch { }
                 }
             };
+        }
+
+        const desktopNavItems = document.querySelectorAll('.sidebar .nav-menu .nav-item');
+        desktopNavItems.forEach((item) => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                desktopNavItems.forEach(n => n.classList.remove('active'));
+                item.classList.add('active');
+
+                const text = item.textContent.trim().toLowerCase();
+                if (text.includes('home')) {
+                    const mainContent = document.querySelector('.main-content');
+                    if (mainContent) mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+                } else if (text.includes('account')) {
+                    const user = auth.currentUser;
+                    if (!user) {
+                        navigateToDesktopAuthPage('login');
+                    }
+                }
+            });
+        });
+
+        // Sidebar Music items
+        const sidebarLikedSongsItem = document.getElementById('sidebarLikedSongsItem');
+        if (sidebarLikedSongsItem) {
+            sidebarLikedSongsItem.onclick = (e) => {
+                e.preventDefault();
+                const user = auth.currentUser;
+                if (!user) {
+                    navigateToDesktopAuthPage('login');
+                } else {
+                    const count = document.getElementById('likedSongsCount')?.textContent || '0';
+                    showToast(`You have ${count} liked songs.`);
+                }
+            };
+        }
+
+        const sidebarDownloadsItem = document.getElementById('sidebarDownloadsItem');
+        if (sidebarDownloadsItem) {
+            sidebarDownloadsItem.onclick = (e) => {
+                e.preventDefault();
+                const count = document.getElementById('sidebarDownloadsCount')?.textContent || '0';
+                showToast(`You have ${count} downloaded songs for offline playback.`);
+            };
+        }
+
+        const sidebarRecentItem = document.getElementById('sidebarRecentItem');
+        if (sidebarRecentItem) {
+            sidebarRecentItem.onclick = (e) => {
+                e.preventDefault();
+                const recentSection = document.getElementById('desktopRecentlyPlayedSection');
+                if (recentSection) {
+                    recentSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            };
+        }
+
+        const sidebarSettingsBtn = document.getElementById('sidebarSettingsBtn');
+        if (sidebarSettingsBtn) {
+            sidebarSettingsBtn.onclick = (e) => {
+                e.preventDefault();
+                showToast("Settings will be available soon.");
+            };
+        }
+
+        const sidebarHelpBtn = document.getElementById('sidebarHelpBtn');
+        if (sidebarHelpBtn) {
+            sidebarHelpBtn.onclick = (e) => {
+                e.preventDefault();
+                showToast("Spotiwind Support: Contact support@spotiwind.com");
+            };
+        }
+
+        const sidebarAuthBtn = document.getElementById('sidebarAuthBtn');
+        if (sidebarAuthBtn) {
+            sidebarAuthBtn.onclick = (e) => {
+                e.preventDefault();
+                const user = auth.currentUser;
+                if (user) {
+                    if (confirm(`Logged in as ${user.email}. Do you want to log out?`)) {
+                        if (typeof userPresenceCleanup === 'function') {
+                            userPresenceCleanup();
+                            userPresenceCleanup = null;
+                        }
+                        if (recentlyPlayedUnsubscribe) {
+                            recentlyPlayedUnsubscribe();
+                            recentlyPlayedUnsubscribe = null;
+                        }
+                        signOut(auth).catch(err => console.error("Logout error:", err));
+                    }
+                } else {
+                    navigateToDesktopAuthPage('login');
+                }
+            };
+        }
+
+        const playlistList = document.getElementById('sidebarPlaylistList');
+        if (playlistList) {
+            playlistList.addEventListener('click', (e) => {
+                const item = e.target.closest('.sidebar-playlist-item');
+                if (item) {
+                    e.preventDefault();
+                    showToast(`Playlist selected: ${item.querySelector('.sidebar-playlist-name')?.textContent || ''}`);
+                }
+            });
         }
     };
 
