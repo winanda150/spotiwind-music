@@ -260,6 +260,36 @@
     "albumId": "raim-laode-suara-suara"
   },
   {
+    "id": "riam-laode-cemburu",
+    "name": "Cemburu",
+    "artistId": "riam-laode",
+    "artist": "Raim Laode",
+    "audio": "music/Raim%20Laode/Cemburu.mp3",
+    "cover": "music/Raim%20Laode/Image%20Songs/Cemburu.webp",
+    "duration": 278,
+    "albumId": "raim-laode-suara-suara"
+  },
+  {
+    "id": "riam-laode-menari-nari",
+    "name": "Menari-nari",
+    "artistId": "riam-laode",
+    "artist": "Raim Laode",
+    "audio": "music/Raim%20Laode/Menari-Nari.mp3",
+    "cover": "music/Raim%20Laode/Image%20Songs/Menari-Nari.webp",
+    "duration": 278,
+    "albumId": "raim-laode-suara-suara"
+  },
+  {
+    "id": "riam-laode-suasana-rumah",
+    "name": "Suasana Rumah",
+    "artistId": "riam-laode",
+    "artist": "Raim Laode",
+    "audio": "music/Raim%20Laode/Suasana%20Rumah.mp3",
+    "cover": "music/Raim%20Laode/Image%20Songs/Suasana%20Rumah.webp",
+    "duration": 261,
+    "albumId": "raim-laode-suara-suara"
+  },
+  {
     "id": "rizky-febian-&-adrian-khalif-alamak",
     "name": "Alamak",
     "artistId": "rizky-febian",
@@ -687,6 +717,16 @@
     "albumId": "sheila-on-7-kisah-klasik"
   },
   {
+    "id": "sheila-on-7-sahabat-sejati",
+    "name": "Sahabat Sejati",
+    "artistId": "sheila-on-7",
+    "artist": "Sheila On 7",
+    "audio": "music/Sheila%20On%207/Sahabat%20Sejati.mp3",
+    "cover": "music/Sheila%20On%207/Image%20Songs/Sahabat%20Sejati.webp",
+    "duration": 225,
+    "albumId": "sheila-on-7-kisah-klasik"
+  },
+  {
     "id": "sheila-on-7-anugerah-terindah-yang-pernah-kumiliki",
     "name": "Anugerah Terindah Yang Pernah Kumiliki",
     "artistId": "sheila-on-7",
@@ -694,6 +734,16 @@
     "audio": "music/Sheila%20On%207/Anugerah%20Terindah%20Yang%20Pernah%20Kumiliki.mp3",
     "cover": "music/Sheila%20On%207/Image%20Songs/Anugerah%20Terindah%20Yang%20Pernah%20Kumiliki.webp",
     "duration": 268,
+    "albumId": "sheila-on-7-kisah-klasik"
+  },
+  {
+    "id": "sheila-on-7-itu-aku",
+    "name": "Itu Aku",
+    "artistId": "sheila-on-7",
+    "artist": "Sheila On 7",
+    "audio": "music/Sheila%20On%207/Itu%20Aku.mp3",
+    "cover": "music/Sheila%20On%207/Image%20Songs/Itu%20Aku.webp",
+    "duration": 279,
     "albumId": "sheila-on-7-kisah-klasik"
   },
   {
@@ -707,6 +757,16 @@
     "albumId": "sheila-on-7-kisah-klasik"
   },
   {
+    "id": "sheila-on-7-tunjuk-satu-bintang",
+    "name": "Tunjuk Satu Bintang",
+    "artistId": "sheila-on-7",
+    "artist": "Sheila On 7",
+    "audio": "music/Sheila%20On%207/Tunjuk%20Satu%20Bintang.mp3",
+    "cover": "music/Sheila%20On%207/Image%20Songs/Tunjuk%20Satu%20Bintang.webp",
+    "duration": 259,
+    "albumId": "sheila-on-7-kisah-klasik"
+  },
+  {
     "id": "sheila-on-7-terlintas-2-kata",
     "name": "Terlintas 2 Kata",
     "artistId": "sheila-on-7",
@@ -714,6 +774,36 @@
     "audio": "music/Sheila%20On%207/Terlintas%202%20Kata.mp3",
     "cover": "music/Sheila%20On%207/Image%20Songs/Terlintas%202%20Kata.webp",
     "duration": 270,
+    "albumId": "sheila-on-7-kisah-klasik"
+  },
+  {
+    "id": "sheila-on-7-tunggu-aku-di-jakarta",
+    "name": "Tunggu Aku Di Jakarta",
+    "artistId": "sheila-on-7",
+    "artist": "Sheila On 7",
+    "audio": "music/Sheila%20On%207/Tunggu%20Aku%20Di%20Jakarta.mp3",
+    "cover": "music/Sheila%20On%207/Image%20Songs/Tunggu%20Aku%20Di%20Jakarta.webp",
+    "duration": 307,
+    "albumId": "sheila-on-7-kisah-klasik"
+  },
+  {
+    "id": "sheila-on-7-pede",
+    "name": "Pede",
+    "artistId": "sheila-on-7",
+    "artist": "Sheila On 7",
+    "audio": "music/Sheila%20On%207/Pede.mp3",
+    "cover": "music/Sheila%20On%207/Image%20Songs/Pede.webp",
+    "duration": 245,
+    "albumId": "sheila-on-7-kisah-klasik"
+  },
+  {
+    "id": "sheila-on-7-pria-kesepian",
+    "name": "Pria Kesepian",
+    "artistId": "sheila-on-7",
+    "artist": "Sheila On 7",
+    "audio": "music/Sheila%20On%207/Pria%20Kesepian.mp3",
+    "cover": "music/Sheila%20On%207/Image%20Songs/Pria%20Kesepian.webp",
+    "duration": 253,
     "albumId": "sheila-on-7-kisah-klasik"
   },
   {
