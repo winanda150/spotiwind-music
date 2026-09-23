@@ -290,6 +290,76 @@
     "albumId": "raim-laode-suara-suara"
   },
   {
+    "id": "riam-laode-abangku",
+    "name": "Abangku",
+    "artistId": "riam-laode",
+    "artist": "Raim Laode",
+    "audio": "music/Raim%20Laode/Abangku.mp3",
+    "cover": "music/Raim%20Laode/Image%20Songs/Abangku.webp",
+    "duration": 210,
+    "albumId": "raim-laode-suara-suara"
+  },
+  {
+    "id": "riam-laode-salah",
+    "name": "Salah",
+    "artistId": "riam-laode",
+    "artist": "Raim Laode",
+    "audio": "music/Raim%20Laode/Salah.mp3",
+    "cover": "music/Raim%20Laode/Image%20Songs/Salah.webp",
+    "duration": 289,
+    "albumId": "raim-laode-suara-suara"
+  },
+  {
+    "id": "riam-laode-su-terlalu-lama",
+    "name": "Su Terlalu Lama",
+    "artistId": "riam-laode",
+    "artist": "Raim Laode & Rizky Teng",
+    "audio": "music/Raim%20Laode/Su%20Terlalu%20Lama.mp3",
+    "cover": "music/Raim%20Laode/Image%20Songs/Su%20Terlalu%20Lama.webp",
+    "duration": 269,
+    "albumId": "raim-laode-suara-suara"
+  },
+  {
+    "id": "riam-laode-sang-badut",
+    "name": "Sang Badut",
+    "artistId": "riam-laode",
+    "artist": "Raim Laode",
+    "audio": "music/Raim%20Laode/Sang%20Badut.mp3",
+    "cover": "music/Raim%20Laode/Image%20Songs/Sang%20Badut.webp",
+    "duration": 236,
+    "albumId": "raim-laode-suara-suara"
+  },
+  {
+    "id": "riam-laode-dialog-rindu",
+    "name": "Dialog Rindu",
+    "artistId": "riam-laode",
+    "artist": "Raim Laode",
+    "audio": "music/Raim%20Laode/Dialog%20Rindu.mp3",
+    "cover": "music/Raim%20Laode/Image%20Songs/Dialog%20Rindu.webp",
+    "duration": 193,
+    "albumId": "raim-laode-suara-suara"
+  },
+  {
+    "id": "riam-laode-babak-terakhir",
+    "name": "Babak Terakhir",
+    "artistId": "riam-laode",
+    "artist": "Raim Laode",
+    "audio": "music/Raim%20Laode/Babak%20Terakhir.mp3",
+    "cover": "music/Raim%20Laode/Image%20Songs/Babak%20Terakhir.webp",
+    "duration": 193,
+    "albumId": "raim-laode-suara-suara"
+  },
+  {
+    "id": "riam-laode-arti-hidup",
+    "name": "Arti Hidup",
+    "artistId": "riam-laode",
+    "artist": "Raim Laode",
+    "audio": "music/Raim%20Laode/Arti%20Hidup.mp3",
+    "cover": "music/Raim%20Laode/Image%20Songs/Arti%20Hidup.webp",
+    "duration": 186,
+    "albumId": "raim-laode-suara-suara"
+  },
+  {
     "id": "rizky-febian-&-adrian-khalif-alamak",
     "name": "Alamak",
     "artistId": "rizky-febian",
