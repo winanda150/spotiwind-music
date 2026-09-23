@@ -103,7 +103,7 @@ export const updateBottomNavActive = (targetPage) => {
         let isActive = false;
         if (normalizedTarget.includes('search')) {
             isActive = itemTarget.includes('search');
-        } else if (normalizedTarget.includes('library') || normalizedTarget.includes('liked-songs') || normalizedTarget.includes('downloads') || normalizedTarget.includes('recently-played')) {
+        } else if (normalizedTarget.includes('library') || normalizedTarget.includes('liked-songs') || normalizedTarget.includes('downloads') || normalizedTarget.includes('recently-played') || normalizedTarget.includes('favorites')) {
             isActive = itemTarget.includes('library');
         } else if (normalizedTarget.includes('windflow') || normalizedTarget.includes('radio')) {
             isActive = itemTarget.includes('windflow') || itemTarget.includes('radio');
@@ -134,6 +134,7 @@ export const switchPageStyles = async (targetPage) => {
         { key: 'liked-songs', match: 'liked-songs-mobile.html', file: 'liked-songs-mobile.css' },
         { key: 'downloads', match: 'downloads-mobile.html', file: 'downloads-mobile.css' },
         { key: 'recently-played', match: 'recently-played-mobile.html', file: 'recently-played-mobile.css' },
+        { key: 'favorites', match: 'favorites-mobile.html', file: 'favorites-mobile.css' },
         { key: 'account', match: 'account-mobile.html', file: 'account-mobile.css' },
         { key: 'windflow', match: ['windflow-mobile.html', 'radio-mobile.html'], file: 'windflow-mobile.css' },
         { key: 'auth', match: 'auth-mobile.html', file: 'auth-mobile.css' }
@@ -221,6 +222,9 @@ export const loadSubpage = async (page, options = {}, context = null) => {
         } else if (page.includes('recently-played-mobile.html')) {
             targetRoute = '/recently-played';
             targetTitle = 'Recently Played | Spotiwind';
+        } else if (page.includes('favorites-mobile.html')) {
+            targetRoute = '/favorites';
+            targetTitle = 'Favorites | Spotiwind';
         } else if (page.includes('notifications-mobile.html')) {
             targetRoute = '/notifications';
             targetTitle = 'Notifications | Spotiwind';
@@ -438,6 +442,12 @@ export const loadSubpage = async (page, options = {}, context = null) => {
                 if (typeof recentModule.initRecentlyPlayedPage === 'function') {
                     await recentModule.initRecentlyPlayedPage(previousPageUrl);
                     activePageCleanup = recentModule.cleanupRecentlyPlayedPage;
+                }
+            } else if (page.includes('favorites-mobile.html')) {
+                const favModule = await import('../assets/js/favorites-mobile.js');
+                if (typeof favModule.initFavoritesPage === 'function') {
+                    await favModule.initFavoritesPage(previousPageUrl);
+                    activePageCleanup = favModule.cleanupFavoritesPage;
                 }
             } else if (page.includes('library-mobile.html')) {
                 const libraryModule = await import('../assets/js/library-mobile.js');

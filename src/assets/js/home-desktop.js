@@ -21,7 +21,7 @@ import { getMadeForYouMixes } from '../../services/madeForYouService.js';
 import { PLAY_ICON, PAUSE_ICON, VOLUME_PATH, MUTE_PATH } from '../../constants/icons.js';
 import { formatTime, debounce } from '../../utils/formatters.js';
 import { areSameSongs } from '../../utils/audioUtils.js';
-import { showToast, loadStylesheet, createHeartParticles } from '../../utils/domUtils.js';
+import { showToast, loadStylesheet, createHeartParticles, initHorizontalDragScroll } from '../../utils/domUtils.js';
 import { initFriendsActivityModal } from '../../components/modals/friendsActivityModal.js';
 import { openMixDetailModal, closeMixDetailModal } from '../../components/sheets/mixDetailSheet.js';
 import { updateAppUrl } from '../../core/pageLoader.js';
@@ -1152,6 +1152,9 @@ const openDesktopMixDetailModal = (mixId) => {
 const closeDesktopMixDetailModal = closeMixDetailModal;
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Enable mouse drag-to-scroll on all horizontal carousels (moods, songs, artists)
+    initHorizontalDragScroll(['.mood-grid', '.song-grid', '.artists-grid']);
+
     activeAudio.addEventListener('play', () => syncActiveDesktopUI());
     activeAudio.addEventListener('pause', () => syncActiveDesktopUI());
 
@@ -1939,12 +1942,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentUserNameEl.textContent = name;
                 }
 
-                const premiumBadgeEl = document.getElementById('premiumBadge');
+                const premiumBadgeEl = document.getElementById('premiumBadge') || document.getElementById('sidebarProBadge');
+                const avatarContainer = document.querySelector('.user-profile .avatar-container');
                 if (premiumBadgeEl) {
                     if (profile.isPremium) {
                         premiumBadgeEl.classList.remove('hidden');
+                        avatarContainer?.classList.add('is-pro');
                     } else {
                         premiumBadgeEl.classList.add('hidden');
+                        avatarContainer?.classList.remove('is-pro');
                     }
                 }
 
@@ -1968,13 +1974,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             renderDesktopRecentlyPlayed(true);
 
-            const premiumBadgeElement = document.getElementById('premiumBadge');
+            const premiumBadgeElement = document.getElementById('premiumBadge') || document.getElementById('sidebarProBadge');
+            const avatarContainerEl = document.querySelector('.user-profile .avatar-container');
             if (premiumBadgeElement) {
                 const premiumStatus = await isUserPremium(user.uid);
                 if (premiumStatus) {
                     premiumBadgeElement.classList.remove('hidden');
+                    avatarContainerEl?.classList.add('is-pro');
                 } else {
                     premiumBadgeElement.classList.add('hidden');
+                    avatarContainerEl?.classList.remove('is-pro');
                 }
             }
 
@@ -2057,7 +2066,10 @@ document.addEventListener('DOMContentLoaded', () => {
             loadLikedSongsCount(null);
             const guestAuthBtnText = document.getElementById('sidebarAuthText');
             if (guestAuthBtnText) guestAuthBtnText.textContent = 'Log In / Sign Up';
-            if (document.getElementById('premiumBadge')) document.getElementById('premiumBadge').classList.add('hidden');
+            const guestBadge = document.getElementById('premiumBadge') || document.getElementById('sidebarProBadge');
+            if (guestBadge) guestBadge.classList.add('hidden');
+            const guestAvatarContainer = document.querySelector('.user-profile .avatar-container');
+            if (guestAvatarContainer) guestAvatarContainer.classList.remove('is-pro');
             renderDesktopRecentlyPlayed(true);
             if (recentlyPlayedUnsubscribe) {
                 recentlyPlayedUnsubscribe();

@@ -1410,9 +1410,8 @@ body.is-dragging-progress .progress-thumb {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    /* Mengubah rata teks ke kiri agar sesuai posisi baru */
+    gap: 0.3rem;
     line-height: 1.2;
-    /* Adjust line height for better spacing */
 }
 
 .username-wrapper {
@@ -1423,57 +1422,97 @@ body.is-dragging-progress .progress-thumb {
 }
 
 .dropdown-icon {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     color: var(--text-muted);
     flex-shrink: 0;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.user-profile:hover .dropdown-icon {
+    color: var(--text-main);
 }
 
 .user-name {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: var(--text-main);
     white-space: nowrap;
-    /* Prevent username from wrapping */
     overflow: hidden;
     text-overflow: ellipsis;
-    /* Add ellipsis if username is too long */
-    max-width: 100px;
-    /* Limit width to prevent layout issues */
+    max-width: 120px;
 }
 
-.notification-btn svg {
-    width: 20px;
-    height: 20px;
+/* PRO Badge styling */
+.pro-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.12rem 0.48rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(241, 46, 119, 0.22), rgba(185, 30, 201, 0.28));
+    border: 1px solid rgba(232, 121, 249, 0.38);
+    color: #e879f9;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    box-shadow: 0 0 10px rgba(185, 30, 201, 0.2);
+    user-select: none;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
 }
 
-.notification-btn:hover {
-    color: var(--text-main);
-    transform: scale(1.1);
+.pro-badge:hover {
+    background: linear-gradient(135deg, rgba(241, 46, 119, 0.35), rgba(185, 30, 201, 0.42));
+    border-color: rgba(232, 121, 249, 0.6);
+    box-shadow: 0 0 14px rgba(185, 30, 201, 0.35);
+}
+
+.pro-badge.hidden {
+    display: none !important;
+}
+
+/* Sidebar Avatar (Cincin tanpa gradasi saat non-pro, sama seperti mobile) */
+.avatar-container {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    padding: 0;
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+/* Ring Gradasi Exclusive HANYA muncul saat User PRO (sama seperti di mobile) */
+.avatar-container.is-pro {
+    padding: 2.5px;
+    border: none;
+    background: var(--primary-gradient, linear-gradient(135deg, #F12E77, #B91EC9, #7D19F5));
+    box-shadow: 0 0 14px rgba(185, 30, 201, 0.45);
 }
 
 .avatar {
-    width: 40px;
-    /* Menyamakan tinggi dengan search input */
-    height: 40px;
-    /* Menyamakan tinggi dengan search input */
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
     background: var(--input-bg);
-    /* Menggunakan background netral jika gambar belum ada */
-    border: 2px solid var(--glass-border);
-    transition: border-color 0.2s;
+    border: 2.5px solid var(--bg-dark, #0f172a);
+    box-sizing: border-box;
     object-fit: cover;
-    /* Memastikan foto profil tidak gepeng */
-}
-
-.avatar-container {
-    position: relative;
-    display: flex;
+    display: block;
 }
 
 .online-status {
     position: absolute;
-    bottom: 1px;
+    bottom: 0px;
     right: 0px;
     width: 13px;
     height: 13px;
@@ -1491,6 +1530,16 @@ body.is-dragging-progress .progress-thumb {
     background-color: #9ca3af;
     /* Abu-abu (text-muted) */
     box-shadow: none;
+}
+
+.notification-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.notification-btn:hover {
+    color: var(--text-main);
+    transform: scale(1.1);
 }
 
 /* Mood Section Styles */
@@ -3047,4 +3096,74 @@ body.is-dragging-volume .volume-level {
     color: var(--text-muted);
     margin: 0;
     max-width: 320px;
+}
+
+/* ==========================================================================
+   Horizontal Drag-to-Scroll UX Enhancements (Desktop)
+   ========================================================================== */
+.mood-grid,
+.song-grid,
+.artists-grid {
+    cursor: grab;
+    -webkit-user-select: none;
+    user-select: none;
+    will-change: scroll-position;
+    -webkit-overflow-scrolling: touch;
+}
+
+.mood-card,
+.song-card,
+.artist-card {
+    cursor: grab;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    user-drag: none;
+}
+
+.mood-card:active,
+.song-card:active,
+.artist-card:active {
+    cursor: grabbing;
+}
+
+.mood-card img,
+.song-card img,
+.artist-photo,
+.artist-card img {
+    -webkit-user-drag: none;
+    user-drag: none;
+}
+
+.play-overlay,
+.play-mini-btn,
+.see-all-link {
+    cursor: pointer;
+}
+
+/* While actively dragging with mouse */
+.mood-grid.is-dragging-scroll,
+.song-grid.is-dragging-scroll,
+.artists-grid.is-dragging-scroll {
+    cursor: grabbing !important;
+    scroll-behavior: auto !important;
+}
+
+.mood-grid.is-dragging-scroll *,
+.song-grid.is-dragging-scroll *,
+.artists-grid.is-dragging-scroll * {
+    cursor: grabbing !important;
+    pointer-events: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
+
+body.is-dragging-horizontal {
+    cursor: grabbing !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
+
+body.is-dragging-horizontal * {
+    cursor: grabbing !important;
 }

@@ -127,3 +127,209 @@ export const createHeartParticles = (el) => {
 
 // Global fallback for existing onclick or inline references
 window.showToast = showToast;
+
+/**
+ * Enables smooth mouse drag-to-scroll functionality with physics-based momentum
+ * on a horizontally scrollable container element.
+ *
+ * @param {HTMLElement} container - The scrollable element
+ * @returns {() => void} Cleanup function to remove listeners
+ */
+export const enableDragToScroll = (container) => {
+    if (!container || !(container instanceof HTMLElement)) return () => { };
+    if (container._dragScrollEnabled) return () => { }; // Avoid duplicate binding
+    container._dragScrollEnabled = true;
+
+    let isDown = false;
+    let isDragging = false;
+    let startX = 0;
+    let startScrollLeft = 0;
+    let prevX = 0;
+    let prevTime = 0;
+    let velocityX = 0;
+    let rafId = null;
+    let prevScrollBehavior = '';
+    const DRAG_THRESHOLD = 5; // px moved before entering drag mode
+
+    const stopMomentum = () => {
+        if (rafId !== null) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
+        }
+    };
+
+    const onPointerDown = (e) => {
+        // Only respond to mouse or pen. Let native mobile touchscreen scrolling handle touch gestures.
+        if (e.pointerType === 'touch') return;
+        if (e.button !== 0) return;
+
+        // Skip inputs or interactive form elements
+        if (e.target.closest('input, textarea, select, option')) return;
+
+        // Don't drag if container content doesn't exceed its visible width
+        if (container.scrollWidth <= container.clientWidth) return;
+
+        stopMomentum();
+
+        isDown = true;
+        isDragging = false;
+        startX = e.clientX;
+        startScrollLeft = container.scrollLeft;
+        prevX = e.clientX;
+        prevTime = performance.now();
+        velocityX = 0;
+
+        prevScrollBehavior = container.style.scrollBehavior || '';
+        container.style.scrollBehavior = 'auto';
+
+        window.addEventListener('pointermove', onPointerMove, { passive: false });
+        window.addEventListener('pointerup', onPointerUp);
+        window.addEventListener('pointercancel', onPointerCancel);
+        window.addEventListener('blur', onPointerCancel);
+    };
+
+    const onPointerMove = (e) => {
+        if (!isDown) return;
+        if (e.pointerType === 'touch') return;
+
+        const currentX = e.clientX;
+        const deltaX = currentX - startX;
+
+        if (!isDragging) {
+            if (Math.abs(deltaX) > DRAG_THRESHOLD) {
+                isDragging = true;
+                container.classList.add('is-dragging-scroll');
+                document.body.classList.add('is-dragging-horizontal');
+            }
+        }
+
+        if (isDragging) {
+            e.preventDefault(); // Prevent text selection
+            container.scrollLeft = startScrollLeft - deltaX;
+
+            const now = performance.now();
+            const dt = now - prevTime;
+            if (dt > 8) {
+                const instantVelocity = (currentX - prevX) / dt;
+                velocityX = velocityX * 0.3 + instantVelocity * 0.7;
+                prevX = currentX;
+                prevTime = now;
+            }
+        }
+    };
+
+    const onPointerUp = (e) => {
+        if (!isDown) return;
+        isDown = false;
+
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerCancel);
+        window.removeEventListener('blur', onPointerCancel);
+
+        container.classList.remove('is-dragging-scroll');
+        document.body.classList.remove('is-dragging-horizontal');
+
+        if (isDragging) {
+            // Prevent the subsequent click event on children (e.g. playing music or opening links)
+            const preventClick = (clickEvent) => {
+                clickEvent.preventDefault();
+                clickEvent.stopPropagation();
+                clickEvent.stopImmediatePropagation();
+            };
+            container.addEventListener('click', preventClick, { capture: true, once: true });
+            setTimeout(() => {
+                container.removeEventListener('click', preventClick, { capture: true });
+            }, 100);
+
+            // Apply smooth momentum / inertia if flicked with velocity
+            if (Math.abs(velocityX) > 0.08) {
+                let lastTime = performance.now();
+                const friction = 0.94;
+                const minVelocity = 0.02;
+
+                const step = () => {
+                    const now = performance.now();
+                    const frameDt = Math.min(now - lastTime, 32);
+                    lastTime = now;
+
+                    velocityX *= Math.pow(friction, frameDt / 16);
+                    container.scrollLeft -= velocityX * frameDt;
+
+                    const maxScroll = container.scrollWidth - container.clientWidth;
+                    const canScrollMore = (velocityX > 0 && container.scrollLeft > 0) ||
+                        (velocityX < 0 && container.scrollLeft < maxScroll);
+
+                    if (Math.abs(velocityX) > minVelocity && canScrollMore) {
+                        rafId = requestAnimationFrame(step);
+                    } else {
+                        rafId = null;
+                        container.style.scrollBehavior = prevScrollBehavior;
+                    }
+                };
+                rafId = requestAnimationFrame(step);
+            } else {
+                container.style.scrollBehavior = prevScrollBehavior;
+            }
+        } else {
+            container.style.scrollBehavior = prevScrollBehavior;
+        }
+    };
+
+    const onPointerCancel = () => {
+        if (!isDown) return;
+        isDown = false;
+        isDragging = false;
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerCancel);
+        window.removeEventListener('blur', onPointerCancel);
+        container.classList.remove('is-dragging-scroll');
+        document.body.classList.remove('is-dragging-horizontal');
+        container.style.scrollBehavior = prevScrollBehavior;
+    };
+
+    const onDragStart = (e) => {
+        // Prevent native HTML5 image/link ghost dragging
+        e.preventDefault();
+    };
+
+    container.addEventListener('pointerdown', onPointerDown);
+    container.addEventListener('dragstart', onDragStart);
+
+    return () => {
+        stopMomentum();
+        container._dragScrollEnabled = false;
+        container.removeEventListener('pointerdown', onPointerDown);
+        container.removeEventListener('dragstart', onDragStart);
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerCancel);
+        window.removeEventListener('blur', onPointerCancel);
+    };
+};
+
+/**
+ * Initializes drag-to-scroll on multiple elements matching a selector list
+ * @param {string|string[]} selectors
+ * @returns {() => void} Cleanup function
+ */
+export const initHorizontalDragScroll = (selectors = ['.mood-grid', '.song-grid', '.artists-grid']) => {
+    const selectorList = Array.isArray(selectors) ? selectors : [selectors];
+    const cleanupFns = [];
+
+    selectorList.forEach((sel) => {
+        document.querySelectorAll(sel).forEach((el) => {
+            const cleanup = enableDragToScroll(el);
+            if (cleanup) cleanupFns.push(cleanup);
+        });
+    });
+
+    return () => {
+        cleanupFns.forEach(fn => fn());
+    };
+};
+
+// Global fallback for script tags or external contexts
+window.enableDragToScroll = enableDragToScroll;
+window.initHorizontalDragScroll = initHorizontalDragScroll;

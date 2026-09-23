@@ -163,5 +163,10 @@
     "id": "sridevi",
     "name": "Sridevi",
     "photo": "music/Sridevi/Artis/Sridevi.webp"
+  },
+  {
+    "id": "samsons",
+    "name": "SAMSONS",
+    "photo": "music/SAMSONS/Artis/SAMSONS.webp"
   }
 ]

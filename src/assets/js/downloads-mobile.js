@@ -4,9 +4,12 @@
  * search with debounce, filter chips, list/grid toggle, and TikTok-style infinite scroll.
  */
 
+import { auth, onAuthStateChanged } from './firebase-config.js';
 import { showToast } from '../../utils/domUtils.js';
 import { debounce } from '../../utils/formatters.js';
 import { OFFLINE_CACHE_NAME, getCachedAudioBlobUrl, removeSongAudioFromCache, downloadMp3ToDevice } from '../../services/offlineAudioService.js';
+import { subscribeUserProfile, getProfileByUid } from '../../services/profileService.js';
+import { openProSubscriptionModal } from '../../components/modals/proSubscriptionModal.js';
 
 let currentDownloads = [];
 let filteredDownloads = [];
@@ -16,6 +19,9 @@ let activeSort = 'recent'; // 'recent' | 'size' | 'alpha'
 let viewMode = sessionStorage.getItem('downloads_view_mode') || 'list'; // 'list' | 'grid'
 let previousPageUrl = 'library-mobile.html';
 let selectedSongForOptions = null;
+let authUnsubscribe = null;
+let isCurrentUserPro = false;
+let userProfileUnsubscribe = null;
 const listeners = [];
 
 const PAGE_CHUNK_SIZE = 10;
@@ -288,21 +294,94 @@ function renderDownloadsList() {
         countEl.textContent = `${count} ${count === 1 ? 'track' : 'tracks'}`;
     }
 
-    // Empty state
+    // Guest / Logged-out state
+    if (!auth.currentUser) {
+        listEl.className = 'downloads-list view-list';
+        listEl.innerHTML = `
+            <div class="downloads-empty-state">
+                <div class="downloads-empty-icon-box" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                </div>
+                <h3 class="downloads-empty-title">Download your favorite music</h3>
+                <p class="downloads-empty-desc">Log in to download, manage, and listen to your songs anywhere without internet.</p>
+                <a href="auth-mobile.html" class="downloads-empty-btn" id="downloadsLoginBtn">Log In / Sign Up</a>
+            </div>
+        `;
+        const loginBtn = document.getElementById('downloadsLoginBtn');
+        if (loginBtn) {
+            loginBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                try {
+                    sessionStorage.setItem('spotiwind_auth_previous_page', 'downloads-mobile.html');
+                } catch { }
+                if (typeof window.navigateToAuthPage === 'function') {
+                    window.navigateToAuthPage('login');
+                } else if (typeof window.loadPageContent === 'function') {
+                    window.loadPageContent('auth-mobile.html', { pushState: true, route: '/auth', title: 'Account | Spotiwind' });
+                } else {
+                    window.location.href = 'auth-mobile.html';
+                }
+            });
+        }
+        return;
+    }
+
+    // Check if user is PRO (matching Library downloads tab)
+    const isPro = isCurrentUserPro || (typeof window.isCurrentUserPro === 'function' && window.isCurrentUserPro());
+    if (!isPro && currentDownloads.length === 0) {
+        listEl.className = 'downloads-list view-list';
+        listEl.innerHTML = `
+            <div class="downloads-empty-state">
+                <div class="downloads-empty-icon-box is-pro" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                        <path d="M5 16h14a1 1 0 0 0 1-1L21 6l-4.5 4L12 3 7.5 10 3 6l1 9a1 1 0 0 0 1 1zm-1 2a1 1 0 0 0 0 2h16a1 1 0 1 0 0-2H4z"/>
+                    </svg>
+                </div>
+                <h3 class="downloads-empty-title">Available with Spotiwind PRO</h3>
+                <p class="downloads-empty-desc">Subscribe to Spotiwind PRO to download tracks and listen offline anytime.</p>
+                <button id="downloadsUpgradeProBtn" class="downloads-empty-btn downloads-pro-upgrade-btn" type="button" aria-label="Upgrade to PRO">
+                    <span>Upgrade to PRO</span>
+                </button>
+            </div>
+        `;
+        const upgradeBtn = document.getElementById('downloadsUpgradeProBtn');
+        if (upgradeBtn) {
+            upgradeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const onSubscribed = () => {
+                    isCurrentUserPro = true;
+                    renderDownloadsList();
+                };
+                if (typeof openProSubscriptionModal === 'function') {
+                    openProSubscriptionModal({ onSubscribed });
+                } else if (typeof window.openProSubscriptionModal === 'function') {
+                    window.openProSubscriptionModal({ onSubscribed });
+                }
+            });
+        }
+        syncPlayPauseButtonUI();
+        return;
+    }
+
+    // Empty state when PRO but no tracks downloaded yet
     if (filteredDownloads.length === 0) {
         if (currentDownloads.length === 0) {
             listEl.className = 'downloads-list view-list';
             listEl.innerHTML = `
                 <div class="downloads-empty-state">
-                    <div class="downloads-empty-icon-box">
-                        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <div class="downloads-empty-icon-box" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="7 10 12 15 17 10"></polyline>
                             <line x1="12" y1="15" x2="12" y2="3"></line>
                         </svg>
                     </div>
-                    <h2 class="downloads-empty-title">No Downloaded Music Yet</h2>
-                    <p class="downloads-empty-desc">Download your favorite songs, albums, and playlists to listen anywhere without internet.</p>
+                    <h3 class="downloads-empty-title">No downloaded songs yet</h3>
+                    <p class="downloads-empty-desc">Download tracks from the player or track options to listen offline anywhere.</p>
                     <button type="button" class="downloads-empty-btn" id="emptyExploreBtn">Explore Music</button>
                 </div>
             `;
@@ -318,11 +397,18 @@ function renderDownloadsList() {
             listEl.className = 'downloads-list view-list';
             listEl.innerHTML = `
                 <div class="downloads-empty-state">
-                    <h2 class="downloads-empty-title">No matching tracks found</h2>
+                    <div class="downloads-empty-icon-box" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </div>
+                    <h3 class="downloads-empty-title">No matching tracks found</h3>
                     <p class="downloads-empty-desc">Try changing your search term or filter chips above.</p>
                 </div>
             `;
         }
+        syncPlayPauseButtonUI();
         return;
     }
 
@@ -920,6 +1006,26 @@ export async function initDownloadsPage(previousPage = 'library-mobile.html') {
         listeners.push({ element: moreBtn, type: 'click', handler: handleMore });
     }
 
+    // 2b. Delegated click for Upgrade to PRO button
+    const handleProUpgradeClick = (e) => {
+        const btn = e.target.closest('#downloadsUpgradeProBtn, .downloads-pro-upgrade-btn');
+        if (btn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const onSubscribed = () => {
+                isCurrentUserPro = true;
+                renderDownloadsList();
+            };
+            if (typeof openProSubscriptionModal === 'function') {
+                openProSubscriptionModal({ onSubscribed });
+            } else if (typeof window.openProSubscriptionModal === 'function') {
+                window.openProSubscriptionModal({ onSubscribed });
+            }
+        }
+    };
+    document.addEventListener('click', handleProUpgradeClick);
+    listeners.push({ element: document, type: 'click', handler: handleProUpgradeClick });
+
     // 3. Play all & Shuffle buttons
     const playAllBtn = document.getElementById('downloadsPlayAllBtn');
     if (playAllBtn) {
@@ -1190,6 +1296,27 @@ export async function initDownloadsPage(previousPage = 'library-mobile.html') {
     if (optSongExportMp3) {
         const handler = async () => {
             if (selectedSongForOptions) {
+                const isPro = isCurrentUserPro || (typeof window.isCurrentUserPro === 'function' && window.isCurrentUserPro());
+                if (!isPro) {
+                    closeSongOptions();
+                    showToast("Offline downloads are exclusive to Spotiwind PRO subscribers.");
+                    if (typeof openProSubscriptionModal === 'function') {
+                        openProSubscriptionModal({
+                            onSubscribed: () => {
+                                isCurrentUserPro = true;
+                                renderDownloadsList();
+                            }
+                        });
+                    } else if (typeof window.openProSubscriptionModal === 'function') {
+                        window.openProSubscriptionModal({
+                            onSubscribed: () => {
+                                isCurrentUserPro = true;
+                                renderDownloadsList();
+                            }
+                        });
+                    }
+                    return;
+                }
                 closeSongOptions();
                 await downloadMp3ToDevice(selectedSongForOptions);
             }
@@ -1340,6 +1467,33 @@ export async function initDownloadsPage(previousPage = 'library-mobile.html') {
     renderDownloadsList();
     await updateStorageUsageBar();
     syncPlayPauseButtonUI();
+
+    // 13. Listen to Auth State and Live User Profile for PRO status
+    authUnsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+            if (typeof window.isCurrentUserPro === 'function') {
+                isCurrentUserPro = window.isCurrentUserPro();
+            }
+            if (userProfileUnsubscribe) {
+                userProfileUnsubscribe();
+                userProfileUnsubscribe = null;
+            }
+            userProfileUnsubscribe = subscribeUserProfile(user.uid, (profile) => {
+                const wasPro = isCurrentUserPro;
+                isCurrentUserPro = profile?.isPremium === true;
+                if (wasPro !== isCurrentUserPro) {
+                    renderDownloadsList();
+                }
+            });
+        } else {
+            isCurrentUserPro = false;
+            if (userProfileUnsubscribe) {
+                userProfileUnsubscribe();
+                userProfileUnsubscribe = null;
+            }
+        }
+        renderDownloadsList();
+    });
 }
 
 /**
@@ -1359,6 +1513,14 @@ export function cleanupDownloadsPage() {
         if (item && item.element && item.handler) {
             item.element.removeEventListener(item.type, item.handler);
         }
+    }
+    if (authUnsubscribe) {
+        authUnsubscribe();
+        authUnsubscribe = null;
+    }
+    if (userProfileUnsubscribe) {
+        userProfileUnsubscribe();
+        userProfileUnsubscribe = null;
     }
     selectedSongForOptions = null;
     closeGlobalOptions();

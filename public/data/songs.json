@@ -943,5 +943,14 @@
     "audio": "music/Sridevi/Dunia%20Penuh%20Warna.mp3",
     "cover": "music/Sridevi/Image%20Songs/Dunia%20Penuh%20Warna.webp",
     "duration": 214
+  },
+  {
+    "id": "somsons-kenangan-terindah",
+    "name": "Kenangan Terindah",
+    "artistId": "somsons",
+    "artist": "SAMSONS",
+    "audio": "music/SAMSONS/Kenangan%20Terindah.mp3",
+    "cover": "music/SAMSONS/Image%20Songs/Kenangan%20Terindah.webp",
+    "duration": 244
   }
 ]

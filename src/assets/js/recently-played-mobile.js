@@ -5,7 +5,7 @@
  * and context-aware playback session management.
  */
 
-import { auth } from './firebase-config.js';
+import { auth, onAuthStateChanged } from './firebase-config.js';
 import {
     getRecentlyPlayed,
     clearRecentlyPlayed,
@@ -28,6 +28,7 @@ let viewMode = localStorage.getItem('spotiwind_recent_view_mode') || 'list'; // 
 const PAGE_CHUNK_SIZE = 10;
 let recentSongsVisibleLimit = PAGE_CHUNK_SIZE;
 let isRecentSongsLoadingMore = false;
+let authUnsubscribe = null;
 
 let previousPageUrl = 'library-mobile.html';
 let selectedSongForOptions = null;
@@ -330,13 +331,49 @@ function renderRecentSongs() {
     updateInsightsMetrics();
     applyFilterAndSort();
 
+    // Guest / Logged-out state
+    if (!auth.currentUser) {
+        container.className = 'recently-played-list view-list';
+        container.innerHTML = `
+            <div class="recently-played-empty-state">
+                <div class="recently-played-empty-icon-box" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
+                <h3 class="recently-played-empty-title">Track your listening history</h3>
+                <p class="recently-played-empty-desc">Log in to track your recently played music, jump back in, and sync history across devices.</p>
+                <a href="auth-mobile.html" class="recently-played-empty-btn" id="recentLoginBtn">Log In / Sign Up</a>
+            </div>
+        `;
+        const loginBtn = document.getElementById('recentLoginBtn');
+        if (loginBtn) {
+            loginBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                try {
+                    sessionStorage.setItem('spotiwind_auth_previous_page', 'recently-played-mobile.html');
+                } catch { }
+                if (typeof window.navigateToAuthPage === 'function') {
+                    window.navigateToAuthPage('login');
+                } else if (typeof window.loadPageContent === 'function') {
+                    window.loadPageContent('auth-mobile.html', { pushState: true, route: '/auth', title: 'Account | Spotiwind' });
+                } else {
+                    window.location.href = 'auth-mobile.html';
+                }
+            });
+        }
+        syncPlayPauseButtonUI();
+        return;
+    }
+
     // Empty state when no history recorded yet
     if (currentRecentSongs.length === 0) {
         container.className = 'recently-played-list view-list';
         container.innerHTML = `
             <div class="recently-played-empty-state">
                 <div class="recently-played-empty-icon-box" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
@@ -363,9 +400,9 @@ function renderRecentSongs() {
     if (filteredRecentSongs.length === 0) {
         container.className = 'recently-played-list view-list';
         container.innerHTML = `
-            <div class="recently-played-empty-state" style="padding: 2.5rem 1.5rem;">
-                <div class="recently-played-empty-icon-box" aria-hidden="true" style="width: 50px; height: 50px; margin-bottom: 0.75rem;">
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <div class="recently-played-empty-state">
+                <div class="recently-played-empty-icon-box" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
@@ -1483,16 +1520,25 @@ export async function initRecentlyPlayedPage(prevUrl = 'library-mobile.html') {
     // Set initial view mode button state and render
     setViewMode(viewMode);
 
-    // Subscribe to realtime changes if user is logged in
-    const user = auth.currentUser;
-    if (user && user.uid) {
-        realtimeUnsubscribe = subscribeRecentlyPlayed(user.uid, (cloudItems) => {
-            if (Array.isArray(cloudItems)) {
-                currentRecentSongs = cloudItems;
-                renderRecentSongs();
-            }
-        });
-    }
+    // Subscribe to realtime changes and auth state
+    authUnsubscribe = onAuthStateChanged(auth, (user) => {
+        if (typeof realtimeUnsubscribe === 'function') {
+            realtimeUnsubscribe();
+            realtimeUnsubscribe = null;
+        }
+
+        if (user && user.uid) {
+            realtimeUnsubscribe = subscribeRecentlyPlayed(user.uid, (cloudItems) => {
+                if (Array.isArray(cloudItems)) {
+                    currentRecentSongs = cloudItems;
+                    renderRecentSongs();
+                }
+            });
+        } else {
+            currentRecentSongs = [];
+            renderRecentSongs();
+        }
+    });
 
     syncPlayPauseButtonUI();
 }
@@ -1501,6 +1547,10 @@ export async function initRecentlyPlayedPage(prevUrl = 'library-mobile.html') {
  * Cleanup function called before unloading the subpage
  */
 export function cleanupRecentlyPlayedPage() {
+    if (typeof authUnsubscribe === 'function') {
+        authUnsubscribe();
+        authUnsubscribe = null;
+    }
     if (typeof realtimeUnsubscribe === 'function') {
         realtimeUnsubscribe();
         realtimeUnsubscribe = null;

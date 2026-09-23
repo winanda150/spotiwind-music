@@ -308,7 +308,16 @@ function setupOverviewCards() {
                     switchToLibraryTab('tracks');
                 }
             } else if (itemType === 'favorites') {
-                switchToLibraryTab('playlists');
+                if (typeof window.loadPageContent === 'function') {
+                    window.loadPageContent('favorites-mobile.html', {
+                        pushState: true,
+                        route: '/favorites',
+                        title: 'Favorites | Spotiwind',
+                        state: { route: 'favorites' }
+                    });
+                } else {
+                    switchToLibraryTab('playlists');
+                }
             } else if (itemType === 'recently-played') {
                 if (typeof window.loadPageContent === 'function') {
                     window.loadPageContent('recently-played-mobile.html', {

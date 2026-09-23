@@ -25,7 +25,7 @@ const TRACK_PLAY_ICON_16 = `<svg viewBox="0 0 24 24" width="16" height="16" fill
 const TRACK_PAUSE_ICON_16 = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
 import { formatTime, debounce } from '../../utils/formatters.js';
 import { areSameSongs, getArtistUniqueId } from '../../utils/audioUtils.js';
-import { showToast, createHeartParticles } from '../../utils/domUtils.js';
+import { showToast, createHeartParticles, initHorizontalDragScroll } from '../../utils/domUtils.js';
 import { openCreatePlaylistModal, initCreatePlaylistModal } from '../../components/modals/createPlaylistModal.js';
 import { openAvatarPreviewModal, initAvatarPreviewModal } from '../../components/modals/avatarPreviewModal.js';
 import { isSongDownloaded, toggleDownloadSong, initSongOptionsSheet } from '../../components/sheets/songOptionsSheet.js';
@@ -287,7 +287,7 @@ const syncActiveSongUI = () => {
         if (el.classList.contains('play-overlay')) el.innerHTML = TRACK_PLAY_ICON_16;
     });
 
-    document.querySelectorAll('.library-song-play-icon, .popular-search-play-icon, .artist-song-play-icon, .mix-track-play-icon, .recent-track-play-icon, .your-track-play-overlay, .your-download-play-overlay, .liked-song-play-overlay, .liked-grid-play-overlay, .recent-song-play-overlay, .recent-grid-play-overlay, .download-song-play-overlay, .download-grid-play-overlay').forEach(el => {
+    document.querySelectorAll('.library-song-play-icon, .popular-search-play-icon, .artist-song-play-icon, .mix-track-play-icon, .recent-track-play-icon, .your-track-play-overlay, .your-download-play-overlay, .liked-song-play-overlay, .liked-grid-play-overlay, .recent-song-play-overlay, .recent-grid-play-overlay, .download-song-play-overlay, .download-grid-play-overlay, .fav-item-play-overlay, .fav-grid-play-overlay').forEach(el => {
         el.innerHTML = TRACK_PLAY_ICON_16;
         el.style.color = '';
     });
@@ -533,6 +533,44 @@ const syncActiveSongUI = () => {
             }
             if (downloadsPlayAllBtn) {
                 downloadsPlayAllBtn.classList.toggle('is-active-playing', isPlaying && isDownloadsContext);
+            }
+
+            // Sync active state for Favorites Page (List and Grid view)
+            const isFavContext = (currentPlaybackContext === 'favorites' || window.__spotiwindPlaybackContext === 'favorites' || window.__spotiwindContext === 'favorites');
+            const favPlayIconWrapper = document.getElementById('favPlayIconWrapper');
+            const favPlayAllText = document.getElementById('favPlayAllText');
+            const favPlayAllBtn = document.getElementById('favPlayAllBtn');
+
+            document.querySelectorAll('.fav-grid-card, .fav-item').forEach(item => {
+                const itemId = item.dataset.itemId;
+                const isSameItem = isFavContext && (window.__favoritesActiveItemId === itemId);
+                if (isSameItem) {
+                    item.classList.add('is-active-item');
+                    item.classList.toggle('is-playing', isPlaying);
+                    if (isPaused) item.classList.add('is-paused');
+                    const overlay = item.querySelector('.fav-grid-play-overlay, .fav-item-play-overlay');
+                    if (overlay) {
+                        overlay.innerHTML = isPlaying
+                            ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`
+                            : `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
+                    }
+                } else {
+                    item.classList.remove('is-active-item', 'is-paused', 'is-playing');
+                    const overlay = item.querySelector('.fav-grid-play-overlay, .fav-item-play-overlay');
+                    if (overlay) {
+                        overlay.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
+                    }
+                }
+            });
+
+            if (favPlayIconWrapper) {
+                favPlayIconWrapper.innerHTML = (isPlaying && isFavContext) ? PAUSE_ICON : PLAY_ICON;
+            }
+            if (favPlayAllText) {
+                favPlayAllText.textContent = (isPlaying && isFavContext) ? 'Pause' : 'Play all';
+            }
+            if (favPlayAllBtn) {
+                favPlayAllBtn.classList.toggle('is-playing', isPlaying && isFavContext);
             }
         }
     }
@@ -2400,6 +2438,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const isCurrentlyOnFavoritesPage = Boolean(
+                document.querySelector('.favorites-page-wrapper, #favHeader, #favHero, #favInsightsCard') ||
+                (typeof window.getCurrentPageUrl === 'function' && window.getCurrentPageUrl()?.includes('favorites')) ||
+                window.location.pathname.includes('/favorites')
+            );
+
+            // Smooth scroll to top when tapping active tab while on Favorites page
+            if (isCurrentlyOnFavoritesPage && item.classList.contains('active')) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+                document.body.scrollTo({ top: 0, behavior: 'smooth' });
+                const appContainer = document.querySelector('.app-container');
+                if (appContainer && appContainer.scrollTop > 0) {
+                    appContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                const pageWrapper = document.querySelector('.favorites-page-wrapper');
+                if (pageWrapper && pageWrapper.scrollTop > 0) {
+                    pageWrapper.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                setPageScrollPosition('favorites-mobile.html', 0);
+                return;
+            }
+
             // Check if we are already viewing the primary content of that tab
             const isAlreadyOnHome = (targetPage === 'home-mobile.html' || targetPage === '/' || targetPage === 'mobile.html') && isGenuineHomeView();
             const isAlreadyOnSearch = targetPage.includes('search') && document.querySelector('.app-container #searchInput');
@@ -2539,6 +2600,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateGreeting();
         updateSidebarMusicCounts();
+
+        // Enable mouse drag-to-scroll on all horizontal carousels (moods, songs, artists)
+        initHorizontalDragScroll(['.mood-grid', '.song-grid', '.artists-grid']);
     };
 
     const initializeGuestUI = () => {
@@ -2830,6 +2894,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 route: '/recently-played',
                 title: 'Recently Played | Spotiwind',
                 state: { route: 'recently-played' }
+            });
+        } else if (cleanPath === '/favorites' || cleanPath.startsWith('/favorites')) {
+            updateSidebarActiveState('library-mobile.html');
+            updateBottomNavActive('library-mobile.html');
+            await loadPageContent('favorites-mobile.html', {
+                pushState: shouldPushState,
+                route: '/favorites',
+                title: 'Favorites | Spotiwind',
+                state: { route: 'favorites' }
             });
         } else if (cleanPath === '/windflow' || cleanPath === '/radio') {
             updateSidebarActiveState('windflow-mobile.html');

@@ -3779,3 +3779,73 @@ body.player-active .mix-detail-modal .mix-detail-scrollable {
     margin: 0;
     max-width: 260px;
 }
+
+/* ==========================================================================
+   Horizontal Drag-to-Scroll UX Enhancements (Mobile)
+   ========================================================================== */
+.mood-grid,
+.song-grid,
+.artists-grid {
+    cursor: grab;
+    -webkit-user-select: none;
+    user-select: none;
+    will-change: scroll-position;
+    -webkit-overflow-scrolling: touch;
+}
+
+.mood-card,
+.song-card,
+.artist-card {
+    cursor: grab;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    user-drag: none;
+}
+
+.mood-card:active,
+.song-card:active,
+.artist-card:active {
+    cursor: grabbing;
+}
+
+.mood-card img,
+.song-card img,
+.artist-photo,
+.artist-card img {
+    -webkit-user-drag: none;
+    user-drag: none;
+}
+
+.play-overlay,
+.play-mini-btn,
+.see-all-link {
+    cursor: pointer;
+}
+
+/* While actively dragging with mouse */
+.mood-grid.is-dragging-scroll,
+.song-grid.is-dragging-scroll,
+.artists-grid.is-dragging-scroll {
+    cursor: grabbing !important;
+    scroll-behavior: auto !important;
+}
+
+.mood-grid.is-dragging-scroll *,
+.song-grid.is-dragging-scroll *,
+.artists-grid.is-dragging-scroll * {
+    cursor: grabbing !important;
+    pointer-events: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
+
+body.is-dragging-horizontal {
+    cursor: grabbing !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
+
+body.is-dragging-horizontal * {
+    cursor: grabbing !important;
+}

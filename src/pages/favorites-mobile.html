@@ -1,0 +1,349 @@
+<!-- Injected into .app-container in home-mobile.html -->
+
+<body>
+    <div class="favorites-page-wrapper">
+        <!-- Top Sticky Header -->
+        <header class="favorites-header" id="favHeader">
+            <button id="favBackBtn" class="favorites-back-btn" type="button" aria-label="Back to Library">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"
+                    stroke-linejoin="round" aria-hidden="true">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </button>
+
+            <!-- Center Status Floating Badge -->
+            <div class="favorites-status-badge" id="favStatusBadge">
+                <span class="fav-pulse-dot" aria-hidden="true"></span>
+                <span class="fav-status-label">Starred Sanctuary</span>
+            </div>
+
+            <!-- Global Options More Button -->
+            <button id="favMoreBtn" class="favorites-more-btn" type="button" aria-label="Favorites options">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+                    <circle cx="12" cy="5" r="1.75" />
+                    <circle cx="12" cy="12" r="1.75" />
+                    <circle cx="12" cy="19" r="1.75" />
+                </svg>
+            </button>
+        </header>
+
+        <!-- Hero Content Section -->
+        <section class="favorites-hero" id="favHero">
+            <div class="favorites-cover-box">
+                <img src="/public/images/Favorites%20Image.webp" alt="Favorites Cover" class="favorites-cover-img"
+                    width="120" height="120"
+                    onerror="this.onerror=null; this.src='../../public/images/Favorites%20Image.webp';">
+                <div class="favorites-cover-glow" aria-hidden="true"></div>
+            </div>
+            <div class="favorites-meta">
+                <div class="favorites-category-tag">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" stroke="currentColor"
+                        stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polygon
+                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                        </polygon>
+                    </svg>
+                    <span>STARRED COLLECTION</span>
+                </div>
+                <h1 class="favorites-title">Favorites</h1>
+                <div class="favorites-stats-row">
+                    <span class="favorites-stat-item" id="favPlaylistCount">0 playlists</span>
+                    <span class="favorites-stat-dot">•</span>
+                    <span class="favorites-stat-item" id="favTrackCount">0 tracks</span>
+                    <span class="favorites-stat-dot">•</span>
+                    <span class="favorites-stat-item fav-stat-synced" id="favSyncStatus">Cloud Synced</span>
+                </div>
+                <p class="favorites-tagline">Your starred sanctuary. Hand-crafted playlists, favorite mixes, and curated sounds all shining in one place.</p>
+            </div>
+        </section>
+
+        <!-- Interactive Favorites Insights Card -->
+        <section class="favorites-insights-card" id="favInsightsCard" aria-label="Favorites Insights">
+            <div class="insights-card-header">
+                <div class="insights-card-title-group">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="currentColor"
+                        stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="insights-icon"
+                        aria-hidden="true">
+                        <polygon
+                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                        </polygon>
+                    </svg>
+                    <span class="insights-card-label">Favorites Insights</span>
+                </div>
+                <span class="insights-card-badge" id="favVibeBadge">Curated Vibes</span>
+            </div>
+
+            <div class="insights-metrics-grid">
+                <div class="insights-metric-box">
+                    <span class="insights-metric-label">PLAYLISTS</span>
+                    <span class="insights-metric-val" id="favStatPlaylistsVal">0</span>
+                </div>
+                <div class="insights-metric-box">
+                    <span class="insights-metric-label">TOTAL TRACKS</span>
+                    <span class="insights-metric-val" id="favStatTracksVal">0</span>
+                </div>
+                <div class="insights-metric-box">
+                    <span class="insights-metric-label">CURATED</span>
+                    <span class="insights-metric-val" id="favStatCuratedVal">0</span>
+                </div>
+            </div>
+
+            <div class="insights-accent-bar" aria-hidden="true"></div>
+        </section>
+
+        <!-- Action Controls Bar (Play all, Shuffle, New Playlist, View Switcher) -->
+        <div class="favorites-actions-bar">
+            <button id="favPlayAllBtn" class="favorites-play-all-btn" type="button"
+                aria-label="Play all favorite playlists">
+                <span class="btn-icon-wrapper" id="favPlayIconWrapper">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                </span>
+                <span class="btn-text" id="favPlayAllText">Play all</span>
+            </button>
+
+            <button id="favShuffleBtn" class="favorites-shuffle-btn" type="button"
+                aria-label="Shuffle favorite tracks">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M0 0h24v24H0z" fill="none" />
+                    <path fill="currentColor"
+                        d="M2 16.25a.75.75 0 0 0 0 1.5zm8.748-2.163l-.643-.386zm2.504-4.174l.643.386zM22 7l.53.53a.75.75 0 0 0 0-1.06zm-2.53 1.47a.75.75 0 0 0 1.06 1.06zm1.06-4a.75.75 0 1 0-1.06 1.06zm-5.31 2.92l-.369-.653zM2 17.75h3.603v-1.5H2zm9.39-3.277l2.505-4.174l-1.286-.772l-2.504 4.174zm7.007-6.723H22v-1.5h-3.603zm3.073-1.28l-2 2l1.06 1.06l2-2zm1.06 0l-2-2l-1.06 1.06l2 2zm-8.635 3.829c.434-.724.734-1.22 1.006-1.589c.263-.355.468-.543.689-.668l-.739-1.305c-.467.264-.82.627-1.155 1.08c-.326.44-.668 1.011-1.087 1.71zm4.502-4.049c-.815 0-1.48 0-2.025.052c-.562.055-1.054.17-1.521.435l.739 1.305c.22-.125.487-.204.927-.247c.456-.044 1.036-.045 1.88-.045zM5.603 17.75c.815 0 1.48 0 2.025-.052c.562-.055 1.054-.17 1.521-.435l-.739-1.305c-.22.125-.487.204-.927.247c-.456.044-1.036.045-1.88.045zm4.502-4.049c-.435.724-.734 1.22-1.006 1.589c-.263.355-.468.543-.689.668l.74 1.305c.466-.264.819-.627 1.154-1.08c.326-.44.668-1.011 1.087-1.71zM2 6.25a.75.75 0 0 0 0 1.5zM22 17l.53.53a.75.75 0 0 0 0-1.06zm-1.47-2.53a.75.75 0 1 0-1.06 1.06zm-1.06 4a.75.75 0 1 0 1.06 1.06zm-3.345-1.525l.144-.736zm-1.682-2.33a.75.75 0 1 0-1.286.77zm.025 1.391l.558-.501zm-6.593-8.95l.143-.737zm1.682 2.33a.75.75 0 0 0 1.286-.772zm-.025-1.393l-.558.502zM2 7.75h4.668v-1.5H2zm15.332 10H22v-1.5h-4.668zm5.198-1.28l-2-2l-1.06 1.06l2 2zm-1.06 0l-2 2l1.06 1.06l2-2zm-4.138-.22c-.645 0-.867-.003-1.063-.041l-.287 1.472c.372.072.765.069 1.35.069zm-4.175-.864c.3.502.5.84.754 1.122l1.115-1.003c-.134-.149-.25-.337-.583-.89zm3.112.823a2.25 2.25 0 0 1-1.243-.704l-1.115 1.003a3.75 3.75 0 0 0 2.071 1.173zM6.668 7.75c.645 0 .867.003 1.063.041l.287-1.472c-.372-.072-.765-.069-1.35-.069zm4.175.864c-.3-.502-.5-.84-.754-1.122L8.974 8.495c.134.149.25.337.583.89zm-3.112-.823c.48.094.916.34 1.243.704l1.115-1.003a3.75 3.75 0 0 0-2.071-1.173z" />
+                </svg>
+                <span>Shuffle</span>
+            </button>
+
+            <!-- Layout View Switcher (List vs Grid) -->
+            <div class="favorites-view-toggle-group">
+                <button type="button" id="favViewListBtn" class="fav-view-btn is-active"
+                    aria-label="List view">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg>
+                </button>
+                <button type="button" id="favViewGridBtn" class="fav-view-btn" aria-label="Grid view">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search Box & Filter Chips Section -->
+        <div class="favorites-filter-section">
+            <div class="favorites-search-box">
+                <svg class="favorites-search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none"
+                    stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                    aria-hidden="true">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="favSearchInput" class="favorites-search-input"
+                    placeholder="Search in Favorites..." autocomplete="off" spellcheck="false"
+                    aria-label="Search favorites">
+                <button type="button" id="favSearchClearBtn" class="favorites-search-clear-btn hidden"
+                    aria-label="Clear search input">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Horizontal Filter Chips -->
+            <div class="favorites-chips-row" role="tablist" aria-label="Filter favorites categories">
+                <button type="button" class="fav-chip is-active" data-filter="all">All</button>
+                <button type="button" class="fav-chip" data-filter="created">My Playlists</button>
+                <button type="button" class="fav-chip" data-filter="collab">Collaborative</button>
+                <button type="button" class="fav-chip" data-filter="albums">Starred Albums</button>
+
+                <!-- Sort Dropdown / Cycle Trigger -->
+                <button type="button" id="favSortTriggerBtn" class="fav-sort-btn"
+                    aria-label="Sort favorites">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="4" y1="6" x2="20" y2="6"></line>
+                        <line x1="4" y1="12" x2="14" y2="12"></line>
+                        <line x1="4" y1="18" x2="8" y2="18"></line>
+                    </svg>
+                    <span id="favSortLabel">Recent</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Favorites Data List / Grid Section -->
+        <section class="favorites-list-section">
+            <div class="favorites-content-header">
+                <span class="favorites-content-title">Starred Items</span>
+                <button id="favCreateBtn" class="favorites-create-btn" type="button"
+                    aria-label="Create new playlist">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.3"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>New Playlist</span>
+                </button>
+            </div>
+
+            <div id="favoritesListContainer" class="favorites-list view-list">
+                <!-- Skeletons rendered initially by JS or fallback -->
+                <div class="fav-item-skeleton skeleton">
+                    <div class="skeleton-art"></div>
+                    <div class="skeleton-info">
+                        <div class="skeleton-line-title"></div>
+                        <div class="skeleton-line-sub"></div>
+                    </div>
+                    <div class="skeleton-actions"></div>
+                </div>
+                <div class="fav-item-skeleton skeleton">
+                    <div class="skeleton-art"></div>
+                    <div class="skeleton-info">
+                        <div class="skeleton-line-title"></div>
+                        <div class="skeleton-line-sub"></div>
+                    </div>
+                    <div class="skeleton-actions"></div>
+                </div>
+                <div class="fav-item-skeleton skeleton">
+                    <div class="skeleton-art"></div>
+                    <div class="skeleton-info">
+                        <div class="skeleton-line-title"></div>
+                        <div class="skeleton-line-sub"></div>
+                    </div>
+                    <div class="skeleton-actions"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Global Favorites Options Bottom Sheet Modal -->
+    <div id="favGlobalOptionsModal" class="favorites-options-modal hidden" inert>
+        <div class="favorites-options-backdrop" id="favGlobalBackdrop"></div>
+        <div class="favorites-options-sheet" id="favGlobalSheet">
+            <div class="favorites-options-handle-wrapper">
+                <div class="favorites-options-handle"></div>
+            </div>
+            <div class="favorites-options-header">
+                <img src="/public/images/Favorites%20Image.webp" alt="Favorites" class="favorites-options-photo"
+                    width="48" height="48"
+                    onerror="this.onerror=null; this.src='../../public/images/Favorites%20Image.webp';">
+                <div class="favorites-options-info">
+                    <h3 class="favorites-options-name">Favorites Options</h3>
+                    <p class="favorites-options-sub" id="favGlobalOptionsSub">Manage sorting and playlists</p>
+                </div>
+            </div>
+            <div class="favorites-options-list">
+                <button type="button" class="favorites-option-item" id="optFavSortRecent">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Sort by Most Recent</span>
+                </button>
+                <button type="button" class="favorites-option-item" id="optFavSortAlpha">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19h6"></path>
+                        <path d="M4 5h6"></path>
+                        <path d="M14 5l6 14"></path>
+                        <path d="M16 14h4"></path>
+                    </svg>
+                    <span>Sort by Title (A - Z)</span>
+                </button>
+                <button type="button" class="favorites-option-item" id="optFavSortTracks">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 18V5l12-2v13"></path>
+                        <circle cx="6" cy="18" r="3"></circle>
+                        <circle cx="18" cy="16" r="3"></circle>
+                    </svg>
+                    <span>Sort by Track Count (Most first)</span>
+                </button>
+                <button type="button" class="favorites-option-item" id="optFavCreateNew">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>Create New Playlist</span>
+                </button>
+            </div>
+            <button type="button" class="favorites-options-close-btn" id="favGlobalCloseBtn">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Per-Item Options Bottom Sheet Modal -->
+    <div id="favItemOptionsModal" class="favorites-options-modal hidden" inert>
+        <div class="favorites-options-backdrop" id="favItemBackdrop"></div>
+        <div class="favorites-options-sheet" id="favItemSheet">
+            <div class="favorites-options-handle-wrapper">
+                <div class="favorites-options-handle"></div>
+            </div>
+            <div class="favorites-options-header">
+                <div class="favorites-options-photo-wrapper">
+                    <img id="favItemOptionsCover" src="" alt="Cover"
+                        class="favorites-options-photo hidden" width="48" height="48">
+                    <div id="favItemOptionsCoverFallback" class="favorites-options-fallback-cover">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                    </div>
+                </div>
+                <div class="favorites-options-info">
+                    <h3 class="favorites-options-name" id="favItemOptionsTitle">Playlist Title</h3>
+                    <p class="favorites-options-sub" id="favItemOptionsSub">0 tracks</p>
+                </div>
+            </div>
+            <div class="favorites-options-list">
+                <button type="button" class="favorites-option-item" id="optFavItemPlayNext">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                        <line x1="19" y1="5" x2="19" y2="19"></line>
+                    </svg>
+                    <span>Play Next in Queue</span>
+                </button>
+                <button type="button" class="favorites-option-item" id="optFavItemAddSongs">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14"></path>
+                    </svg>
+                    <span>Add Songs to Playlist</span>
+                </button>
+                <button type="button" class="favorites-option-item" id="optFavItemShare">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="19" r="3"></circle>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                    <span>Share Playlist</span>
+                </button>
+                <button type="button" class="favorites-option-item item-danger" id="optFavItemDelete">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    <span id="favItemDeleteLabel">Delete Playlist</span>
+                </button>
+            </div>
+            <button type="button" class="favorites-options-close-btn" id="favItemCloseBtn">Cancel</button>
+        </div>
+    </div>
+</body>
