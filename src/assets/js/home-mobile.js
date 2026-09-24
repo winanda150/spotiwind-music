@@ -353,6 +353,11 @@ const syncActiveSongUI = () => {
         mixDetailShuffleBtn.classList.toggle('is-active', isShuffle);
     }
 
+    const fullShuffleBtn = document.getElementById('fullShuffleBtn');
+    if (fullShuffleBtn) {
+        fullShuffleBtn.classList.toggle('active', isShuffle);
+    }
+
     if (isPlaying || isPaused) {
         const activeElements = getSongElements(currentSongData);
         activeElements.forEach(el => {
@@ -1718,13 +1723,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Sync shuffle button state in Full Player
         const fullShuffleBtn = document.getElementById('fullShuffleBtn');
-        if (context && context.startsWith('artist-')) {
-            const hasCustomShuffledQueue = Array.isArray(customPlaylist) && customPlaylist.length > 1;
-            if (hasCustomShuffledQueue) {
-                isShuffle = true;
-                document.getElementById('fullShuffleBtn')?.classList.add('active');
-                setPlaybackModes({ shuffle: true, repeat: isRepeat });
-            }
+        if (fullShuffleBtn) {
+            fullShuffleBtn.classList.toggle('active', isShuffle);
         }
 
         // Sync active song class across all elements
