@@ -9,6 +9,7 @@ import {
     getDoc,
     setDoc,
     updateDoc,
+    increment,
     onSnapshot,
     onAuthStateChanged
 } from "../assets/js/firebase-config.js";
@@ -189,7 +190,7 @@ export const updateProfileInfo = async (uid, payload = {}) => {
 
     try {
         const profileRef = doc(db, "users", uid);
-        await updateDoc(profileRef, payload);
+        await setDoc(profileRef, payload, { merge: true });
         return {
             uid,
             ...payload
@@ -239,3 +240,83 @@ if (typeof onAuthStateChanged === 'function') {
         }
     });
 }
+
+/**
+ * Format raw listening seconds into user-friendly localized string
+ */
+export const formatListeningTime = (totalSeconds) => {
+    const sec = Math.max(0, Number(totalSeconds) || 0);
+    if (sec < 60) {
+        return sec === 0 ? 'Baru Memulai 🎵' : '< 1 Menit Diputar';
+    }
+    const minutes = Math.floor(sec / 60);
+    if (minutes < 60) {
+        return `${minutes} Menit Diputar`;
+    }
+    const hours = (sec / 3600).toFixed(1);
+    if (hours.endsWith('.0')) {
+        return `${Math.floor(sec / 3600)} Jam Diputar`;
+    }
+    return `${hours} Jam Diputar`;
+};
+
+let pendingListeningTimeSync = 0;
+let pendingTrackCount = 0;
+let listeningSyncTimeout = null;
+
+/**
+ * Record real playback listening duration in seconds and increment stats in Firestore
+ */
+export const recordListeningTime = (uid, secondsToAdd = 0, isNewTrack = false) => {
+    if (!uid) return;
+    
+    const validSec = Math.max(0, Math.round(Number(secondsToAdd) || 0));
+    
+    // 1. Optimistic LocalStorage update for instant reactivity
+    try {
+        const localKey = `spotiwind_listening_sec_${uid}`;
+        const currentSec = Number(localStorage.getItem(localKey)) || 0;
+        localStorage.setItem(localKey, String(currentSec + validSec));
+    } catch {}
+
+    pendingListeningTimeSync += validSec;
+    if (isNewTrack) pendingTrackCount += 1;
+
+    // 2. Debounced Cloud Batch Sync (4s) to prevent spamming Firestore writes
+    if (listeningSyncTimeout) clearTimeout(listeningSyncTimeout);
+    listeningSyncTimeout = setTimeout(async () => {
+        const toSyncSeconds = pendingListeningTimeSync;
+        const toSyncTracks = pendingTrackCount;
+        pendingListeningTimeSync = 0;
+        pendingTrackCount = 0;
+
+        if (toSyncSeconds <= 0 && toSyncTracks <= 0) return;
+
+        try {
+            const userRef = doc(db, "users", uid);
+            const updatePayload = {
+                lastActiveAt: Date.now()
+            };
+            if (toSyncSeconds > 0) {
+                updatePayload.totalListeningSeconds = increment(toSyncSeconds);
+            }
+            if (toSyncTracks > 0) {
+                updatePayload.totalTracksPlayed = increment(toSyncTracks);
+            }
+            await updateDoc(userRef, updatePayload);
+        } catch (e) {
+            if (e?.code === 'not-found') {
+                try {
+                    await setDoc(doc(db, "users", uid), {
+                        totalListeningSeconds: toSyncSeconds,
+                        totalTracksPlayed: toSyncTracks || 1,
+                        lastActiveAt: Date.now()
+                    }, { merge: true });
+                } catch {}
+            } else {
+                console.warn("Could not sync listening time to Firestore:", e);
+            }
+        }
+    }, 4000);
+};
+

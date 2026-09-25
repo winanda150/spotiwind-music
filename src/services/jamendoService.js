@@ -30,6 +30,14 @@ const fetchWithRetry = async (url, options = {}, retries = 3) => {
     throw lastError;
 };
 
+export const isDataSaverActive = () => {
+    try {
+        return typeof localStorage !== 'undefined' && localStorage.getItem('spotiwind_data_saver') === 'true';
+    } catch {
+        return false;
+    }
+};
+
 /**
  * Generic function to get data from a Jamendo endpoint.
  * @param {string} endpoint - API path, e.g., '/tracks'.
@@ -39,6 +47,21 @@ const fetchWithRetry = async (url, options = {}, retries = 3) => {
 async function fetchFromJamendo(endpoint, params = {}) {
     params.client_id = CLIENT_ID;
     params.format = 'json';
+
+    // Apply Real-time Data Saver optimization
+    const isDataSaver = isDataSaverActive();
+    if (isDataSaver) {
+        if (!params.audioformat && endpoint.includes('/tracks')) {
+            params.audioformat = 'mp31'; // Compress audio stream to ~96-128kbps (saves ~50% bandwidth)
+        }
+        if (!params.imagesize) {
+            params.imagesize = 100; // Load lightweight image thumbnails
+        }
+    } else {
+        if (!params.audioformat && endpoint.includes('/tracks')) {
+            params.audioformat = 'mp32'; // Full high-fidelity audio (~192-320kbps VBR)
+        }
+    }
 
     const queryString = new URLSearchParams(params).toString();
     const url = `${BASE_URL}${endpoint}?${queryString}`;

@@ -10,6 +10,8 @@ import { recordRecentlyPlayed } from '../services/recentlyPlayedService.js';
 import { recordTrackPlay } from '../services/popularTrackService.js';
 import { recordArtistPlay } from '../services/topArtistService.js';
 import { updateMyActivity } from '../services/activityService.js';
+import { auth } from '../assets/js/firebase-config.js';
+import { recordListeningTime } from '../services/profileService.js';
 
 class AudioEngine {
     constructor() {
@@ -35,6 +37,13 @@ class AudioEngine {
         this.listeners = new Set();
         this.activityUpdateTimeout = null;
         this.lastRecordedSongKey = '';
+        this.lastListeningCheckTime = 0;
+        this.accumulatedListeningSeconds = 0;
+
+        // Sleep Timer state
+        this.sleepTimerTimeout = null;
+        this.sleepTimerEndTime = 0;
+        this.sleepTimerMinutes = 0;
 
         this._setupAudioListeners();
         this._setupMediaSession();
@@ -78,22 +87,49 @@ class AudioEngine {
         };
     }
 
+    _flushListeningTime() {
+        if (this.accumulatedListeningSeconds > 0) {
+            const uid = auth.currentUser?.uid;
+            if (uid) {
+                recordListeningTime(uid, this.accumulatedListeningSeconds, false);
+            }
+            this.accumulatedListeningSeconds = 0;
+        }
+        this.lastListeningCheckTime = Date.now();
+    }
+
     _setupAudioListeners() {
         const audio = this.audio;
 
         audio.addEventListener('play', () => {
             this.isPlaying = true;
+            this.lastListeningCheckTime = Date.now();
             if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
             this._notify('play');
         });
 
         audio.addEventListener('pause', () => {
             this.isPlaying = false;
+            this._flushListeningTime();
             if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
             this._notify('pause');
         });
 
         audio.addEventListener('timeupdate', () => {
+            if (this.isPlaying && !this.isDragging) {
+                const now = Date.now();
+                if (this.lastListeningCheckTime > 0) {
+                    const deltaSec = (now - this.lastListeningCheckTime) / 1000;
+                    if (deltaSec >= 0.5 && deltaSec <= 4) {
+                        this.accumulatedListeningSeconds += deltaSec;
+                        if (this.accumulatedListeningSeconds >= 10) {
+                            this._flushListeningTime();
+                        }
+                    }
+                }
+                this.lastListeningCheckTime = now;
+            }
+
             if (!this.isDragging) {
                 this._notify('timeupdate', {
                     currentTime: audio.currentTime,
@@ -114,12 +150,25 @@ class AudioEngine {
         });
 
         audio.addEventListener('playing', () => {
+            this.lastListeningCheckTime = Date.now();
             this._notify('playing');
         });
 
         audio.addEventListener('ended', () => {
             this.isPlaying = false;
+            this._flushListeningTime();
             this._notify('ended');
+
+            if (this.sleepTimerMinutes === 'end_of_track') {
+                this.sleepTimerMinutes = 0;
+                this.sleepTimerEndTime = 0;
+                this._notify('sleeptimer', { active: false, minutes: 0, triggered: true });
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('spotiwind-sleep-timer-expired'));
+                }
+                return;
+            }
+
             if (this.isRepeat) {
                 this.playSong(this.currentSong, this.currentPlaylist, this.currentContext, this.activeMixId);
             } else if (this.currentPlaylist.length > 0) {
@@ -129,6 +178,7 @@ class AudioEngine {
 
         audio.addEventListener('error', (e) => {
             this.isPlaying = false;
+            this._flushListeningTime();
             console.error('Audio playback error:', e);
             this._notify('error', { error: e });
         });
@@ -173,6 +223,10 @@ class AudioEngine {
             recordRecentlyPlayed(song);
             recordTrackPlay(song);
             recordArtistPlay(song);
+            const uid = auth.currentUser?.uid;
+            if (uid) {
+                recordListeningTime(uid, 0, true);
+            }
         } catch (e) {
             console.warn('Error recording song analytics:', e);
         }
@@ -294,8 +348,32 @@ class AudioEngine {
     }
 
     pause() {
-        if (this.audio.src) {
-            this.audio.pause();
+        if (this.audio && this.audio.src) {
+            try {
+                this.audio.pause();
+            } catch (err) {}
+        }
+        if (typeof window !== 'undefined') {
+            if (window.__activeAudio && typeof window.__activeAudio.pause === 'function') {
+                try {
+                    window.__activeAudio.pause();
+                } catch (err) {}
+            }
+            try {
+                const audioEls = document.querySelectorAll('audio');
+                audioEls.forEach(el => {
+                    if (!el.paused) {
+                        try { el.pause(); } catch (e) {}
+                    }
+                });
+            } catch (err) {}
+
+            if (typeof window.syncActiveSongUI === 'function') {
+                try { window.syncActiveSongUI(); } catch (err) {}
+            }
+            if (typeof window.syncActiveDesktopUI === 'function') {
+                try { window.syncActiveDesktopUI(); } catch (err) {}
+            }
         }
     }
 
@@ -395,7 +473,76 @@ class AudioEngine {
         }
         this._notify('queuechange', { playlist: this.currentPlaylist });
     }
+
+    setSleepTimer(minutes) {
+        if (this.sleepTimerTimeout) {
+            clearTimeout(this.sleepTimerTimeout);
+            this.sleepTimerTimeout = null;
+        }
+
+        if (!minutes || minutes === 0 || minutes === '0' || minutes === 'off') {
+            this.sleepTimerMinutes = 0;
+            this.sleepTimerEndTime = 0;
+            this._notify('sleeptimer', { active: false, minutes: 0 });
+            return false;
+        }
+
+        if (minutes === 'end_of_track') {
+            this.sleepTimerMinutes = 'end_of_track';
+            this.sleepTimerEndTime = 0;
+            this._notify('sleeptimer', { active: true, minutes: 'end_of_track', label: 'Di akhir lagu' });
+            return true;
+        }
+
+        const mins = Number(minutes) || 0;
+        if (mins <= 0) {
+            this.sleepTimerMinutes = 0;
+            this.sleepTimerEndTime = 0;
+            this._notify('sleeptimer', { active: false, minutes: 0 });
+            return false;
+        }
+
+        this.sleepTimerMinutes = mins;
+        this.sleepTimerEndTime = Date.now() + (mins * 60 * 1000);
+
+        this.sleepTimerTimeout = setTimeout(() => {
+            this.pause();
+            this.sleepTimerMinutes = 0;
+            this.sleepTimerEndTime = 0;
+            this.sleepTimerTimeout = null;
+            this._notify('sleeptimer', { active: false, minutes: 0, triggered: true });
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('spotiwind-sleep-timer-expired'));
+            }
+        }, mins * 60 * 1000);
+
+        this._notify('sleeptimer', { active: true, minutes: mins, endTime: this.sleepTimerEndTime });
+        return true;
+    }
+
+    getSleepTimerState() {
+        if (this.sleepTimerMinutes === 'end_of_track') {
+            return {
+                active: true,
+                minutes: 'end_of_track',
+                label: 'Di akhir lagu',
+                remainingSeconds: 0
+            };
+        }
+        if (!this.sleepTimerEndTime || this.sleepTimerEndTime <= Date.now()) {
+            return { active: false, minutes: 0, remainingSeconds: 0 };
+        }
+        const remainingSeconds = Math.max(0, Math.round((this.sleepTimerEndTime - Date.now()) / 1000));
+        return {
+            active: true,
+            minutes: this.sleepTimerMinutes,
+            remainingSeconds
+        };
+    }
 }
 
 export const audioEngine = new AudioEngine();
+if (typeof window !== 'undefined') {
+    window.audioEngine = audioEngine;
+}
 export default audioEngine;

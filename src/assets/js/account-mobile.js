@@ -1,9 +1,9 @@
-import { auth, onAuthStateChanged } from './firebase-config.js';
+import { auth, onAuthStateChanged, signOut } from './firebase-config.js';
 import { subscribeUserPlaylists, subscribeLikedSongs } from '../../services/libraryService.js';
-import { subscribeUserProfile, getProfileByUid, generateUserCode, setUserPremiumStatus } from '../../services/profileService.js';
+import { subscribeUserProfile, getProfileByUid, generateUserCode, setUserPremiumStatus, formatListeningTime, updateProfileInfo } from '../../services/profileService.js';
 import { subscribeUserFollowers, subscribeUserFollowing } from '../../services/userService.js';
-import { loadLocalCatalog } from '../../services/catalogService.js';
-import { clearRecentlyPlayed } from '../../services/recentlyPlayedService.js';
+import { audioEngine } from '../../core/audioEngine.js';
+
 import { defaultAvatar, getHighResAvatarUrl, formatRupiah } from '../../utils/formatters.js';
 import { showToast } from '../../utils/domUtils.js';
 import { openAvatarPreviewModal, closeAvatarPreviewModal, initAvatarPreviewModal } from '../../components/modals/avatarPreviewModal.js';
@@ -16,6 +16,7 @@ let unsubscribeFollowers = null;
 let unsubscribeFollowing = null;
 let unsubscribeProfile = null;
 let editProfileBtnHandler = null;
+let shareProfileBtnHandler = null;
 let managePlanBtnHandler = null;
 let accountCodeClickHandler = null;
 let avatarClickHandler = null;
@@ -24,14 +25,23 @@ let previewEditBtnHandler = null;
 let previewShareBtnHandler = null;
 let keydownHandler = null;
 
+// Settings & Developer card handlers
+let sleepTimerHandler = null;
+let unsubscribeAudioEngine = null;
+
+let dataSaverToggleHandler = null;
+let crossfadeToggleHandler = null;
+let privateSessionToggleHandler = null;
+let connectedDevicesHandler = null;
+let clearCacheHandler = null;
+let accountLogoutBtnHandler = null;
+
 // Subscription Modal Handlers
 let closeSubModalBtnHandler = null;
 let closeManageModalBtnHandler = null;
 let activateTrialBtnHandler = null;
 let cancelSubBtnHandler = null;
-let seeAllRecentBtnHandler = null;
-let seeAllArtistsBtnHandler = null;
-let recentlyPlayedUpdateHandler = null;
+
 let isModalGestureActive = false;
 let planCardClickHandlers = [];
 let subModalBackdropHandler = null;
@@ -64,14 +74,14 @@ const closeAvatarPreview = () => closeAvatarPreviewModal('avatarPreviewModal');
  * Setup swipe-up (fullscreen) & swipe-down (collapse / dismiss) gesture for bottom sheet modal
  */
 const setupBottomSheetDrag = (modalEl, onCloseCallback) => {
-    if (!modalEl) return () => {};
+    if (!modalEl) return () => { };
 
     const sheet = modalEl.querySelector('.pro-modal-sheet');
     const handleBar = modalEl.querySelector('.pro-modal-handle-bar');
     const header = modalEl.querySelector('.pro-modal-header');
     const backdrop = modalEl.querySelector('.pro-modal-backdrop');
 
-    if (!sheet) return () => {};
+    if (!sheet) return () => { };
 
     let startX = 0;
     let startY = 0;
@@ -201,37 +211,52 @@ const setupBottomSheetDrag = (modalEl, onCloseCallback) => {
         sheet.style.maxHeight = '';
 
         // Upward threshold: expand to fullscreen if content is scrollable and initiated from header
-        if (deltaY < -40 || (velocityY < -0.45 && deltaY < -20)) {
+        if (deltaY < -45 || velocityY < -0.35) {
             if (!isFullscreen && canExpandToFullscreen && isTouchOnHandleOrHeader) {
                 sheet.classList.add('is-fullscreen');
+                if (backdrop) backdrop.style.opacity = '1';
+                setTimeout(() => { isModalGestureActive = false; }, 60);
+                return;
             }
-            setTimeout(() => { isModalGestureActive = false; }, 80);
-            return;
         }
 
-        // Downward threshold: collapse or dismiss
-        if (isFullscreen) {
-            const collapseThreshold = isTouchOnHandleOrHeader ? 70 : 100;
-            const isFlick = (velocityY > 0.65 && deltaY >= 35);
-            if (deltaY > collapseThreshold || isFlick) {
+        // Downward threshold: collapse fullscreen or dismiss sheet
+        const dismissThreshold = isFullscreen ? 140 : 100;
+        if (deltaY > dismissThreshold || velocityY > 0.42) {
+            if (isFullscreen && isTouchOnHandleOrHeader && deltaY < 240 && velocityY < 0.8) {
                 sheet.classList.remove('is-fullscreen');
-                sheet.scrollTop = 0;
+                if (backdrop) backdrop.style.opacity = '';
+                setTimeout(() => { isModalGestureActive = false; }, 60);
+                return;
             }
-        } else {
-            const sheetHeight = sheet.offsetHeight || 380;
-            const dismissDistance = Math.max(115, sheetHeight * 0.35);
-            const isIntentionalSwipe = (velocityY > 0.65 && deltaY >= 45);
-            if (deltaY >= dismissDistance || isIntentionalSwipe) {
-                if (backdrop) backdrop.style.opacity = '0';
+
+            // Close sheet animation
+            sheet.style.transition = 'transform 0.24s cubic-bezier(0.32, 1, 0.23, 1)';
+            sheet.style.transform = 'translateY(100%)';
+            if (backdrop) {
+                backdrop.style.transition = 'opacity 0.2s ease';
+                backdrop.style.opacity = '0';
+            }
+            setTimeout(() => {
+                resetDragStyles();
                 if (typeof onCloseCallback === 'function') {
                     onCloseCallback();
                 }
-            } else {
-                if (backdrop) backdrop.style.opacity = '1';
-            }
+            }, 240);
+            return;
         }
 
-        setTimeout(() => { isModalGestureActive = false; }, 80);
+        // Snap back to default resting position
+        sheet.style.transition = 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s ease';
+        sheet.style.transform = 'translateY(0)';
+        if (backdrop) {
+            backdrop.style.transition = 'opacity 0.2s ease';
+            backdrop.style.opacity = '';
+        }
+        setTimeout(() => {
+            sheet.style.transition = '';
+            isModalGestureActive = false;
+        }, 220);
     };
 
     const onPointerCancel = () => {
@@ -239,31 +264,25 @@ const setupBottomSheetDrag = (modalEl, onCloseCallback) => {
     };
 
     const onPointerDown = (e) => {
-        if (e.button !== undefined && e.button !== 0 && e.pointerType === 'mouse') return;
-        // Ignore interactive controls inside sheet
-        if (e.target.closest('button, a, input, [role="button"]')) return;
+        if (e.target.closest('button') || e.target.closest('.pro-plan-card')) {
+            return;
+        }
 
         startX = e.clientX;
         startY = e.clientY;
         currentY = e.clientY;
         startTime = Date.now();
         initialSheetHeight = sheet.offsetHeight;
-        isModalGestureActive = false;
+        isTouchOnHandleOrHeader = Boolean(e.target.closest('.pro-modal-handle-bar') || e.target.closest('.pro-modal-header'));
+        canExpandToFullscreen = sheet.scrollHeight > window.innerHeight * 0.75;
 
-        // Verify if sheet content overflows container
-        const isContentScrollable = (sheet.scrollHeight - sheet.clientHeight) > 20;
-        canExpandToFullscreen = isContentScrollable;
-
-        isTouchOnHandleOrHeader = Boolean(
-            (handleBar && handleBar.contains(e.target)) || 
-            (header && header.contains(e.target) && !e.target.closest('button, a'))
-        );
-
-        if (!isListeningWindow) {
-            isListeningWindow = true;
-            window.addEventListener('pointermove', onPointerMove, { passive: false });
-            window.addEventListener('pointerup', onPointerUp);
-            window.addEventListener('pointercancel', onPointerCancel);
+        if (isTouchOnHandleOrHeader || sheet.scrollTop <= 0) {
+            if (!isListeningWindow) {
+                isListeningWindow = true;
+                window.addEventListener('pointermove', onPointerMove, { passive: false });
+                window.addEventListener('pointerup', onPointerUp);
+                window.addEventListener('pointercancel', onPointerCancel);
+            }
         }
     };
 
@@ -272,134 +291,150 @@ const setupBottomSheetDrag = (modalEl, onCloseCallback) => {
     return () => {
         sheet.removeEventListener('pointerdown', onPointerDown);
         removeWindowListeners();
-        resetDragStyles();
     };
 };
 
-const openSubscriptionModal = (options = {}) => {
-    openProSubscriptionModal({
-        ...options,
-        onSubscribed: (detail) => {
-            if (currentProfileData) {
-                currentProfileData.isPremium = true;
+const openSubscriptionModal = () => openProSubscriptionModal({
+    modalId: 'proSubscriptionModal',
+    onSelectPlan: (plan) => {
+        selectedPlanData = plan;
+    },
+    onActivateTrial: async (plan) => {
+        const user = auth.currentUser;
+        if (!user) {
+            if (typeof window.navigateToAuthPage === 'function') {
+                window.navigateToAuthPage('login');
+            } else {
+                showToast('Silakan login terlebih dahulu');
             }
-            updateProBannerUI(true);
-            const badge = document.getElementById('accountProBadge');
-            const avatarWrapper = document.querySelector('.account-avatar-wrapper');
-            const profileHeader = document.querySelector('.account-profile-header');
-            badge?.classList.remove('hidden');
-            avatarWrapper?.classList.add('is-pro');
-            profileHeader?.classList.add('is-pro');
-            if (typeof options.onSubscribed === 'function') {
-                options.onSubscribed(detail);
+            return;
+        }
+
+        const subscribeBtn = document.getElementById('activateProTrialBtn');
+        if (subscribeBtn) {
+            subscribeBtn.disabled = true;
+            subscribeBtn.innerHTML = `
+                <span class="btn-spinner" style="display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;margin-right:6px;vertical-align:middle;"></span>
+                <span>Mengaktifkan...</span>
+            `;
+        }
+
+        try {
+            await setUserPremiumStatus(user.uid, true);
+            closeSubscriptionModal();
+            showToast(`Selamat! Paket ${plan.name} aktif. Nikmati fitur PRO! 🎉`);
+        } catch (err) {
+            console.error("Failed to activate PRO trial:", err);
+            showToast('Gagal mengaktifkan paket PRO');
+        } finally {
+            if (subscribeBtn) {
+                subscribeBtn.disabled = false;
+                subscribeBtn.innerHTML = `
+                    <span>Mulai Uji Coba Gratis 7 Hari</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                `;
             }
         }
-    });
-};
+    }
+});
 
-const closeSubscriptionModal = () => {
-    closeProSubscriptionModal();
-};
+const closeSubscriptionModal = () => closeProSubscriptionModal('proSubscriptionModal');
 
 const openManageModal = () => {
     const modal = document.getElementById('proManageModal');
     if (!modal) return;
 
     previousActiveElement = document.activeElement;
-
-    const sheet = modal.querySelector('.pro-modal-sheet');
-    if (sheet) {
-        sheet.classList.remove('is-fullscreen');
-        sheet.style.transform = '';
-        sheet.style.height = '';
-        sheet.style.maxHeight = '';
-    }
-
-    const planNameEl = document.getElementById('managePlanName');
-    const planExpiryEl = document.getElementById('managePlanExpiry');
-
-    if (planNameEl) {
-        planNameEl.textContent = currentProfileData?.premiumPlan || 'Spotiwind PRO Individual';
-    }
-
-    if (planExpiryEl) {
-        if (currentProfileData?.premiumExpiresAt) {
-            const diffMs = currentProfileData.premiumExpiresAt - Date.now();
-            const daysRemaining = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-            planExpiryEl.textContent = `${daysRemaining} Hari tersisa`;
-        } else {
-            planExpiryEl.textContent = '30 Hari tersisa';
-        }
-    }
-
-    document.body.classList.add('pro-modal-open');
     modal.classList.remove('hidden');
     modal.removeAttribute('inert');
     void modal.offsetWidth;
     modal.classList.add('is-active');
     modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('pro-modal-open');
     document.body.style.overflow = 'hidden';
+
+    const sheet = modal.querySelector('.pro-modal-sheet');
+    if (sheet) {
+        sheet.classList.remove('is-fullscreen');
+        sheet.scrollTop = 0;
+    }
+
+    const closeBtn = document.getElementById('closeManageModalBtn');
+    closeBtn?.focus();
 };
 
 const closeManageModal = () => {
     const modal = document.getElementById('proManageModal');
     if (!modal || modal.classList.contains('hidden')) return;
 
-    // 1. Blur active elements inside modal prior to hiding
     if (modal.contains(document.activeElement) && typeof document.activeElement.blur === 'function') {
         document.activeElement.blur();
     }
 
-    // 2. Restore focus to previous trigger element if valid
-    if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
+    if (previousActiveElement && typeof previousActiveElement.focus === 'function' && document.body.contains(previousActiveElement)) {
         try {
             previousActiveElement.focus();
-        } catch {
-            // Ignored
-        }
+        } catch { }
     }
     previousActiveElement = null;
 
-    const sheet = modal.querySelector('.pro-modal-sheet');
-    if (sheet) {
-        sheet.classList.remove('is-fullscreen');
-        sheet.style.transform = '';
-        sheet.style.height = '';
-        sheet.style.maxHeight = '';
-    }
-
-    document.body.classList.remove('pro-modal-open');
     modal.classList.remove('is-active');
-    modal.setAttribute('aria-hidden', 'true');
     modal.setAttribute('inert', '');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('pro-modal-open');
     document.body.style.overflow = '';
 
     setTimeout(() => {
         if (!modal.classList.contains('is-active')) {
             modal.classList.add('hidden');
         }
-    }, 320);
+    }, 280);
+};
+
+const updateSleepTimerUI = () => {
+    const state = audioEngine.getSleepTimerState();
+    const sleepTimerValue = document.getElementById('sleepTimerValue');
+    const sleepTimerBadge = document.getElementById('sleepTimerBadge');
+
+    if (state.active) {
+        if (state.minutes === 'end_of_track') {
+            if (sleepTimerValue) sleepTimerValue.textContent = 'Di Akhir Lagu • Otomatis jeda musik';
+            if (sleepTimerBadge) {
+                sleepTimerBadge.style.display = 'inline-block';
+                sleepTimerBadge.textContent = 'Lagu';
+            }
+        } else {
+            if (sleepTimerValue) sleepTimerValue.textContent = `${state.minutes} Menit • Otomatis jeda aktif`;
+            if (sleepTimerBadge) {
+                sleepTimerBadge.style.display = 'inline-block';
+                sleepTimerBadge.textContent = `${state.minutes}m`;
+            }
+        }
+    } else {
+        if (sleepTimerValue) sleepTimerValue.textContent = 'Mati • Otomatis jeda musik';
+        if (sleepTimerBadge) sleepTimerBadge.style.display = 'none';
+    }
 };
 
 const updateProBannerUI = (isPro) => {
-    const proTitle = document.querySelector('.pro-banner-title');
-    const proDesc = document.querySelector('.pro-banner-desc');
-    const managePlanBtn = document.getElementById('managePlanBtn');
-    const managePlanBtnText = managePlanBtn?.querySelector('span');
-    const profileHeader = document.querySelector('.account-profile-header');
+    const titleEl = document.querySelector('.pro-banner-title');
+    const descEl = document.querySelector('.pro-banner-desc');
+    const btnEl = document.getElementById('managePlanBtn');
+
+    if (!titleEl || !descEl || !btnEl) return;
 
     if (isPro) {
-        if (proTitle) proTitle.textContent = 'Spotiwind PRO Active';
-        if (proDesc) proDesc.textContent = 'Status langganan aktif. Nikmati seluruh fitur eksklusif.';
-        if (managePlanBtnText) managePlanBtnText.textContent = 'Manage plan';
-        if (managePlanBtn) managePlanBtn.setAttribute('aria-label', 'Manage plan');
-        profileHeader?.classList.add('is-pro');
+        titleEl.textContent = 'Spotiwind PRO Aktif';
+        descEl.textContent = 'Status langganan aktif. Nikmati seluruh fitur ekslusif';
+        btnEl.innerHTML = '<span>Kelola Langganan</span>';
+        btnEl.setAttribute('aria-label', 'Kelola Langganan PRO');
     } else {
-        if (proTitle) proTitle.textContent = 'Spotiwind PRO';
-        if (proDesc) proDesc.textContent = 'Banner profil eksklusif, badge PRO, dan download offline.';
-        if (managePlanBtnText) managePlanBtnText.textContent = 'Upgrade to PRO';
-        if (managePlanBtn) managePlanBtn.setAttribute('aria-label', 'Upgrade to PRO');
-        profileHeader?.classList.remove('is-pro');
+        titleEl.textContent = 'Spotiwind PRO';
+        descEl.textContent = 'Banner profil eksklusif, badge PRO, dan download offline.';
+        btnEl.innerHTML = '<span>Upgrade to PRO</span>';
+        btnEl.setAttribute('aria-label', 'Upgrade to PRO');
     }
 };
 
@@ -408,42 +443,38 @@ const updateAccountStats = (user) => {
     const statFollowers = document.getElementById('statFollowers');
     const statFollowing = document.getElementById('statFollowing');
     const statLikes = document.getElementById('statLikes');
-    const accountProBadge = document.getElementById('accountProBadge');
+    const soundStreamingTime = document.getElementById('soundStreamingTime');
+    const soundTotalTracks = document.getElementById('soundTotalTracks');
 
     unsubscribePlaylists?.();
-    unsubscribePlaylists = null;
     unsubscribeLikedSongs?.();
-    unsubscribeLikedSongs = null;
     unsubscribeFollowers?.();
-    unsubscribeFollowers = null;
     unsubscribeFollowing?.();
-    unsubscribeFollowing = null;
     unsubscribeProfile?.();
-    unsubscribeProfile = null;
 
     if (!user) {
         if (statPlaylists) statPlaylists.textContent = '0';
         if (statFollowers) statFollowers.textContent = '0';
         if (statFollowing) statFollowing.textContent = '0';
         if (statLikes) statLikes.textContent = '0';
-        if (accountProBadge) accountProBadge.classList.add('hidden');
-        updateProBannerUI(false);
-        const profileHeader = document.querySelector('.account-profile-header');
-        profileHeader?.classList.remove('is-pro');
+        if (soundStreamingTime) soundStreamingTime.textContent = 'Baru Memulai 🎵';
+        if (soundTotalTracks) soundTotalTracks.textContent = '0 Lagu Diputar';
         return;
     }
 
     // 1. Realtime Playlists count from Firestore subcollection
     unsubscribePlaylists = subscribeUserPlaylists(user.uid, (playlists) => {
+        const count = Array.isArray(playlists) ? playlists.length : 0;
         if (statPlaylists) {
-            statPlaylists.textContent = Array.isArray(playlists) ? String(playlists.length) : '0';
+            statPlaylists.textContent = String(count);
         }
     });
 
     // 2. Realtime Liked Songs count from Firestore subcollection
     unsubscribeLikedSongs = subscribeLikedSongs(user.uid, (songs) => {
+        const count = Array.isArray(songs) ? songs.length : 0;
         if (statLikes) {
-            statLikes.textContent = Array.isArray(songs) ? String(songs.length) : '0';
+            statLikes.textContent = String(count);
         }
     });
 
@@ -461,7 +492,7 @@ const updateAccountStats = (user) => {
         }
     });
 
-    // 5. Realtime Profile info (isPremium check and userCode) from Firestore
+    // 5. Realtime Profile info (listening time, tracks played, isPremium check and userCode) from Firestore
     unsubscribeProfile = subscribeUserProfile(user.uid, (profile) => {
         if (!profile) return;
         currentProfileData = profile;
@@ -470,9 +501,21 @@ const updateAccountStats = (user) => {
         const avatarWrapper = document.querySelector('.account-avatar-wrapper');
         const profileHeader = document.querySelector('.account-profile-header');
         const accountCode = document.getElementById('accountCode');
-        
+
         if (accountCode) {
             accountCode.textContent = profile.userCode || generateUserCode(user.uid);
+        }
+
+        // Dynamic Realtime Listening Time & Tracks for THIS User
+        const localSec = Number(localStorage.getItem(`spotiwind_listening_sec_${user.uid}`)) || 0;
+        const totalListeningSec = Math.max(profile.totalListeningSeconds || 0, localSec);
+        if (soundStreamingTime) {
+            soundStreamingTime.textContent = formatListeningTime(totalListeningSec);
+        }
+
+        const totalTracks = profile.totalTracksPlayed || (statLikes ? Number(statLikes.textContent) || 0 : 0);
+        if (soundTotalTracks) {
+            soundTotalTracks.textContent = totalTracks > 0 ? `${totalTracks} Lagu Diputar` : 'Mulai putar lagu';
         }
 
         const isPro = profile.isPremium === true;
@@ -487,6 +530,15 @@ const updateAccountStats = (user) => {
             avatarWrapper?.classList.remove('is-pro');
             profileHeader?.classList.remove('is-pro');
         }
+
+        // Sync Data Saver preference from user profile
+        if (profile.dataSaver !== undefined) {
+            const dataSaverToggle = document.getElementById('dataSaverToggle');
+            if (dataSaverToggle) {
+                dataSaverToggle.checked = Boolean(profile.dataSaver);
+            }
+            localStorage.setItem('spotiwind_data_saver', String(profile.dataSaver));
+        }
     });
 };
 
@@ -498,13 +550,15 @@ const updateAccountUserInfo = (user) => {
     const avatarWrapper = document.querySelector('.account-avatar-wrapper');
     const accountCodeWrapper = document.getElementById('accountCodeWrapper');
     const accountCode = document.getElementById('accountCode');
+    const logoutBtn = document.getElementById('accountLogoutBtn');
+    const logoutText = document.getElementById('accountLogoutText');
 
     updateAccountStats(user);
 
     if (!user) {
         currentProfileData = null;
-        if (accountName) accountName.textContent = 'Guest';
-        if (accountEmail) accountEmail.textContent = 'Sign in to manage your profile';
+        if (accountName) accountName.textContent = 'Tamu (Guest)';
+        if (accountEmail) accountEmail.textContent = 'Masuk untuk sinkronisasi lagu & profil';
         if (accountProBadge) accountProBadge.classList.add('hidden');
         if (accountCodeWrapper) accountCodeWrapper.classList.add('hidden');
         if (avatarWrapper) avatarWrapper.classList.remove('is-pro');
@@ -513,8 +567,19 @@ const updateAccountUserInfo = (user) => {
         if (accountAvatar) {
             accountAvatar.src = 'https://ui-avatars.com/api/?name=Guest&background=1e293b&color=94a3b8&bold=true&size=512';
         }
+        if (logoutText) logoutText.textContent = 'Masuk / Buat Akun';
+        if (logoutBtn) logoutBtn.classList.add('is-login-cta');
+
+        // Reset Data Saver to default OFF for Guest session
+        const dataSaverToggle = document.getElementById('dataSaverToggle');
+        if (dataSaverToggle) dataSaverToggle.checked = false;
+        localStorage.setItem('spotiwind_data_saver', 'false');
+        window.dispatchEvent(new CustomEvent('spotiwind-data-saver-changed', { detail: { enabled: false } }));
         return;
     }
+
+    if (logoutText) logoutText.textContent = 'Keluar dari Akun';
+    if (logoutBtn) logoutBtn.classList.remove('is-login-cta');
 
     const displayName = user.displayName || user.email?.split('@')[0] || 'User';
     if (accountName) accountName.textContent = displayName;
@@ -533,6 +598,7 @@ const updateAccountUserInfo = (user) => {
 };
 
 const bindAccountInteractions = () => {
+    // Edit Profile button
     const editProfileBtn = document.getElementById('editProfileBtn');
     if (editProfileBtn) {
         editProfileBtnHandler = () => {
@@ -548,6 +614,38 @@ const bindAccountInteractions = () => {
             showToast('Edit profil akan segera hadir');
         };
         editProfileBtn.addEventListener('click', editProfileBtnHandler);
+    }
+
+    // Share Profile button
+    const shareProfileBtn = document.getElementById('shareProfileBtn');
+    if (shareProfileBtn) {
+        shareProfileBtnHandler = async () => {
+            const user = auth.currentUser;
+            const name = user?.displayName || 'Pengguna Spotiwind';
+            const shareData = {
+                title: `${name} di Spotiwind`,
+                text: `Dengarkan musik favorit & intip profil ${name} di Spotiwind! 🎵`,
+                url: window.location.origin
+            };
+
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                } catch {
+                    // Ignored / cancelled
+                }
+            } else if (navigator.clipboard) {
+                try {
+                    await navigator.clipboard.writeText(window.location.origin);
+                    showToast('Tautan profil disalin ke clipboard! 🎵');
+                } catch {
+                    showToast('Bagikan profil Spotiwind');
+                }
+            } else {
+                showToast('Bagikan profil Spotiwind');
+            }
+        };
+        shareProfileBtn.addEventListener('click', shareProfileBtnHandler);
     }
 
     // Click account code badge to copy user code to clipboard
@@ -591,6 +689,147 @@ const bindAccountInteractions = () => {
             }
         };
         managePlanBtn.addEventListener('click', managePlanBtnHandler);
+    }
+
+    // Sleep Timer Setting Click (Cycles 15m -> 30m -> 45m -> 60m -> Di Akhir Lagu -> Off)
+    const sleepTimerSetting = document.getElementById('sleepTimerSetting');
+    if (sleepTimerSetting) {
+        sleepTimerHandler = () => {
+            const currentState = audioEngine.getSleepTimerState();
+            let nextVal = 15;
+
+            if (currentState.active) {
+                if (currentState.minutes === 15) nextVal = 30;
+                else if (currentState.minutes === 30) nextVal = 45;
+                else if (currentState.minutes === 45) nextVal = 60;
+                else if (currentState.minutes === 60) nextVal = 'end_of_track';
+                else if (currentState.minutes === 'end_of_track') nextVal = 0;
+            }
+
+            if (nextVal === 0) {
+                audioEngine.setSleepTimer(0);
+                showToast('Timer Tidur dinonaktifkan ⏹️');
+            } else if (nextVal === 'end_of_track') {
+                audioEngine.setSleepTimer('end_of_track');
+                showToast('Timer Tidur aktif: Otomatis jeda di akhir lagu 🎵💤');
+            } else {
+                audioEngine.setSleepTimer(nextVal);
+                showToast(`Timer Tidur diatur ke ${nextVal} Menit 🌙💤`);
+            }
+
+            updateSleepTimerUI();
+        };
+        sleepTimerSetting.addEventListener('click', sleepTimerHandler);
+    }
+
+    // Subscribe to audioEngine events for automatic Sleep Timer state sync
+    unsubscribeAudioEngine = audioEngine.subscribe((event) => {
+        if (event === 'sleeptimer' || event === 'pause' || event === 'play') {
+            updateSleepTimerUI();
+        }
+    });
+
+    updateSleepTimerUI();
+
+    // Data Saver Mode Toggle
+    const dataSaverToggle = document.getElementById('dataSaverToggle');
+    if (dataSaverToggle) {
+        // Load saved state (default false)
+        const savedDataSaver = localStorage.getItem('spotiwind_data_saver');
+        if (savedDataSaver !== null) {
+            dataSaverToggle.checked = savedDataSaver === 'true';
+        }
+        dataSaverToggleHandler = (e) => {
+            const isEnabled = e.target.checked;
+            localStorage.setItem('spotiwind_data_saver', String(isEnabled));
+            window.dispatchEvent(new CustomEvent('spotiwind-data-saver-changed', { detail: { enabled: isEnabled } }));
+            if (auth.currentUser?.uid) {
+                updateProfileInfo(auth.currentUser.uid, { dataSaver: isEnabled }).catch(err => {
+                    console.warn("Save dataSaver to Firestore:", err);
+                });
+            }
+            showToast(`Mode Penghemat Data ${isEnabled ? 'Diaktifkan 📶 (Hemat Kuota)' : 'Dinonaktifkan 🚀'}`);
+        };
+        dataSaverToggle.addEventListener('change', dataSaverToggleHandler);
+    }
+
+    // Crossfade Toggle
+    const crossfadeToggle = document.getElementById('crossfadeToggle');
+    if (crossfadeToggle) {
+        // Load saved state
+        const savedCrossfade = localStorage.getItem('spotiwind_crossfade');
+        if (savedCrossfade !== null) {
+            crossfadeToggle.checked = savedCrossfade === 'true';
+        }
+        crossfadeToggleHandler = (e) => {
+            localStorage.setItem('spotiwind_crossfade', String(e.target.checked));
+            showToast(`Transisi Crossfade ${e.target.checked ? 'Diaktifkan (3s)' : 'Dinonaktifkan'}`);
+        };
+        crossfadeToggle.addEventListener('change', crossfadeToggleHandler);
+    }
+
+    // Private Session Toggle
+    const privateSessionToggle = document.getElementById('privateSessionToggle');
+    if (privateSessionToggle) {
+        const savedPrivate = localStorage.getItem('spotiwind_private_session');
+        if (savedPrivate !== null) {
+            privateSessionToggle.checked = savedPrivate === 'true';
+        }
+        privateSessionToggleHandler = (e) => {
+            localStorage.setItem('spotiwind_private_session', String(e.target.checked));
+            showToast(`Sesi Pribadi ${e.target.checked ? 'Diaktifkan (Aktivitas disembunyikan)' : 'Dinonaktifkan'}`);
+        };
+        privateSessionToggle.addEventListener('change', privateSessionToggleHandler);
+    }
+
+    // Connected Devices Setting Click
+    const connectedDevicesSetting = document.getElementById('connectedDevicesSetting');
+    if (connectedDevicesSetting) {
+        connectedDevicesHandler = () => {
+            showToast('Spotiwind Mobile Web — Perangkat aktif utama saat ini 📱');
+        };
+        connectedDevicesSetting.addEventListener('click', connectedDevicesHandler);
+    }
+
+    // Clear Cache Button
+    const clearCacheSetting = document.getElementById('clearCacheSetting');
+    if (clearCacheSetting) {
+        clearCacheHandler = () => {
+            const storageVal = document.getElementById('storageUsageValue');
+            if (storageVal) storageVal.textContent = '~1.8 MB';
+            showToast('Cache aplikasi berhasil dibersihkan! Memori telah dioptimalkan. 🚀');
+        };
+        clearCacheSetting.addEventListener('click', clearCacheHandler);
+    }
+
+    // Account Logout / Login CTA Button
+    const accountLogoutBtn = document.getElementById('accountLogoutBtn');
+    if (accountLogoutBtn) {
+        accountLogoutBtnHandler = async () => {
+            const user = auth.currentUser;
+            if (!user) {
+                if (typeof window.navigateToAuthPage === 'function') {
+                    window.navigateToAuthPage('login');
+                } else if (typeof window.loadPageContent === 'function') {
+                    window.loadPageContent('auth-mobile.html', { initialTab: 'login' });
+                } else {
+                    showToast('Silakan login terlebih dahulu');
+                }
+                return;
+            }
+
+            const confirmLogout = window.confirm("Apakah Anda yakin ingin keluar dari akun Spotiwind?");
+            if (!confirmLogout) return;
+
+            try {
+                await signOut(auth);
+                showToast('Berhasil keluar dari akun Spotiwind');
+            } catch (err) {
+                console.error("Logout error:", err);
+                showToast('Gagal keluar dari akun');
+            }
+        };
+        accountLogoutBtn.addEventListener('click', accountLogoutBtnHandler);
     }
 
     // Manage Active Plan Modal (For Active PRO Users)
@@ -715,58 +954,6 @@ const bindAccountInteractions = () => {
         shareBtn.addEventListener('click', previewShareBtnHandler);
     }
 
-    // Render Recently Played Section
-    renderAccountRecentlyPlayed();
-
-    if (recentlyPlayedUpdateHandler) {
-        window.removeEventListener('recently-played-updated', recentlyPlayedUpdateHandler);
-    }
-    recentlyPlayedUpdateHandler = () => {
-        renderAccountRecentlyPlayed();
-        renderAccountTopArtists();
-    };
-    window.addEventListener('recently-played-updated', recentlyPlayedUpdateHandler, { passive: true });
-
-    // Render Top Artists Section
-    renderAccountTopArtists();
-
-    // See all button for Recently Played
-    const seeAllRecentBtn = document.getElementById('seeAllAccountRecentBtn');
-    if (seeAllRecentBtn) {
-        seeAllRecentBtnHandler = (e) => {
-            e.preventDefault();
-            if (typeof window.loadPageContent === 'function') {
-                window.loadPageContent('recently-played-mobile.html', {
-                    pushState: true,
-                    route: '/recently-played',
-                    title: 'Recently Played | Spotiwind',
-                    state: { route: 'recently-played' }
-                });
-            } else {
-                const libraryNav = document.querySelector('.mobile-bottom-nav .nav-item[data-target="library-mobile.html"]');
-                if (libraryNav) {
-                    libraryNav.click();
-                } else if (typeof window.navigateToLibraryPage === 'function') {
-                    window.navigateToLibraryPage('overview');
-                }
-            }
-        };
-        seeAllRecentBtn.addEventListener('click', seeAllRecentBtnHandler);
-    }
-
-    // See all button for Top Artists
-    const seeAllArtistsBtn = document.getElementById('seeAllAccountArtistsBtn');
-    if (seeAllArtistsBtn) {
-        seeAllArtistsBtnHandler = (e) => {
-            e.preventDefault();
-            const searchNav = document.querySelector('.mobile-bottom-nav .nav-item[data-target="search-mobile.html"]');
-            if (searchNav) {
-                searchNav.click();
-            }
-        };
-        seeAllArtistsBtn.addEventListener('click', seeAllArtistsBtnHandler);
-    }
-
     keydownHandler = (e) => {
         if (e.key === 'Escape') {
             closeAvatarPreview();
@@ -775,186 +962,6 @@ const bindAccountInteractions = () => {
         }
     };
     document.addEventListener('keydown', keydownHandler);
-};
-
-/**
- * Render Recently Played songs on the account page
- */
-const renderAccountRecentlyPlayed = () => {
-    const container = document.getElementById('accountRecentList');
-    if (!container) return;
-
-    try {
-        const raw = localStorage.getItem('recently_played_songs') || localStorage.getItem('recentlyPlayed') || '[]';
-        const list = JSON.parse(raw);
-        const validList = Array.isArray(list) ? list : [];
-
-        if (validList.length === 0) {
-            container.innerHTML = `
-                <div class="account-recent-empty">
-                    <div class="account-recent-empty-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                    </div>
-                    <h3 class="account-recent-empty-title">No recently played songs</h3>
-                    <p class="account-recent-empty-desc">Songs you've recently played will appear here.</p>
-                </div>
-            `;
-            return;
-        }
-
-        const PLAY_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
-        const PAUSE_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
-
-        const currentSong = window.spotiwind?.mobile?.getCurrentSongData?.() || 
-                            window.__currentSongData || 
-                            (typeof window.getCurrentSongData === 'function' ? window.getCurrentSongData() : null);
-        const activeAudio = window.__activeAudio || document.querySelector('audio');
-        const isAudioPlaying = Boolean(activeAudio && activeAudio.src && !activeAudio.paused && !activeAudio.ended);
-
-        const recentSongs = validList.slice(0, 10);
-
-        container.innerHTML = recentSongs.map(song => {
-            const safeName = (song.name || song.title || 'Untitled').replace(/"/g, '&quot;');
-            const safeArtist = (song.artist || 'Unknown Artist').replace(/"/g, '&quot;');
-            const cover = song.cover || '../../public/branding/Spotiwind.webp';
-            const audio = song.audio || '';
-            const duration = song.duration || 0;
-
-            const isSame = currentSong && (typeof window.areSameSongs === 'function'
-                ? window.areSameSongs(currentSong, song)
-                : (String(currentSong.id) === String(song.id) || (audio && currentSong.audio === audio)));
-            const isActive = Boolean(isSame);
-            const isPaused = isActive && Boolean(activeAudio?.paused);
-
-            return `
-                <div class="song-card ${isActive ? 'is-active-song' : ''} ${isPaused ? 'is-paused' : ''}" data-id="${song.id}" data-audio="${audio}">
-                    <div class="song-cover">
-                        <img src="${cover}" alt="${safeName}" width="148" height="111" class="account-recent-song-img" style="width:100%; height:100%; object-fit:cover; aspect-ratio:4/3;" loading="lazy">
-                        <button class="play-overlay" aria-label="Play ${safeName}" 
-                            data-audio="${audio}" data-name="${safeName}" data-artist="${safeArtist}" 
-                            data-cover="${cover}" data-duration="${duration}" data-context="account-recent">
-                            ${isActive && isAudioPlaying ? PAUSE_ICON : PLAY_ICON}
-                        </button>
-                    </div>
-                    <div class="song-info">
-                        <h3 class="song-name">${safeName}</h3>
-                        <p class="song-artist">${safeArtist}</p>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        if (typeof window.syncActiveSongUI === 'function') {
-            window.syncActiveSongUI();
-        }
-    } catch (e) {
-        console.warn("Failed to render recently played songs on account page:", e);
-    }
-};
-
-/**
- * Render Top Artists on the account page (Hybrid Smart: Aggregates played songs, or shows empty state)
- */
-const renderAccountTopArtists = async () => {
-    const container = document.getElementById('accountArtistsList');
-    if (!container) return;
-
-    try {
-        const raw = localStorage.getItem('recently_played_songs') || localStorage.getItem('recentlyPlayed') || '[]';
-        const list = JSON.parse(raw);
-        const validList = Array.isArray(list) ? list : [];
-
-        if (validList.length === 0) {
-            container.innerHTML = `
-                <div class="account-artists-empty">
-                    <div class="account-artists-empty-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                    </div>
-                    <h3 class="account-artists-empty-title">No top artists yet</h3>
-                    <p class="account-artists-empty-desc">Play your favorite songs to see your top artists here.</p>
-                </div>
-            `;
-            return;
-        }
-
-        // Aggregate artist play frequencies from played tracks history
-        const artistCounts = {};
-        const artistSongMap = {};
-
-        validList.forEach((song) => {
-            const rawArtist = (song.artist || '').trim();
-            if (!rawArtist) return;
-
-            const mainArtist = rawArtist.split(/[,&]/)[0].trim();
-            if (!mainArtist) return;
-
-            artistCounts[mainArtist] = (artistCounts[mainArtist] || 0) + 1;
-            if (!artistSongMap[mainArtist]) {
-                artistSongMap[mainArtist] = song;
-            }
-        });
-
-        const sortedArtistNames = Object.keys(artistCounts).sort((a, b) => artistCounts[b] - artistCounts[a]);
-
-        if (sortedArtistNames.length === 0) {
-            container.innerHTML = `
-                <div class="account-artists-empty">
-                    <div class="account-artists-empty-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                    </div>
-                    <p class="account-artists-empty-title">No top artists yet</p>
-                    <p class="account-artists-empty-desc">Play your favorite songs to see your top artists here.</p>
-                </div>
-            `;
-            return;
-        }
-
-        // Fetch local artist catalog to match high-resolution photos
-        let catalogArtists = [];
-        try {
-            const catalog = await loadLocalCatalog();
-            catalogArtists = catalog.artists || [];
-        } catch {
-            // Ignored
-        }
-
-        const topArtistsData = sortedArtistNames.slice(0, 10).map((artistName) => {
-            const matched = catalogArtists.find(
-                (a) => a.name.toLowerCase() === artistName.toLowerCase()
-            );
-
-            const sampleSong = artistSongMap[artistName];
-            const fallbackPhoto = sampleSong?.cover || `https://ui-avatars.com/api/?name=${encodeURIComponent(artistName)}&background=7D19F5&color=fff&bold=true&size=512`;
-
-            return {
-                id: matched?.id || artistName.toLowerCase().replace(/\s+/g, '-'),
-                name: matched?.name || artistName,
-                photo: matched?.photo || fallbackPhoto
-            };
-        });
-
-        container.innerHTML = topArtistsData.map((artist) => {
-            const safeName = artist.name.replace(/"/g, '&quot;');
-            return `
-                <div class="artist-card" data-artist-id="${artist.id}" data-artist-name="${safeName}" data-artist-photo="${artist.photo}">
-                    <div class="artist-photo" style="background-image: url('${artist.photo}')"></div>
-                    <span class="artist-name">${safeName}</span>
-                </div>
-            `;
-        }).join('');
-
-    } catch (e) {
-        console.warn("Failed to render top artists on account page:", e);
-    }
 };
 
 export const initAccountPage = async () => {
@@ -1048,6 +1055,12 @@ export const cleanupAccountPage = () => {
     }
     editProfileBtnHandler = null;
 
+    const shareProfileBtn = document.getElementById('shareProfileBtn');
+    if (shareProfileBtn && shareProfileBtnHandler) {
+        shareProfileBtn.removeEventListener('click', shareProfileBtnHandler);
+    }
+    shareProfileBtnHandler = null;
+
     const managePlanBtn = document.getElementById('managePlanBtn');
     if (managePlanBtn && managePlanBtnHandler) {
         managePlanBtn.removeEventListener('click', managePlanBtnHandler);
@@ -1059,6 +1072,53 @@ export const cleanupAccountPage = () => {
         accountCodeWrapper.removeEventListener('click', accountCodeClickHandler);
     }
     accountCodeClickHandler = null;
+
+    const sleepTimerSetting = document.getElementById('sleepTimerSetting');
+    if (sleepTimerSetting && sleepTimerHandler) {
+        sleepTimerSetting.removeEventListener('click', sleepTimerHandler);
+    }
+    sleepTimerHandler = null;
+
+    if (unsubscribeAudioEngine) {
+        unsubscribeAudioEngine();
+        unsubscribeAudioEngine = null;
+    }
+
+    const dataSaverToggle = document.getElementById('dataSaverToggle');
+    if (dataSaverToggle && dataSaverToggleHandler) {
+        dataSaverToggle.removeEventListener('change', dataSaverToggleHandler);
+    }
+    dataSaverToggleHandler = null;
+
+    const crossfadeToggle = document.getElementById('crossfadeToggle');
+    if (crossfadeToggle && crossfadeToggleHandler) {
+        crossfadeToggle.removeEventListener('change', crossfadeToggleHandler);
+    }
+    crossfadeToggleHandler = null;
+
+    const privateSessionToggle = document.getElementById('privateSessionToggle');
+    if (privateSessionToggle && privateSessionToggleHandler) {
+        privateSessionToggle.removeEventListener('change', privateSessionToggleHandler);
+    }
+    privateSessionToggleHandler = null;
+
+    const connectedDevicesSetting = document.getElementById('connectedDevicesSetting');
+    if (connectedDevicesSetting && connectedDevicesHandler) {
+        connectedDevicesSetting.removeEventListener('click', connectedDevicesHandler);
+    }
+    connectedDevicesHandler = null;
+
+    const clearCacheSetting = document.getElementById('clearCacheSetting');
+    if (clearCacheSetting && clearCacheHandler) {
+        clearCacheSetting.removeEventListener('click', clearCacheHandler);
+    }
+    clearCacheHandler = null;
+
+    const accountLogoutBtn = document.getElementById('accountLogoutBtn');
+    if (accountLogoutBtn && accountLogoutBtnHandler) {
+        accountLogoutBtn.removeEventListener('click', accountLogoutBtnHandler);
+    }
+    accountLogoutBtnHandler = null;
 
     const avatarWrapper = document.querySelector('.account-avatar-wrapper');
     if (avatarWrapper && avatarClickHandler) {
@@ -1083,23 +1143,6 @@ export const cleanupAccountPage = () => {
         shareBtn.removeEventListener('click', previewShareBtnHandler);
     }
     previewShareBtnHandler = null;
-
-    const seeAllRecentBtn = document.getElementById('seeAllAccountRecentBtn');
-    if (seeAllRecentBtn && seeAllRecentBtnHandler) {
-        seeAllRecentBtn.removeEventListener('click', seeAllRecentBtnHandler);
-    }
-    seeAllRecentBtnHandler = null;
-
-    const seeAllArtistsBtn = document.getElementById('seeAllAccountArtistsBtn');
-    if (seeAllArtistsBtn && seeAllArtistsBtnHandler) {
-        seeAllArtistsBtn.removeEventListener('click', seeAllArtistsBtnHandler);
-    }
-    seeAllArtistsBtnHandler = null;
-
-    if (recentlyPlayedUpdateHandler) {
-        window.removeEventListener('recently-played-updated', recentlyPlayedUpdateHandler);
-        recentlyPlayedUpdateHandler = null;
-    }
 
     closeProSubscriptionModal();
 

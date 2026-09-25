@@ -17,6 +17,7 @@ import { recordRecentlyPlayed, subscribeRecentlyPlayed, getRecentlyPlayed } from
 import { recordTrackPlay, subscribePopularTracks } from '../../services/popularTrackService.js';
 import { recordArtistPlay, subscribeTopArtists } from '../../services/topArtistService.js';
 import { getMadeForYouMixes } from '../../services/madeForYouService.js';
+import { audioEngine } from '../../core/audioEngine.js';
 
 import { PLAY_ICON, PAUSE_ICON, VOLUME_PATH, MUTE_PATH } from '../../constants/icons.js';
 import { formatTime, debounce } from '../../utils/formatters.js';
@@ -38,6 +39,7 @@ let lastRecordedActivitySong = '';
 
 // Audio Controller Global (Single Instance)
 let activeAudio = new Audio();
+window.__activeAudio = activeAudio;
 let currentPlayingBtn = null;
 let currentPlaylist = [];
 let desktopMadeForYouMixes = []; // Buffer to store 10 Made for You mixes on desktop
@@ -194,6 +196,15 @@ activeAudio.addEventListener('error', () => {
     if (currentSongData) {
         document.querySelectorAll(`[data-id="${currentSongData.id}"] .play-overlay`).forEach(btn => btn.classList.remove('btn-loading'));
     }
+});
+
+// Global Sleep Timer Expiration Handler (Desktop)
+window.addEventListener('spotiwind-sleep-timer-expired', () => {
+    if (activeAudio && !activeAudio.paused) {
+        activeAudio.pause();
+    }
+    syncActiveDesktopUI();
+    showToast('Waktu tidur habis. Musik dijeda otomatis 🌙💤');
 });
 
 /**
@@ -631,6 +642,19 @@ window.playPreview = async (btn, audioUrl, title, artist, cover, id, duration = 
     activeAudio.onended = () => {
         if (btn) resetBtnUI(btn);
         currentPlayingBtn = null;
+
+        // Check if Sleep Timer is set to 'end_of_track'
+        const sleepTimerState = audioEngine.getSleepTimerState();
+        if (sleepTimerState && sleepTimerState.active && sleepTimerState.minutes === 'end_of_track') {
+            audioEngine.setSleepTimer(0);
+            if (activeAudio && !activeAudio.paused) {
+                activeAudio.pause();
+            }
+            syncActiveDesktopUI();
+            showToast('Timer Tidur: Lagu berakhir, pemutaran dihentikan 🌙💤');
+            return;
+        }
+
         if (isRepeat) {
             if (currentSongIndex !== -1) {
                 triggerSongByIndex(currentSongIndex);

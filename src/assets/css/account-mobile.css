@@ -17,16 +17,16 @@
     /* Backgrounds & Surfaces */
     --bg-dark: #0f172a;
     --surface-1: rgba(15, 23, 42, 0.85);
-    --surface-card: rgba(18, 22, 40, 0.7);
+    --surface-card: #172033;
     --glass-bg: rgba(255, 255, 255, 0.05);
-    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.08);
     --glass-border-focus: rgba(185, 30, 201, 0.7);
     --input-bg: rgba(255, 255, 255, 0.08);
 
     /* Typography & Text */
     --text-main: #ffffff;
     --text-secondary: #cbd5e1;
-    --text-muted: #9ca3af;
+    --text-muted: #94a3b8;
     --text-dim: #64748b;
     --font-family-base: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
@@ -34,7 +34,7 @@
     --mobile-horizontal-padding: 0.9375rem;
 
     /* Account Specific Tokens */
-    --account-avatar-size: 106px;
+    --account-avatar-size: 102px;
 
     /* Border Radii */
     --radius-xs: 4px;
@@ -52,33 +52,49 @@
     --shadow-glow: 0 0 25px rgba(185, 30, 201, 0.35);
 }
 
-/* Account Mobile Styles */
+/* Account Mobile Layout */
 .account-page {
     padding: 0 var(--mobile-horizontal-padding) 1.25rem;
+    position: relative;
+    overflow-x: hidden;
 }
 
 /* ==========================================================================
-   Account Profile Header Section
+   Account Profile Header Section with Ambient Glow
    ========================================================================== */
-.account-profile-header,
-.account-profile-card {
+.account-profile-header {
+    position: relative;
     display: flex;
-    align-items: center;
-    gap: 1.25rem;
-    padding: 0 0 1.3rem 0;
+    flex-direction: column;
+    gap: 0.95rem;
+    padding: 0.2rem 0 1.25rem 0;
     margin: 0;
     width: 100%;
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+}
+
+/* Subtle Ambient Glow behind Profile Avatar */
+.account-profile-glow {
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    width: 140px;
+    height: 140px;
+    background: radial-gradient(circle, rgba(185, 30, 201, 0.25) 0%, rgba(241, 46, 119, 0.12) 50%, transparent 75%);
+    filter: blur(28px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.account-profile-main {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 1.15rem;
 }
 
 /* Exclusive Banner Background ONLY for PRO subscribers */
-.account-profile-header.is-pro,
-.account-profile-card.is-pro {
+.account-profile-header.is-pro {
     padding: 1.3rem var(--mobile-horizontal-padding) 1.3rem;
     margin-left: calc(-1 * var(--mobile-horizontal-padding));
     margin-right: calc(-1 * var(--mobile-horizontal-padding));
@@ -91,6 +107,7 @@
     background-position: center center;
     background-repeat: no-repeat;
     overflow: hidden;
+    border-radius: 0 0 1.5rem 1.5rem;
 }
 
 /* Avatar with camera badge (Gradient ring active only for PRO / isPremium) */
@@ -136,7 +153,7 @@
     border-radius: 50%;
     object-fit: cover;
     background: #1e293b;
-    border: 3.5px solid var(--bg-dark, #0f172a);
+    border: 3px solid var(--bg-dark, #0f172a);
     box-sizing: border-box;
     display: block;
 }
@@ -145,8 +162,8 @@
     position: absolute;
     bottom: 0px;
     right: 0px;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     background: #1e293b;
     color: var(--text-main, #ffffff);
@@ -173,11 +190,11 @@
 }
 
 .avatar-camera-badge svg {
-    width: 16px;
-    height: 16px;
+    width: 15px;
+    height: 15px;
 }
 
-/* Profile Info (Name, Email, Edit Profile Button) */
+/* Profile Info */
 .account-profile-info {
     flex: 1;
     min-width: 0;
@@ -185,7 +202,7 @@
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
-    gap: 0.65rem;
+    gap: 0.35rem;
 }
 
 .account-user-meta {
@@ -193,22 +210,22 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
+    gap: 0.15rem;
 }
 
 .account-name-row {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.45rem;
     min-width: 0;
 }
 
 .account-name {
     font-size: 1.25rem;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-main, #ffffff);
     margin: 0;
-    line-height: 1.25;
+    line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -218,8 +235,8 @@
     flex-shrink: 0;
     padding: 0.15rem 0.45rem;
     border-radius: 999px;
-    background: linear-gradient(135deg, rgba(241, 46, 119, 0.22), rgba(185, 30, 201, 0.28));
-    border: 1px solid rgba(232, 121, 249, 0.35);
+    background: linear-gradient(135deg, rgba(241, 46, 119, 0.25), rgba(185, 30, 201, 0.3));
+    border: 1px solid rgba(232, 121, 249, 0.4);
     color: #e879f9;
     font-size: 0.62rem;
     font-weight: 700;
@@ -237,7 +254,7 @@
 }
 
 .account-email {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     font-weight: 400;
     color: var(--text-muted, #94a3b8);
     margin: 0;
@@ -251,8 +268,8 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    padding: 0.1rem 0;
-    margin-top: 0.15rem;
+    padding: 0.12rem 0;
+    margin-top: 0.1rem;
     background: transparent;
     border: none;
     cursor: pointer;
@@ -290,43 +307,62 @@
     opacity: 1;
 }
 
-.edit-profile-btn {
+/* Profile Dual Action Bar */
+.account-action-row {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+}
+
+.account-action-btn {
+    flex: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.38rem;
-    padding: 0.42rem 0.95rem;
+    gap: 0.45rem;
+    padding: 0.52rem 0.95rem;
     border-radius: 999px;
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     font-weight: 600;
     font-family: inherit;
     line-height: 1;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     color: var(--text-main, #ffffff);
     cursor: pointer;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
-.edit-profile-btn svg {
+.account-action-btn svg {
     width: 14px;
     height: 14px;
     display: block;
     flex-shrink: 0;
 }
 
-.edit-profile-btn span {
-    line-height: 1;
-    display: inline-block;
+.account-action-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.28);
 }
 
-.edit-profile-btn:hover {
-    background: rgba(255, 255, 255, 0.16);
-    border-color: rgba(255, 255, 255, 0.3);
+.account-action-btn:active {
+    transform: scale(0.97);
 }
 
-.edit-profile-btn:active {
-    transform: scale(0.96);
+.share-profile-btn {
+    background: linear-gradient(135deg, rgba(241, 46, 119, 0.12), rgba(185, 30, 201, 0.16));
+    border-color: rgba(185, 30, 201, 0.35);
+    color: #f1f5f9;
+}
+
+.share-profile-btn:hover {
+    background: linear-gradient(135deg, rgba(241, 46, 119, 0.22), rgba(185, 30, 201, 0.26));
+    border-color: rgba(185, 30, 201, 0.55);
 }
 
 /* ==========================================================================
@@ -337,8 +373,8 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.95rem 0.4rem 0.85rem;
-    margin-bottom: 1rem;
-    background: #172033;
+    margin-bottom: 0.9rem;
+    background: var(--surface-card, #172033);
     border: 1px solid #1e2738;
     border-radius: 1.25rem;
     backdrop-filter: blur(16px);
@@ -393,22 +429,18 @@
 /* Individual Stat Icon Theming */
 .stat-icon--playlists {
     color: #c084fc;
-    /* Ungu / Purple */
 }
 
 .stat-icon--followers {
     color: #38bdf8;
-    /* Cyan */
 }
 
 .stat-icon--following {
     color: #a78bfa;
-    /* Ungu Lavender / Violet */
 }
 
 .stat-icon--likes {
     color: #f12e77;
-    /* Pink Spotiwind */
 }
 
 .stat-label {
@@ -421,7 +453,7 @@
 
 .stat-value {
     font-size: 1.1rem;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-main, #ffffff);
     line-height: 1.15;
     letter-spacing: -0.02em;
@@ -429,9 +461,190 @@
 
 .stat-divider {
     width: 1px;
-    height: 56px;
-    background: rgba(255, 255, 255, 0.09);
+    height: 52px;
+    background: rgba(255, 255, 255, 0.08);
     flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Sound Identity & Vibe Bento Card
+   ========================================================================== */
+.sound-identity-card {
+    position: relative;
+    border-radius: 1.35rem;
+    overflow: hidden;
+    padding: 1rem 1.15rem;
+    margin-bottom: 0.9rem;
+    background: linear-gradient(135deg, rgba(27, 23, 48, 0.92) 0%, rgba(18, 24, 46, 0.95) 100%);
+    border: 1px solid rgba(185, 30, 201, 0.28);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.sound-identity-bg {
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, rgba(76, 110, 245, 0.18) 0%, rgba(241, 46, 119, 0.12) 50%, transparent 75%);
+    filter: blur(32px);
+    pointer-events: none;
+}
+
+.sound-identity-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.sound-identity-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sound-identity-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(241, 46, 119, 0.2), rgba(185, 30, 201, 0.25));
+    border: 1px solid rgba(232, 121, 249, 0.35);
+    color: #e879f9;
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+}
+
+.sound-pulse-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+    animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.4);
+        opacity: 0.5;
+    }
+}
+
+.sound-identity-subtitle {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.sound-identity-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+}
+
+.genre-tag {
+    font-size: 0.72rem;
+    color: #38bdf8;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+.sound-identity-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    line-height: 1.25;
+}
+
+/* Sound Bars Animated Visualizer */
+.sound-bars-animation {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.sound-bars-animation .bar {
+    width: 3.5px;
+    border-radius: 2px;
+    background: var(--primary-gradient, linear-gradient(180deg, #F12E77, #B91EC9));
+    animation: soundWaveBar 1.2s ease-in-out infinite alternate;
+}
+
+.sound-bars-animation .bar-1 {
+    height: 40%;
+    animation-delay: 0.1s;
+}
+
+.sound-bars-animation .bar-2 {
+    height: 90%;
+    animation-delay: 0.3s;
+}
+
+.sound-bars-animation .bar-3 {
+    height: 60%;
+    animation-delay: 0.15s;
+}
+
+.sound-bars-animation .bar-4 {
+    height: 100%;
+    animation-delay: 0.45s;
+}
+
+.sound-bars-animation .bar-5 {
+    height: 50%;
+    animation-delay: 0.25s;
+}
+
+@keyframes soundWaveBar {
+    0% {
+        height: 20%;
+        opacity: 0.4;
+    }
+
+    100% {
+        height: 100%;
+        opacity: 1;
+    }
+}
+
+.sound-identity-footer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sound-metric {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    color: #cbd5e1;
+    font-weight: 500;
+}
+
+.metric-icon {
+    width: 14px;
+    height: 14px;
+    color: #c084fc;
 }
 
 /* ==========================================================================
@@ -444,8 +657,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 1.15rem;
-    padding: 1.3rem 1.25rem;
-    margin-bottom: 1rem;
+    padding: 1.2rem 1.25rem;
+    margin-bottom: 1.2rem;
     background-color: #1a0f2e;
     background-image:
         linear-gradient(135deg, rgba(20, 10, 35, 0.82) 0%, rgba(28, 12, 45, 0.65) 50%, rgba(15, 23, 42, 0.82) 100%),
@@ -530,9 +743,9 @@
 }
 
 .pro-crown-emblem {
-    width: 54px;
-    height: 54px;
-    min-width: 54px;
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -544,285 +757,335 @@
 }
 
 .pro-crown-icon {
-    width: 26px;
-    height: 26px;
+    width: 25px;
+    height: 25px;
     color: #ffffff;
 }
 
 /* ==========================================================================
-   Recently Played Section in Account Page
+   Grouped Settings Section & Cards (iOS / Material 3 Bento Style)
    ========================================================================== */
-.account-recent-section {
-    margin-left: calc(-1 * var(--mobile-horizontal-padding));
-    margin-right: calc(-1 * var(--mobile-horizontal-padding));
+.settings-group {
+    margin-bottom: 1.15rem;
 }
 
-.account-recent-section .section-header {
+.settings-group-title {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    color: var(--text-muted, #94a3b8);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin: 0 0 0.5rem 0.3rem;
+}
+
+.settings-card {
+    background: var(--surface-card, #172033);
+    border: 1px solid #1e2738;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+}
+
+.settings-item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.85rem;
-    padding: 0 var(--mobile-horizontal-padding);
+    gap: 0.85rem;
+    padding: 0.85rem 1rem;
+    background: transparent;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease, transform 0.15s ease;
 }
 
-.account-recent-section .section-title {
-    font-size: 0.92rem;
+.settings-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.settings-item:active {
+    background: rgba(255, 255, 255, 0.06);
+    transform: scale(0.99);
+}
+
+.settings-item--toggle {
+    cursor: default;
+}
+
+.settings-item--toggle:active {
+    transform: none;
+}
+
+.settings-item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.settings-item-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Settings Icon Gradients */
+.icon--magenta {
+    background: linear-gradient(135deg, rgba(241, 46, 119, 0.2), rgba(241, 46, 119, 0.08));
+    color: #f43f5e;
+    border: 1px solid rgba(241, 46, 119, 0.25);
+}
+
+.icon--purple {
+    background: linear-gradient(135deg, rgba(185, 30, 201, 0.2), rgba(125, 25, 245, 0.08));
+    color: #c084fc;
+    border: 1px solid rgba(185, 30, 201, 0.25);
+}
+
+.icon--teal {
+    background: linear-gradient(135deg, rgba(31, 232, 196, 0.2), rgba(6, 182, 212, 0.08));
+    color: #2dd4bf;
+    border: 1px solid rgba(31, 232, 196, 0.25);
+}
+
+.icon--indigo {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(76, 110, 245, 0.08));
+    color: #818cf8;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.icon--cyan {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(6, 182, 212, 0.08));
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.icon--amber {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.08));
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.icon--blue {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.08));
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.settings-item-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+}
+
+.settings-item-label {
+    font-size: 0.86rem;
     font-weight: 600;
     color: var(--text-main, #ffffff);
-    letter-spacing: -0.02em;
+    line-height: 1.25;
 }
 
-.account-recent-section .see-all-link {
+.settings-item-sub {
+    font-size: 0.72rem;
+    color: var(--text-muted, #94a3b8);
+    line-height: 1.2;
+}
+
+.settings-item-action {
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    font-size: 0.82rem;
-    color: var(--accent-color, #F12E77);
-    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.chevron-icon {
+    width: 16px;
+    height: 16px;
+    color: #64748b;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.settings-item:hover .chevron-icon {
+    color: #cbd5e1;
+    transform: translateX(2px);
+}
+
+.setting-pill-badge {
+    padding: 0.12rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #4ade80;
+    font-size: 0.65rem;
     font-weight: 600;
-    padding: 0;
-    transition: color 0.2s ease;
 }
 
-.account-recent-section .song-grid,
-.account-recent-grid {
-    display: flex;
-    gap: 1rem;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding: 0 var(--mobile-horizontal-padding) 0.5rem var(--mobile-horizontal-padding) !important;
+.device-active-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
 }
 
-.account-recent-section .song-grid::-webkit-scrollbar,
-.account-recent-grid::-webkit-scrollbar {
-    display: none;
+.settings-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.06);
+    margin: 0 1rem;
 }
 
-.account-recent-section .song-card {
-    flex: 0 0 148px;
-    border-radius: 0.85rem;
-}
-
-.account-recent-section .song-card .song-cover {
-    aspect-ratio: 4 / 3;
-    /* Sedikit lebih pendek dari square 1:1, proporsional dan seimbang */
-    width: 100%;
+/* Custom iOS-style Switch Toggle */
+.custom-toggle {
     position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.custom-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    inset: 0;
+    background-color: #334155;
+    border-radius: 999px;
+    transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-toggle input:checked+.toggle-slider {
+    background: var(--primary-gradient, linear-gradient(135deg, #F12E77, #B91EC9));
+}
+
+.custom-toggle input:checked+.toggle-slider:before {
+    transform: translateX(20px);
+}
+
+/* Storage Bar */
+.storage-stats-container {
+    padding: 0.95rem 1rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.storage-stats-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.78rem;
+}
+
+.storage-label {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.storage-value {
+    color: #38bdf8;
+    font-weight: 700;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+.storage-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #0f172a;
+    border-radius: 999px;
     overflow: hidden;
 }
 
-.account-recent-section .song-card .song-cover img {
-    width: 100%;
+.storage-progress-fill {
     height: 100%;
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
-    display: block;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+    transition: width 0.4s ease;
 }
 
-.account-recent-section .song-card .play-overlay svg,
-.account-recent-grid .play-overlay svg {
-    width: 16px !important;
-    height: 16px !important;
-}
-
-.account-recent-section .song-card .song-info {
-    padding: 0.75rem 0.85rem 0.9rem 0.85rem;
-}
-
-.account-recent-section .song-card .song-name {
-    font-size: 0.84rem;
-    margin-bottom: 0.2rem;
-}
-
-.account-recent-section .song-card .song-artist {
-    font-size: 0.74rem;
-    margin-bottom: 0;
-}
-
-.account-recent-empty {
-    width: 100%;
-    padding: 2.25rem 1rem;
-    background: transparent;
-    border: none;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.65rem;
-    box-sizing: border-box;
-    color: var(--text-muted, #94A3B8);
-}
-
-.account-recent-empty-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: #172033;
-    border: 1px solid #1e2738;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted, #94A3B8);
-    margin-bottom: 0.15rem;
-    isolation: isolate;
-}
-
-.account-recent-empty-icon svg {
-    width: 24px;
-    height: 24px;
-}
-
-.account-recent-empty-title {
-    font-size: 0.95rem;
+.clear-cache-action-btn {
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(245, 158, 11, 0.14);
+    border: 1px solid rgba(245, 158, 11, 0.32);
+    color: #fbbf24;
+    font-size: 0.72rem;
     font-weight: 600;
-    color: var(--text-main, #ffffff);
-    margin: 0;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.15s ease;
 }
 
-.account-recent-empty-desc {
-    font-size: 0.8rem;
-    line-height: 1.45;
-    color: var(--text-muted, #94A3B8);
-    max-width: 260px;
-    margin: 0;
+.clear-cache-action-btn:active {
+    transform: scale(0.94);
 }
 
 /* ==========================================================================
-   Top Artists Section in Account Page (Mirrored exactly from Home page)
+   Account Session & Footer Section
    ========================================================================== */
-.account-artists-section {
-    margin-left: calc(-1 * var(--mobile-horizontal-padding));
-    margin-right: calc(-1 * var(--mobile-horizontal-padding));
-}
-
-.account-artists-section .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 0.5rem;
-    margin-bottom: 0.85rem;
-    padding: 0 var(--mobile-horizontal-padding);
-}
-
-.account-artists-section .section-title {
-    font-size: 0.92rem;
-    font-weight: 600;
-    color: var(--text-main, #ffffff);
-    letter-spacing: -0.02em;
-}
-
-.account-artists-section .see-all-link {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.82rem;
-    color: var(--accent-color, #F12E77);
-    text-decoration: none;
-    font-weight: 600;
-    padding: 0;
-    transition: color 0.2s ease;
-}
-
-.account-artists-grid {
-    display: flex;
-    gap: 2rem;
-    /* Diperlebar persis seperti di halaman Home */
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding: 0 var(--mobile-horizontal-padding) 0rem var(--mobile-horizontal-padding);
-}
-
-.account-artists-grid::-webkit-scrollbar {
-    display: none;
-}
-
-.account-artists-section .artist-card {
+.account-session-section {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.75rem;
-    flex: 0 0 auto;
-    cursor: pointer;
-    transition: transform 0.3s ease;
+    margin-top: 1.5rem;
 }
 
-.account-artists-section .artist-card:hover .artist-photo,
-.account-artists-section .artist-card:active .artist-photo {
-    border-color: var(--accent-color, #F12E77);
-}
-
-.account-artists-section .artist-card:active {
-    transform: scale(0.95);
-}
-
-.account-artists-section .artist-photo {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background-size: cover;
-    background-position: center;
-    border: 2px solid var(--glass-border, rgba(255, 255, 255, 0.12));
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-    transition: border-color 0.3s ease;
-}
-
-.account-artists-section .artist-name {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-main, #ffffff);
-    text-align: center;
-}
-
-.account-artists-empty {
+.account-logout-btn {
     width: 100%;
-    padding: 2.25rem 1rem;
-    background: transparent;
-    border: none;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.65rem;
-    box-sizing: border-box;
-    color: var(--text-muted, #94A3B8);
-}
-
-.account-artists-empty-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: #172033;
-    border: 1px solid #1e2738;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-muted, #94A3B8);
-    margin-bottom: 0.15rem;
-    isolation: isolate;
-}
-
-.account-artists-empty-icon svg {
-    width: 24px;
-    height: 24px;
-}
-
-.account-artists-empty-title {
-    font-size: 0.95rem;
+    gap: 0.5rem;
+    padding: 0.78rem 1.25rem;
+    border-radius: 999px;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.28);
+    color: #f87171;
+    font-size: 0.88rem;
     font-weight: 600;
-    color: var(--text-main, #ffffff);
-    margin: 0;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
-.account-artists-empty-desc {
-    font-size: 0.8rem;
-    line-height: 1.45;
-    color: var(--text-muted, #94A3B8);
-    max-width: 260px;
-    margin: 0;
+.account-logout-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.account-logout-btn:hover {
+    background: rgba(239, 68, 68, 0.16);
+    border-color: rgba(239, 68, 68, 0.45);
+}
+
+.account-logout-btn:active {
+    transform: scale(0.97);
+}
+
+.account-logout-btn.is-login-cta {
+    background: var(--primary-gradient, linear-gradient(135deg, #F12E77, #B91EC9, #7D19F5));
+    border: none;
+    color: #ffffff;
+    box-shadow: 0 4px 16px rgba(241, 46, 119, 0.35);
 }
 
 /* ==========================================================================
@@ -1065,7 +1328,6 @@
     transition: background 0.2s ease;
 }
 
-/* Invisible large touch hit-box for fingers on touchscreen */
 .pro-modal-handle-bar::before {
     content: '';
     position: absolute;

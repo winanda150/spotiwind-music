@@ -2,7 +2,8 @@
     <header class="mobile-header">
         <div class="header-left">
             <button class="menu-btn" type="button" aria-label="Open menu">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" aria-hidden="true">
                     <line x1="3" y1="6" x2="21" y2="6"></line>
                     <line x1="3" y1="12" x2="21" y2="12"></line>
                     <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -10,12 +11,14 @@
             </button>
         </div>
         <div class="header-brand">
-            <img src="../../public/branding/Spotiwind.webp" alt="Spotiwind Logo" class="mobile-logo" width="28" height="28">
+            <img src="../../public/branding/Spotiwind.webp" alt="Spotiwind Logo" class="mobile-logo" width="28"
+                height="28">
             <span class="mobile-brand-name">Spotiwind</span>
         </div>
         <div class="header-right">
             <button id="notificationBtn" class="notification-btn" type="button" aria-label="Notifications">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" aria-hidden="true">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                     <path d="M13.73 21a2 2 0 0 0-3.46 0"></path>
                 </svg>
@@ -25,48 +28,77 @@
     </header>
 
     <main class="mobile-content account-page">
-        <!-- Profile Header Section -->
+        <!-- Profile Header Section with Ambient Glow -->
         <section class="account-profile-header">
-            <div class="account-avatar-wrapper">
-                <img id="accountAvatar" src="https://ui-avatars.com/api/?name=User&background=B91EC9&color=fff&bold=true&size=512" alt="User Avatar" class="account-avatar" width="106" height="106" referrerpolicy="no-referrer">
-                <div class="avatar-camera-badge" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                        <circle cx="12" cy="13" r="4"></circle>
-                    </svg>
-                </div>
-            </div>
-            <div class="account-profile-info">
-                <div class="account-user-meta">
-                    <div class="account-name-row">
-                        <h1 id="accountName" class="account-name">User Name</h1>
-                        <span id="accountProBadge" class="pro-badge hidden">PRO</span>
-                    </div>
-                    <p id="accountEmail" class="account-email">user@example.com</p>
-                    <div id="accountCodeWrapper" class="account-code-wrapper" role="button" tabindex="0" aria-label="ID Akun">
-                        <span class="account-code-label">ID:</span>
-                        <span id="accountCode" class="account-code-value">#SPW-000000</span>
-                        <svg class="account-code-copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            <div class="account-profile-glow" aria-hidden="true"></div>
+
+            <div class="account-profile-main">
+                <div class="account-avatar-wrapper">
+                    <img id="accountAvatar"
+                        src="https://ui-avatars.com/api/?name=User&background=B91EC9&color=fff&bold=true&size=512"
+                        alt="User Avatar" class="account-avatar" width="106" height="106" referrerpolicy="no-referrer">
+                    <div class="avatar-camera-badge" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z">
+                            </path>
+                            <circle cx="12" cy="13" r="4"></circle>
                         </svg>
                     </div>
                 </div>
-                <button id="editProfileBtn" class="edit-profile-btn" type="button">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
+
+                <div class="account-profile-info">
+                    <div class="account-user-meta">
+                        <div class="account-name-row">
+                            <h1 id="accountName" class="account-name">User Name</h1>
+                            <span id="accountProBadge" class="pro-badge hidden">PRO</span>
+                        </div>
+                        <p id="accountEmail" class="account-email">user@example.com</p>
+                        <div id="accountCodeWrapper" class="account-code-wrapper" role="button" tabindex="0"
+                            aria-label="ID Akun">
+                            <span class="account-code-label">ID:</span>
+                            <span id="accountCode" class="account-code-value">#SPW-000000</span>
+                            <svg class="account-code-copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Quick Action Bar -->
+            <div class="account-action-row">
+                <button id="editProfileBtn" class="account-action-btn edit-profile-btn" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                     <span>Edit Profile</span>
                 </button>
+                <button id="shareProfileBtn" class="account-action-btn share-profile-btn" type="button"
+                    aria-label="Bagikan Profil">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="19" r="3"></circle>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                    <span>Bagikan</span>
+                </button>
             </div>
         </section>
-        
+
         <!-- Account Stats Box Section -->
         <section class="account-stats-card" aria-label="Statistik Akun">
             <div class="stat-item" role="button" tabindex="0" data-stat="playlists">
                 <div class="stat-icon-wrapper stat-icon--playlists">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
                         <path d="M21 15V6"></path>
                         <path d="M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"></path>
                         <path d="M12 12H3"></path>
@@ -80,7 +112,8 @@
             <div class="stat-divider" aria-hidden="true"></div>
             <div class="stat-item" role="button" tabindex="0" data-stat="followers">
                 <div class="stat-icon-wrapper stat-icon--followers">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -93,7 +126,8 @@
             <div class="stat-divider" aria-hidden="true"></div>
             <div class="stat-item" role="button" tabindex="0" data-stat="following">
                 <div class="stat-icon-wrapper stat-icon--following">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
                         <line x1="19" y1="8" x2="19" y2="14"></line>
@@ -106,12 +140,61 @@
             <div class="stat-divider" aria-hidden="true"></div>
             <div class="stat-item" role="button" tabindex="0" data-stat="likes">
                 <div class="stat-icon-wrapper stat-icon--likes">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
+                        <path
+                            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                        </path>
                     </svg>
                 </div>
                 <span class="stat-label">Likes</span>
                 <span id="statLikes" class="stat-value">0</span>
+            </div>
+        </section>
+
+        <!-- Sound Identity & Vibe Bento Card -->
+        <section class="sound-identity-card" id="soundIdentityCard" role="region" aria-label="Music Identity">
+            <div class="sound-identity-bg" aria-hidden="true"></div>
+            <div class="sound-identity-content">
+                <div class="sound-identity-header">
+                    <div class="sound-identity-badge">
+                        <span class="sound-pulse-dot" aria-hidden="true"></span>
+                        <span>WIND VIBES</span>
+                    </div>
+                    <span class="sound-identity-subtitle">Aktivitas Musik</span>
+                </div>
+                <div class="sound-identity-body">
+                    <div class="sound-identity-genre">
+                        <span class="genre-tag">Indonesian Pop • Acoustic Chill</span>
+                        <h2 class="sound-identity-title">Penjelajah Melodi Santai</h2>
+                    </div>
+                    <div class="sound-bars-animation" aria-hidden="true">
+                        <span class="bar bar-1"></span>
+                        <span class="bar bar-2"></span>
+                        <span class="bar bar-3"></span>
+                        <span class="bar bar-4"></span>
+                        <span class="bar bar-5"></span>
+                    </div>
+                </div>
+                <div class="sound-identity-footer">
+                    <div class="sound-metric">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" class="metric-icon" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span id="soundStreamingTime">28+ Jam Diputar</span>
+                    </div>
+                    <div class="sound-metric">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" class="metric-icon" aria-hidden="true">
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                        </svg>
+                        <span id="soundTotalTracks">140+ Lagu Favorit</span>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -128,75 +211,198 @@
             <div class="pro-banner-right" aria-hidden="true">
                 <div class="pro-crown-emblem">
                     <svg viewBox="0 0 24 24" fill="currentColor" class="pro-crown-icon" aria-hidden="true">
-                        <path d="M5 16h14a1 1 0 0 0 1-1L21 6l-4.5 4L12 3 7.5 10 3 6l1 9a1 1 0 0 0 1 1zm-1 2a1 1 0 0 0 0 2h16a1 1 0 1 0 0-2H4z"/>
+                        <path
+                            d="M5 16h14a1 1 0 0 0 1-1L21 6l-4.5 4L12 3 7.5 10 3 6l1 9a1 1 0 0 0 1 1zm-1 2a1 1 0 0 0 0 2h16a1 1 0 1 0 0-2H4z" />
                     </svg>
                 </div>
             </div>
         </section>
 
-        <!-- Recently Played Section -->
-        <section class="account-recent-section" aria-label="Recently Played">
-            <div class="section-header">
-                <h2 class="section-title">Recently played</h2>
-                <a href="#" class="see-all-link" id="seeAllAccountRecentBtn">See all</a>
+        <!-- Grouped Settings Section: Audio & Playback Preferences -->
+        <section class="settings-group" aria-labelledby="audioSettingsTitle">
+            <h2 id="audioSettingsTitle" class="settings-group-title">Preferensi Audio & Pemutaran</h2>
+            <div class="settings-card">
+                <!-- Sleep Timer Option -->
+                <div class="settings-item" role="button" tabindex="0" id="sleepTimerSetting">
+                    <div class="settings-item-icon icon--magenta">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                    </div>
+                    <div class="settings-item-info">
+                        <span class="settings-item-label">Timer Tidur (Sleep Timer)</span>
+                        <span class="settings-item-sub" id="sleepTimerValue">Mati • Otomatis jeda musik</span>
+                    </div>
+                    <div class="settings-item-action">
+                        <span class="setting-pill-badge" id="sleepTimerBadge" style="display: none;">Aktif</span>
+                        <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="settings-divider" aria-hidden="true"></div>
+
+                <!-- Data Saver Mode Toggle -->
+                <div class="settings-item settings-item--toggle">
+                    <div class="settings-item-icon icon--blue">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="18" y1="20" x2="18" y2="4"></line>
+                            <line x1="12" y1="20" x2="12" y2="10"></line>
+                            <line x1="6" y1="20" x2="6" y2="16"></line>
+                        </svg>
+                    </div>
+                    <div class="settings-item-info">
+                        <span class="settings-item-label">Penghemat Data (Data Saver)</span>
+                        <span class="settings-item-sub">Hemat kuota seluler saat streaming</span>
+                    </div>
+                    <label class="custom-toggle" for="dataSaverToggle">
+                        <input type="checkbox" id="dataSaverToggle" aria-label="Aktifkan Mode Penghemat Data">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="settings-divider" aria-hidden="true"></div>
+
+                <!-- Crossfade Toggle -->
+                <div class="settings-item settings-item--toggle">
+                    <div class="settings-item-icon icon--teal">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="16 3 21 3 21 8"></polyline>
+                            <line x1="4" y1="20" x2="21" y2="3"></line>
+                            <polyline points="21 16 21 21 16 21"></polyline>
+                            <line x1="15" y1="15" x2="21" y2="21"></line>
+                            <line x1="4" y1="4" x2="9" y2="9"></line>
+                        </svg>
+                    </div>
+                    <div class="settings-item-info">
+                        <span class="settings-item-label">Transisi Lagu Halus (Crossfade)</span>
+                        <span class="settings-item-sub">Peralihan tanpa jeda (Gapless)</span>
+                    </div>
+                    <label class="custom-toggle" for="crossfadeToggle">
+                        <input type="checkbox" id="crossfadeToggle" checked aria-label="Aktifkan Crossfade">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
             </div>
-            <div class="song-grid account-recent-grid" id="accountRecentList">
-                <div class="song-card-skeleton">
-                    <div class="skeleton-cover"></div>
-                    <div class="skeleton-info">
-                        <div class="skeleton skeleton-title"></div>
-                        <div class="skeleton skeleton-artist"></div>
+        </section>
+
+        <!-- Grouped Settings Section: Privacy & Security -->
+        <section class="settings-group" aria-labelledby="privacySettingsTitle">
+            <h2 id="privacySettingsTitle" class="settings-group-title">Privasi & Perangkat</h2>
+            <div class="settings-card">
+                <!-- Private Session Toggle -->
+                <div class="settings-item settings-item--toggle">
+                    <div class="settings-item-icon icon--indigo">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
                     </div>
-                </div>
-                <div class="song-card-skeleton">
-                    <div class="skeleton-cover"></div>
-                    <div class="skeleton-info">
-                        <div class="skeleton skeleton-title"></div>
-                        <div class="skeleton skeleton-artist"></div>
+                    <div class="settings-item-info">
+                        <span class="settings-item-label">Sesi Pribadi (Private Session)</span>
+                        <span class="settings-item-sub">Sembunyikan aktivitas mendengarkan</span>
                     </div>
+                    <label class="custom-toggle" for="privateSessionToggle">
+                        <input type="checkbox" id="privateSessionToggle" aria-label="Aktifkan Sesi Pribadi">
+                        <span class="toggle-slider"></span>
+                    </label>
                 </div>
-                <div class="song-card-skeleton">
-                    <div class="skeleton-cover"></div>
-                    <div class="skeleton-info">
-                        <div class="skeleton skeleton-title"></div>
-                        <div class="skeleton skeleton-artist"></div>
+
+                <div class="settings-divider" aria-hidden="true"></div>
+
+                <!-- Connected Devices -->
+                <div class="settings-item" role="button" tabindex="0" id="connectedDevicesSetting">
+                    <div class="settings-item-icon icon--cyan">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </svg>
+                    </div>
+                    <div class="settings-item-info">
+                        <span class="settings-item-label">Perangkat Terhubung</span>
+                        <span class="settings-item-sub">Spotiwind Mobile Web • Aktif</span>
+                    </div>
+                    <div class="settings-item-action">
+                        <span class="device-active-dot" aria-hidden="true"></span>
+                        <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Top Artists Section -->
-        <section class="account-artists-section" aria-label="Top Artists">
-            <div class="section-header">
-                <h2 class="section-title">Top artists</h2>
-                <a href="#" class="see-all-link" id="seeAllAccountArtistsBtn">See all</a>
+        <!-- Grouped Settings Section: Storage & Cache -->
+        <section class="settings-group" aria-labelledby="storageSettingsTitle">
+            <h2 id="storageSettingsTitle" class="settings-group-title">Penyimpanan & Offline</h2>
+            <div class="settings-card">
+                <div class="storage-stats-container">
+                    <div class="storage-stats-row">
+                        <span class="storage-label">Penyimpanan Cache & Musik</span>
+                        <span class="storage-value" id="storageUsageValue">~12.4 MB</span>
+                    </div>
+                    <div class="storage-progress-bar" aria-hidden="true">
+                        <div class="storage-progress-fill" style="width: 24%;"></div>
+                    </div>
+                </div>
+
+                <div class="settings-divider" aria-hidden="true"></div>
+
+                <!-- Clear Cache Button -->
+                <div class="settings-item" role="button" tabindex="0" id="clearCacheSetting">
+                    <div class="settings-item-icon icon--amber">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                            </path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                    </div>
+                    <div class="settings-item-info">
+                        <span class="settings-item-label">Bersihkan Cache</span>
+                        <span class="settings-item-sub">Bebaskan ruang tanpa menghapus favorit</span>
+                    </div>
+                    <div class="settings-item-action">
+                        <button class="clear-cache-action-btn" type="button" aria-label="Bersihkan">Bersihkan</button>
+                    </div>
+                </div>
             </div>
-            <div class="artists-grid account-artists-grid" id="accountArtistsList">
-                <div class="artist-card-skeleton">
-                    <div class="skeleton skeleton-photo"></div>
-                    <div class="skeleton skeleton-name"></div>
-                </div>
-                <div class="artist-card-skeleton">
-                    <div class="skeleton skeleton-photo"></div>
-                    <div class="skeleton skeleton-name"></div>
-                </div>
-                <div class="artist-card-skeleton">
-                    <div class="skeleton skeleton-photo"></div>
-                    <div class="skeleton skeleton-name"></div>
-                </div>
-            </div>
+        </section>
+
+        <!-- Account Session Actions -->
+        <section class="account-session-section">
+            <button id="accountLogoutBtn" class="account-logout-btn" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" aria-hidden="true">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span id="accountLogoutText">Keluar dari Akun</span>
+            </button>
         </section>
     </main>
 
     <!-- Profile Avatar Fullscreen Square Preview -->
     <div id="avatarPreviewModal" class="avatar-preview-modal hidden" aria-hidden="true">
         <div class="avatar-preview-backdrop"></div>
-        
+
         <!-- Header Mode Pratinjau Gelap -->
         <header class="avatar-preview-header">
             <div class="avatar-preview-header-left">
                 <button id="avatarPreviewBackBtn" class="preview-header-btn" type="button" aria-label="Kembali">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
                         <line x1="19" y1="12" x2="5" y2="12"></line>
                         <polyline points="12 19 5 12 12 5"></polyline>
                     </svg>
@@ -205,12 +411,14 @@
             </div>
             <div class="avatar-preview-header-right">
                 <button id="avatarPreviewEditBtn" class="preview-header-btn" type="button" aria-label="Edit foto">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
                         <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
                     </svg>
                 </button>
                 <button id="avatarPreviewShareBtn" class="preview-header-btn" type="button" aria-label="Bagikan foto">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
                         <circle cx="18" cy="5" r="3"></circle>
                         <circle cx="6" cy="12" r="3"></circle>
                         <circle cx="18" cy="19" r="3"></circle>
@@ -223,7 +431,8 @@
 
         <div class="avatar-preview-dialog" role="dialog" aria-modal="true" aria-label="Foto Profil">
             <div class="avatar-preview-square-wrapper">
-                <img id="avatarPreviewImg" src="" alt="Foto Profil" class="avatar-preview-square-img" width="300" height="300">
+                <img id="avatarPreviewImg" src="" alt="Foto Profil" class="avatar-preview-square-img" width="300"
+                    height="300">
             </div>
         </div>
     </div>
@@ -233,17 +442,19 @@
         <div class="pro-modal-backdrop"></div>
         <div class="pro-modal-sheet" role="dialog" aria-labelledby="proModalTitle">
             <div class="pro-modal-handle-bar" aria-hidden="true"></div>
-            
+
             <header class="pro-modal-header">
                 <div class="pro-modal-crown" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M5 16h14a1 1 0 0 0 1-1L21 6l-4.5 4L12 3 7.5 10 3 6l1 9a1 1 0 0 0 1 1zm-1 2a1 1 0 0 0 0 2h16a1 1 0 1 0 0-2H4z"/>
+                        <path
+                            d="M5 16h14a1 1 0 0 0 1-1L21 6l-4.5 4L12 3 7.5 10 3 6l1 9a1 1 0 0 0 1 1zm-1 2a1 1 0 0 0 0 2h16a1 1 0 1 0 0-2H4z" />
                     </svg>
                 </div>
                 <h2 id="proModalTitle" class="pro-modal-title">Spotiwind PRO</h2>
                 <p class="pro-modal-subtitle">Nikmati pengalaman mendengarkan musik premium tanpa batas.</p>
                 <button id="closeSubscriptionModalBtn" class="pro-modal-close-btn" type="button" aria-label="Tutup">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -269,7 +480,8 @@
             <!-- Plans Cards -->
             <div class="pro-plans-container" role="radiogroup" aria-label="Pilihan Paket Langganan">
                 <!-- Plan 1: Individual Monthly -->
-                <div class="pro-plan-card is-selected" role="radio" aria-checked="true" tabindex="0" data-plan-id="individual" data-plan-name="Individual Monthly" data-plan-price="Rp 29.000">
+                <div class="pro-plan-card is-selected" role="radio" aria-checked="true" tabindex="0"
+                    data-plan-id="individual" data-plan-name="Individual Monthly" data-plan-price="Rp 29.000">
                     <div class="pro-plan-badge">Populer</div>
                     <div class="pro-plan-info">
                         <h3 class="pro-plan-name">Individual</h3>
@@ -282,7 +494,8 @@
                 </div>
 
                 <!-- Plan 2: Student -->
-                <div class="pro-plan-card" role="radio" aria-checked="false" tabindex="0" data-plan-id="student" data-plan-name="Student Plan" data-plan-price="Rp 15.000">
+                <div class="pro-plan-card" role="radio" aria-checked="false" tabindex="0" data-plan-id="student"
+                    data-plan-name="Student Plan" data-plan-price="Rp 15.000">
                     <div class="pro-plan-badge badge-student">Pelajar</div>
                     <div class="pro-plan-info">
                         <h3 class="pro-plan-name">Student (Pelajar)</h3>
@@ -295,7 +508,8 @@
                 </div>
 
                 <!-- Plan 3: Annual Best Value -->
-                <div class="pro-plan-card" role="radio" aria-checked="false" tabindex="0" data-plan-id="annual" data-plan-name="Annual Best Value" data-plan-price="Rp 249.000">
+                <div class="pro-plan-card" role="radio" aria-checked="false" tabindex="0" data-plan-id="annual"
+                    data-plan-name="Annual Best Value" data-plan-price="Rp 249.000">
                     <div class="pro-plan-badge badge-annual">Hemat 28%</div>
                     <div class="pro-plan-info">
                         <h3 class="pro-plan-name">Annual (1 Tahun)</h3>
@@ -312,7 +526,8 @@
             <div class="pro-modal-footer">
                 <button id="activateProTrialBtn" class="pro-modal-subscribe-btn" type="button">
                     <span>Mulai Uji Coba Gratis 7 Hari</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
                         <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
                 </button>
@@ -326,17 +541,19 @@
         <div class="pro-modal-backdrop"></div>
         <div class="pro-modal-sheet" role="dialog" aria-labelledby="manageModalTitle">
             <div class="pro-modal-handle-bar" aria-hidden="true"></div>
-            
+
             <header class="pro-modal-header">
                 <div class="pro-modal-crown" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M5 16h14a1 1 0 0 0 1-1L21 6l-4.5 4L12 3 7.5 10 3 6l1 9a1 1 0 0 0 1 1zm-1 2a1 1 0 0 0 0 2h16a1 1 0 1 0 0-2H4z"/>
+                        <path
+                            d="M5 16h14a1 1 0 0 0 1-1L21 6l-4.5 4L12 3 7.5 10 3 6l1 9a1 1 0 0 0 1 1zm-1 2a1 1 0 0 0 0 2h16a1 1 0 1 0 0-2H4z" />
                     </svg>
                 </div>
                 <h2 id="manageModalTitle" class="pro-modal-title">Status Langganan PRO</h2>
                 <span class="pro-active-status-badge">Aktif 🟢</span>
                 <button id="closeManageModalBtn" class="pro-modal-close-btn" type="button" aria-label="Tutup">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>

@@ -19,6 +19,7 @@ import { recordRecentlyPlayed, subscribeRecentlyPlayed, getRecentlyPlayed } from
 import { recordTrackPlay, subscribePopularTracks } from '../../services/popularTrackService.js';
 import { recordArtistPlay, subscribeTopArtists } from '../../services/topArtistService.js';
 import { getMadeForYouMixes } from '../../services/madeForYouService.js';
+import { audioEngine } from '../../core/audioEngine.js';
 
 import { PLAY_ICON, PAUSE_ICON } from '../../constants/icons.js';
 const TRACK_PLAY_ICON_16 = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>`;
@@ -781,6 +782,15 @@ activeAudio.addEventListener('pause', () => {
 activeAudio.addEventListener('ended', () => {
     setAudioLoadingState(false);
     syncActiveSongUI();
+});
+
+// Sleep timer expiration handler
+window.addEventListener('spotiwind-sleep-timer-expired', () => {
+    if (activeAudio && !activeAudio.paused) {
+        activeAudio.pause();
+    }
+    syncActiveSongUI();
+    showToast('Waktu tidur habis. Musik dijeda otomatis 🌙💤');
 });
 
 /**
@@ -1742,6 +1752,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Check if audio is cached in offline CacheStorage for 100% offline playback
             const cachedBlobUrl = await getCachedAudioBlobUrl(audioUrl);
+            const isDataSaver = localStorage.getItem('spotiwind_data_saver') === 'true';
+            activeAudio.preload = isDataSaver ? 'metadata' : 'auto';
             activeAudio.src = cachedBlobUrl || audioUrl;
 
             // Update Document Title (Consistent with desktop)
@@ -1806,6 +1818,19 @@ document.addEventListener('DOMContentLoaded', () => {
         activeAudio.onended = () => {
             resetBtnUI(btn);
             currentPlayingBtn = null;
+
+            // Check if Sleep Timer is set to 'end_of_track'
+            const sleepTimerState = audioEngine.getSleepTimerState();
+            if (sleepTimerState && sleepTimerState.active && sleepTimerState.minutes === 'end_of_track') {
+                audioEngine.setSleepTimer(0);
+                if (activeAudio && !activeAudio.paused) {
+                    activeAudio.pause();
+                }
+                syncActiveSongUI();
+                showToast('Timer Tidur: Lagu berakhir, pemutaran dihentikan 🌙💤');
+                return;
+            }
+
             if (isRepeat) {
                 if (currentSongIndex !== -1) {
                     triggerSongByIndex(currentSongIndex); // Replay the same song
