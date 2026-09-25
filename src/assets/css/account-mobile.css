@@ -354,17 +354,6 @@
     transform: scale(0.97);
 }
 
-.share-profile-btn {
-    background: linear-gradient(135deg, rgba(241, 46, 119, 0.12), rgba(185, 30, 201, 0.16));
-    border-color: rgba(185, 30, 201, 0.35);
-    color: #f1f5f9;
-}
-
-.share-profile-btn:hover {
-    background: linear-gradient(135deg, rgba(241, 46, 119, 0.22), rgba(185, 30, 201, 0.26));
-    border-color: rgba(185, 30, 201, 0.55);
-}
-
 /* ==========================================================================
    Account Stats Box (Playlists, Followers, Following, Likes)
    ========================================================================== */
@@ -624,28 +613,7 @@
     }
 }
 
-.sound-identity-footer {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding-top: 0.4rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
 
-.sound-metric {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.72rem;
-    color: #cbd5e1;
-    font-weight: 500;
-}
-
-.metric-icon {
-    width: 14px;
-    height: 14px;
-    color: #c084fc;
-}
 
 /* ==========================================================================
    Spotiwind PRO Banner Card

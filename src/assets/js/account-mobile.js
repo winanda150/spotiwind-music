@@ -443,8 +443,6 @@ const updateAccountStats = (user) => {
     const statFollowers = document.getElementById('statFollowers');
     const statFollowing = document.getElementById('statFollowing');
     const statLikes = document.getElementById('statLikes');
-    const soundStreamingTime = document.getElementById('soundStreamingTime');
-    const soundTotalTracks = document.getElementById('soundTotalTracks');
 
     unsubscribePlaylists?.();
     unsubscribeLikedSongs?.();
@@ -457,8 +455,6 @@ const updateAccountStats = (user) => {
         if (statFollowers) statFollowers.textContent = '0';
         if (statFollowing) statFollowing.textContent = '0';
         if (statLikes) statLikes.textContent = '0';
-        if (soundStreamingTime) soundStreamingTime.textContent = 'Baru Memulai 🎵';
-        if (soundTotalTracks) soundTotalTracks.textContent = '0 Lagu Diputar';
         return;
     }
 
@@ -492,7 +488,7 @@ const updateAccountStats = (user) => {
         }
     });
 
-    // 5. Realtime Profile info (listening time, tracks played, isPremium check and userCode) from Firestore
+    // 5. Realtime Profile info (isPremium check and userCode) from Firestore
     unsubscribeProfile = subscribeUserProfile(user.uid, (profile) => {
         if (!profile) return;
         currentProfileData = profile;
@@ -504,18 +500,6 @@ const updateAccountStats = (user) => {
 
         if (accountCode) {
             accountCode.textContent = profile.userCode || generateUserCode(user.uid);
-        }
-
-        // Dynamic Realtime Listening Time & Tracks for THIS User
-        const localSec = Number(localStorage.getItem(`spotiwind_listening_sec_${user.uid}`)) || 0;
-        const totalListeningSec = Math.max(profile.totalListeningSeconds || 0, localSec);
-        if (soundStreamingTime) {
-            soundStreamingTime.textContent = formatListeningTime(totalListeningSec);
-        }
-
-        const totalTracks = profile.totalTracksPlayed || (statLikes ? Number(statLikes.textContent) || 0 : 0);
-        if (soundTotalTracks) {
-            soundTotalTracks.textContent = totalTracks > 0 ? `${totalTracks} Lagu Diputar` : 'Mulai putar lagu';
         }
 
         const isPro = profile.isPremium === true;
