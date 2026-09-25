@@ -3,6 +3,7 @@ import {
     db,
     doc,
     setDoc,
+    deleteDoc,
     collection,
     query,
     where,
@@ -15,7 +16,22 @@ import {
     serverTimestamp
 } from "../assets/js/firebase-config.js";
 
+export const clearMyActivity = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+    try {
+        const activityRef = doc(db, "friends_activity", user.uid);
+        await deleteDoc(activityRef);
+    } catch (error) {
+        console.warn("Failed to clear activity:", error);
+    }
+};
+
 export const updateMyActivity = async (songName) => {
+    // Sembunyikan aktivitas jika Sesi Pribadi aktif
+    const isPrivate = localStorage.getItem('spotiwind_private_session') === 'true';
+    if (isPrivate) return null;
+
     const user = auth.currentUser;
     if (!user || !songName) return null;
 

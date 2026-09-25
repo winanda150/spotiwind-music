@@ -32,12 +32,14 @@ service cloud.firestore {
         && request.resource.data.isPremium == false
         && request.resource.data.displayName is string && request.resource.data.displayName.size() <= 60
         && (!('userCode' in request.resource.data) || (request.resource.data.userCode is string && request.resource.data.userCode.size() <= 20))
-        && (!('dataSaver' in request.resource.data) || request.resource.data.dataSaver is bool);
+        && (!('dataSaver' in request.resource.data) || request.resource.data.dataSaver is bool)
+        && (!('privateSession' in request.resource.data) || request.resource.data.privateSession is bool);
 
       allow update: if isOwner(userId)
         && request.resource.data.uid == userId
         && (!('isPremium' in request.resource.data) || request.resource.data.isPremium is bool)
         && (!('dataSaver' in request.resource.data) || request.resource.data.dataSaver is bool)
+        && (!('privateSession' in request.resource.data) || request.resource.data.privateSession is bool)
         && (!('displayName' in request.resource.data) || (request.resource.data.displayName is string && request.resource.data.displayName.size() <= 60))
         && (!('photoURL' in request.resource.data) || (request.resource.data.photoURL is string && request.resource.data.photoURL.size() <= 1500));
 

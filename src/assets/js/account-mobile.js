@@ -2,6 +2,7 @@ import { auth, onAuthStateChanged, signOut } from './firebase-config.js';
 import { subscribeUserPlaylists, subscribeLikedSongs } from '../../services/libraryService.js';
 import { subscribeUserProfile, getProfileByUid, generateUserCode, setUserPremiumStatus, formatListeningTime, updateProfileInfo } from '../../services/profileService.js';
 import { subscribeUserFollowers, subscribeUserFollowing } from '../../services/userService.js';
+import { clearMyActivity } from '../../services/activityService.js';
 import { audioEngine } from '../../core/audioEngine.js';
 
 import { defaultAvatar, getHighResAvatarUrl, formatRupiah } from '../../utils/formatters.js';
@@ -30,7 +31,6 @@ let sleepTimerHandler = null;
 let unsubscribeAudioEngine = null;
 
 let dataSaverToggleHandler = null;
-let crossfadeToggleHandler = null;
 let privateSessionToggleHandler = null;
 let connectedDevicesHandler = null;
 let clearCacheHandler = null;
@@ -523,6 +523,15 @@ const updateAccountStats = (user) => {
             }
             localStorage.setItem('spotiwind_data_saver', String(profile.dataSaver));
         }
+
+        // Sync Private Session preference from user profile
+        if (profile.privateSession !== undefined) {
+            const privateSessionToggle = document.getElementById('privateSessionToggle');
+            if (privateSessionToggle) {
+                privateSessionToggle.checked = Boolean(profile.privateSession);
+            }
+            localStorage.setItem('spotiwind_private_session', String(profile.privateSession));
+        }
     });
 };
 
@@ -554,11 +563,15 @@ const updateAccountUserInfo = (user) => {
         if (logoutText) logoutText.textContent = 'Masuk / Buat Akun';
         if (logoutBtn) logoutBtn.classList.add('is-login-cta');
 
-        // Reset Data Saver to default OFF for Guest session
+        // Reset Data Saver & Private Session to default OFF for Guest session
         const dataSaverToggle = document.getElementById('dataSaverToggle');
         if (dataSaverToggle) dataSaverToggle.checked = false;
         localStorage.setItem('spotiwind_data_saver', 'false');
         window.dispatchEvent(new CustomEvent('spotiwind-data-saver-changed', { detail: { enabled: false } }));
+
+        const privateSessionToggle = document.getElementById('privateSessionToggle');
+        if (privateSessionToggle) privateSessionToggle.checked = false;
+        localStorage.setItem('spotiwind_private_session', 'false');
         return;
     }
 
@@ -737,22 +750,8 @@ const bindAccountInteractions = () => {
         dataSaverToggle.addEventListener('change', dataSaverToggleHandler);
     }
 
-    // Crossfade Toggle
-    const crossfadeToggle = document.getElementById('crossfadeToggle');
-    if (crossfadeToggle) {
-        // Load saved state
-        const savedCrossfade = localStorage.getItem('spotiwind_crossfade');
-        if (savedCrossfade !== null) {
-            crossfadeToggle.checked = savedCrossfade === 'true';
-        }
-        crossfadeToggleHandler = (e) => {
-            localStorage.setItem('spotiwind_crossfade', String(e.target.checked));
-            showToast(`Transisi Crossfade ${e.target.checked ? 'Diaktifkan (3s)' : 'Dinonaktifkan'}`);
-        };
-        crossfadeToggle.addEventListener('change', crossfadeToggleHandler);
-    }
 
-    // Private Session Toggle
+    // Private Session Toggle (Sembunyikan aktivitas musik dari teman)
     const privateSessionToggle = document.getElementById('privateSessionToggle');
     if (privateSessionToggle) {
         const savedPrivate = localStorage.getItem('spotiwind_private_session');
@@ -760,8 +759,17 @@ const bindAccountInteractions = () => {
             privateSessionToggle.checked = savedPrivate === 'true';
         }
         privateSessionToggleHandler = (e) => {
-            localStorage.setItem('spotiwind_private_session', String(e.target.checked));
-            showToast(`Sesi Pribadi ${e.target.checked ? 'Diaktifkan (Aktivitas disembunyikan)' : 'Dinonaktifkan'}`);
+            const isEnabled = e.target.checked;
+            localStorage.setItem('spotiwind_private_session', String(isEnabled));
+            if (auth.currentUser?.uid) {
+                updateProfileInfo(auth.currentUser.uid, { privateSession: isEnabled }).catch(err => {
+                    console.warn("Save privateSession to Firestore:", err);
+                });
+            }
+            if (isEnabled) {
+                clearMyActivity();
+            }
+            showToast(`Sesi Pribadi ${isEnabled ? 'Diaktifkan 🔒 (Aktivitas disembunyikan dari teman)' : 'Dinonaktifkan 👥 (Aktivitas terlihat oleh teman)'}`);
         };
         privateSessionToggle.addEventListener('change', privateSessionToggleHandler);
     }
@@ -1074,11 +1082,6 @@ export const cleanupAccountPage = () => {
     }
     dataSaverToggleHandler = null;
 
-    const crossfadeToggle = document.getElementById('crossfadeToggle');
-    if (crossfadeToggle && crossfadeToggleHandler) {
-        crossfadeToggle.removeEventListener('change', crossfadeToggleHandler);
-    }
-    crossfadeToggleHandler = null;
 
     const privateSessionToggle = document.getElementById('privateSessionToggle');
     if (privateSessionToggle && privateSessionToggleHandler) {
