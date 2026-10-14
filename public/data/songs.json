@@ -1121,5 +1121,59 @@
     "audio": "music/Robinhood/Salahkah%20Kita.mp3",
     "cover": "music/Robinhood/Image%20Songs/Salahkah%20Kita.webp",
     "duration": 256
+  },
+  {
+    "id": "nadin-amizah-taruh",
+    "name": "Taruh",
+    "artistId": "nadin-amizah",
+    "artist": "Nadin Amizah",
+    "audio": "music/Nadin%20Amizah/Taruh.mp3",
+    "cover": "music/Nadin%20Amizah/Image%20Songs/Taruh.webp",
+    "duration": 247
+  },
+  {
+    "id": "the-fray-look-after-you",
+    "name": "Look After You",
+    "artistId": "the-fray",
+    "artist": "The Fray",
+    "audio": "music/The%20Fray/Look%20After%20You.mp3",
+    "cover": "music/The%20Fray/Image%20Songs/Look%20After%20You.webp",
+    "duration": 267
+  },
+  {
+    "id": "the-neighbourhood-reflections",
+    "name": "Reflections",
+    "artistId": "the-neighbourhood",
+    "artist": "The Neighbourhood",
+    "audio": "music/The%20Neighbourhood/Reflections.mp3",
+    "cover": "music/The%20Neighbourhood/Image%20Songs/Reflections.webp",
+    "duration": 245
+  },
+  {
+    "id": "the-neighbourhood-nervous",
+    "name": "Nervous",
+    "artistId": "the-neighbourhood",
+    "artist": "The Neighbourhood",
+    "audio": "music/The%20Neighbourhood/Nervous.mp3",
+    "cover": "music/The%20Neighbourhood/Image%20Songs/Nervous.webp",
+    "duration": 250
+  },
+  {
+    "id": "arctic-monkeys-i-wanna-be-yours",
+    "name": "I Wanna Be Yours",
+    "artistId": "arctic-monkeys",
+    "artist": "Arctic Monkeys",
+    "audio": "music/Arctic%20Monkeys/I%20Wanna%20Be%20Yours.mp3",
+    "cover": "music/Arctic%20Monkeys/Image%20Songs/I%20Wanna%20Be%20Yours.webp",
+    "duration": 183
+  },
+  {
+    "id": "goo-goo-dolls-iris",
+    "name": "Iris",
+    "artistId": "goo-goo-dolls",
+    "artist": "Goo Goo Dolls",
+    "audio": "music/Goo%20Goo%20Dolls/Iris.mp3",
+    "cover": "music/Goo%20Goo%20Dolls/Image%20Songs/Iris.webp",
+    "duration": 215
   }
 ]

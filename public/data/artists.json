@@ -168,5 +168,10 @@
     "id": "samsons",
     "name": "SAMSONS",
     "photo": "music/SAMSONS/Artis/SAMSONS.webp"
+  },
+  {
+    "id": "the-neighbourhood",
+    "name": "The Neighbourhood",
+    "photo": "music/The%20Neighbourhood/Artis/The%20Neighbourhood.webp"
   }
 ]
