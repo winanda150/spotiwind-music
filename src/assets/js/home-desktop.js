@@ -1650,10 +1650,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const volumeLevel = document.querySelector('.volume-level');
     const volumeSvg = document.querySelector('.volume-control svg');
 
-    let lastVolume = 0.7; // Save the last volume for the unmute feature
+    let lastVolume = 1.0; // Save the last volume for the unmute feature
 
-    // Initialize initial volume (70% according to the default style in HTML)
-    activeAudio.volume = 0.7;
+    // Initialize initial volume (100% according to the default style in HTML)
+    activeAudio.volume = 1.0;
 
     const updateVolumeUI = (percentage) => {
         activeAudio.volume = percentage;
@@ -1687,7 +1687,7 @@ document.addEventListener('DOMContentLoaded', () => {
             lastVolume = activeAudio.volume;
             updateVolumeUI(0);
         } else {
-            updateVolumeUI(lastVolume || 0.7);
+            updateVolumeUI(lastVolume || 1.0);
         }
     });
 

@@ -1112,5 +1112,14 @@
     "audio": "music/SAMSONS/Kenangan%20Terindah.mp3",
     "cover": "music/SAMSONS/Image%20Songs/Kenangan%20Terindah.webp",
     "duration": 244
+  },
+  {
+    "id": "robinhood-salahkah-kita",
+    "name": "Salahkah Kita",
+    "artistId": "robinhood",
+    "artist": "Robinhood & Asmirandah",
+    "audio": "music/Robinhood/Salahkah%20Kita.mp3",
+    "cover": "music/Robinhood/Image%20Songs/Salahkah%20Kita.webp",
+    "duration": 256
   }
 ]
