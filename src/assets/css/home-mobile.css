@@ -3800,7 +3800,6 @@ body.player-active .mix-detail-modal .mix-detail-scrollable {
     -webkit-user-select: none;
     user-select: none;
     -webkit-user-drag: none;
-    user-drag: none;
 }
 
 .mood-card:active,
@@ -3814,7 +3813,6 @@ body.player-active .mix-detail-modal .mix-detail-scrollable {
 .artist-photo,
 .artist-card img {
     -webkit-user-drag: none;
-    user-drag: none;
 }
 
 .play-overlay,

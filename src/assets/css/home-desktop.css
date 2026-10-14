@@ -1464,12 +1464,6 @@ body.is-dragging-progress .progress-thumb {
     transition: all 0.2s ease;
 }
 
-.pro-badge:hover {
-    background: linear-gradient(135deg, rgba(241, 46, 119, 0.35), rgba(185, 30, 201, 0.42));
-    border-color: rgba(232, 121, 249, 0.6);
-    box-shadow: 0 0 14px rgba(185, 30, 201, 0.35);
-}
-
 .pro-badge.hidden {
     display: none !important;
 }
@@ -3118,7 +3112,6 @@ body.is-dragging-volume .volume-level {
     -webkit-user-select: none;
     user-select: none;
     -webkit-user-drag: none;
-    user-drag: none;
 }
 
 .mood-card:active,
@@ -3132,7 +3125,6 @@ body.is-dragging-volume .volume-level {
 .artist-photo,
 .artist-card img {
     -webkit-user-drag: none;
-    user-drag: none;
 }
 
 .play-overlay,
